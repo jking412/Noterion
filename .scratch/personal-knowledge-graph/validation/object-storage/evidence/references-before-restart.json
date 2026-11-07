@@ -1,0 +1,101 @@
+{
+  "run_id": "1794060267572",
+  "objects": [
+    {
+      "connection_id": "issue-10-rustfs-local",
+      "bucket": "issue-10-compatibility",
+      "object_key": "issue-10/1794060267572/资料 空格+号/small.bin",
+      "operation_id": "issue-10-1794060267572-small",
+      "size": 131209,
+      "sha256": "935a5956f2fbf33b8bd57fc5e285a1c5c1b3b20c530038a209605d97d88b44ff",
+      "content_type": "application/octet-stream",
+      "state": "verified",
+      "upload_id": null,
+      "etag": "\"f6313680421a49161d30e53a146f257e\""
+    },
+    {
+      "connection_id": "issue-10-rustfs-local",
+      "bucket": "issue-10-compatibility",
+      "object_key": "issue-10/1794060267572/1-multipart.bin",
+      "operation_id": "issue-10-1794060267572-1",
+      "size": 17825915,
+      "sha256": "7b36e94c32da6f1911e1ab74c95e97fec092c47e8de960812f20fbbf748838f3",
+      "content_type": "application/octet-stream",
+      "state": "verified",
+      "upload_id": "ZWJmM2Q3NTktYWVmNC00Nzg3LThhYTMtZWM4NTJmYThhYmQyLjExMDE3NDgyLWFmZGQtNGYwYy1hYmNjLTk1YjExYTJkOWJjOXgxNzk0MDYwMjY4ODA0NDk3MzI3",
+      "etag": "\"0968ed0d9e99b0b8914a5b3cfd8210af-3\""
+    },
+    {
+      "connection_id": "issue-10-rustfs-local",
+      "bucket": "issue-10-compatibility",
+      "object_key": "issue-10/1794060267572/2-invalid-completion.bin",
+      "operation_id": "issue-10-1794060267572-2",
+      "size": 131209,
+      "sha256": "935a5956f2fbf33b8bd57fc5e285a1c5c1b3b20c530038a209605d97d88b44ff",
+      "content_type": "application/octet-stream",
+      "state": "failed",
+      "upload_id": "ZWJmM2Q3NTktYWVmNC00Nzg3LThhYTMtZWM4NTJmYThhYmQyLjRhMmM0ZGNjLWYxZjktNGY5MS1iNWU4LTE0N2FkOGY5NGUzMngxNzk0MDYwMjcwODA3MDg3NjQ1",
+      "etag": null
+    },
+    {
+      "connection_id": "issue-10-rustfs-local",
+      "bucket": "issue-10-compatibility",
+      "object_key": "issue-10/1794060267572/3-cancelled.bin",
+      "operation_id": "issue-10-1794060267572-3",
+      "size": 131209,
+      "sha256": "935a5956f2fbf33b8bd57fc5e285a1c5c1b3b20c530038a209605d97d88b44ff",
+      "content_type": "application/octet-stream",
+      "state": "cancelled",
+      "upload_id": "ZWJmM2Q3NTktYWVmNC00Nzg3LThhYTMtZWM4NTJmYThhYmQyLjg4OGVkN2FjLTY5NmMtNDUwMi1hYzAzLWY1NWEwNTliYjE2ZngxNzk0MDYwMjcwODg1Nzk1Mzk2",
+      "etag": null
+    },
+    {
+      "connection_id": "issue-10-rustfs-local",
+      "bucket": "issue-10-compatibility",
+      "object_key": "issue-10/1794060267572/4-issue-10-embedded-error.bin",
+      "operation_id": "issue-10-1794060267572-4",
+      "size": 131209,
+      "sha256": "935a5956f2fbf33b8bd57fc5e285a1c5c1b3b20c530038a209605d97d88b44ff",
+      "content_type": "application/octet-stream",
+      "state": "failed",
+      "upload_id": "ZWJmM2Q3NTktYWVmNC00Nzg3LThhYTMtZWM4NTJmYThhYmQyLjlhMTI1N2E0LTNlMTYtNDkzNi1iMTExLTE4YzM0NjAyOGJjY3gxNzk0MDYwMjcwOTY0OTA5MjQw",
+      "etag": null
+    },
+    {
+      "connection_id": "issue-10-rustfs-local",
+      "bucket": "issue-10-compatibility",
+      "object_key": "issue-10/1794060267572/5-unfinished-across-restart.bin",
+      "operation_id": "issue-10-1794060267572-5",
+      "size": 131209,
+      "sha256": "935a5956f2fbf33b8bd57fc5e285a1c5c1b3b20c530038a209605d97d88b44ff",
+      "content_type": "application/octet-stream",
+      "state": "receiving",
+      "upload_id": "ZWJmM2Q3NTktYWVmNC00Nzg3LThhYTMtZWM4NTJmYThhYmQyLjJhYzUwN2I3LWI5ZjQtNGI5NC04ZDY2LTkwOGZhOTllMjE5ZHgxNzk0MDYwMjcxMDY0OTg4Mzc2",
+      "etag": null
+    },
+    {
+      "connection_id": "issue-10-rustfs-local",
+      "bucket": "issue-10-compatibility",
+      "object_key": "issue-10/1794060267572/6-issue-10-drop-put.bin",
+      "operation_id": "issue-10-1794060267572-6",
+      "size": 131209,
+      "sha256": "935a5956f2fbf33b8bd57fc5e285a1c5c1b3b20c530038a209605d97d88b44ff",
+      "content_type": "application/octet-stream",
+      "state": "unknown",
+      "upload_id": null,
+      "etag": null
+    },
+    {
+      "connection_id": "issue-10-rustfs-local",
+      "bucket": "issue-10-compatibility",
+      "object_key": "issue-10/1794060267572/7-issue-10-drop-complete.bin",
+      "operation_id": "issue-10-1794060267572-7",
+      "size": 17825915,
+      "sha256": "7b36e94c32da6f1911e1ab74c95e97fec092c47e8de960812f20fbbf748838f3",
+      "content_type": "application/octet-stream",
+      "state": "unknown",
+      "upload_id": "ZWJmM2Q3NTktYWVmNC00Nzg3LThhYTMtZWM4NTJmYThhYmQyLmVmNzVkYjVmLTA3MTEtNDRiZi1hNjZkLWU2ZDI4OTQ4MDNmN3gxNzk0MDYwMjcxNTg5NjE1MjI3",
+      "etag": null
+    }
+  ]
+}
