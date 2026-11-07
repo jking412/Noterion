@@ -1,6 +1,6 @@
 {
   "phase": "verify",
-  "process_id": 42900,
+  "process_id": 18416,
   "checks": [
     {
       "name": "new-program-process",
@@ -23,32 +23,37 @@
       "detail": "17825915 bytes; stable binding/key + HEAD metadata + streamed SHA256; prior state verified"
     },
     {
-      "name": "restart-nonready-object-2",
+      "name": "restart-rejected-content-2",
       "passed": true,
-      "detail": "HEAD/GET 404; state failed retained"
+      "detail": "object exists but content hash mismatches; failed-integrity remains nonready"
     },
     {
       "name": "restart-nonready-object-3",
       "passed": true,
-      "detail": "HEAD/GET 404; state cancelled retained"
+      "detail": "HEAD/GET 404; state failed retained"
     },
     {
       "name": "restart-nonready-object-4",
       "passed": true,
-      "detail": "HEAD/GET 404; state failed retained"
+      "detail": "HEAD/GET 404; state cancelled retained"
     },
     {
       "name": "restart-nonready-object-5",
       "passed": true,
+      "detail": "HEAD/GET 404; state failed retained"
+    },
+    {
+      "name": "restart-nonready-object-6",
+      "passed": true,
       "detail": "HEAD/GET 404; state receiving retained"
     },
     {
-      "name": "restart-read-object-6",
+      "name": "restart-read-object-7",
       "passed": true,
       "detail": "131209 bytes; stable binding/key + HEAD metadata + streamed SHA256; prior state verified"
     },
     {
-      "name": "restart-read-object-7",
+      "name": "restart-read-object-8",
       "passed": true,
       "detail": "17825915 bytes; stable binding/key + HEAD metadata + streamed SHA256; prior state verified"
     }

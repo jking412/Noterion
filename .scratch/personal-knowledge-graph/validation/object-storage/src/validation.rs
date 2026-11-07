@@ -102,12 +102,17 @@ async fn hash_stream(mut stream: impl tokio::io::AsyncRead + Unpin) -> Result<(u
 
 async fn fixture(path: &str, size: u64) -> Result<(u64, String)> {
     let mut file = tokio::fs::File::create(path).await?;
-    let block: Vec<u8> = (0..65536).map(|i| ((i * 31 + 17) % 251) as u8).collect();
+    let mut block: Vec<u8> = (0..65536).map(|i| ((i * 31 + 17) % 251) as u8).collect();
     let mut remaining = size;
+    let mut block_index = 0u64;
     while remaining > 0 {
+        // Distinguish every block so a repeated/wrong multipart file offset
+        // cannot accidentally reproduce the same expected object bytes.
+        block[..8].copy_from_slice(&block_index.to_le_bytes());
         let n = remaining.min(block.len() as u64) as usize;
         file.write_all(&block[..n]).await?;
         remaining -= n as u64;
+        block_index += 1;
     }
     file.sync_all().await?;
     hash_stream(tokio::fs::File::open(path).await?).await
@@ -128,24 +133,12 @@ async fn initialize(s3: &Client) -> Result<References> {
         .duration_since(UNIX_EPOCH)?
         .as_millis()
         .to_string();
-    let (size, sha256) = fixture(".local/small.bin", 131209).await?;
-    let object = ObjectRef {
-        connection_id: "issue-10-rustfs-local".into(),
-        bucket: BUCKET.into(),
-        object_key: format!("issue-10/{run_id}/资料 空格+号/small.bin"),
-        operation_id: format!("issue-10-{run_id}-small"),
-        size,
-        sha256,
-        content_type: "application/octet-stream".into(),
-        state: "receiving".into(),
-        upload_id: None,
-        etag: None,
-    };
+    fixture(".local/small.bin", 131209).await?;
     let mut refs = References {
         run_id,
-        objects: vec![object],
+        objects: vec![],
     };
-    save_refs(&refs)?;
+    new_attempt(&mut refs, ".local/small.bin", "资料 空格+号/small").await?;
     let object = &refs.objects[0];
     let output = s3
         .put_object()
@@ -548,6 +541,61 @@ async fn multipart(s3: &Client, refs: &mut References, report: &mut Report) -> R
         true,
         "17825915 bytes; SHA256/type/operation metadata verified",
     )?;
+    wrong_offset_rejected(s3, refs, report).on_heap().await?;
+    Ok(())
+}
+
+async fn wrong_offset_rejected(
+    s3: &Client,
+    refs: &mut References,
+    report: &mut Report,
+) -> Result<()> {
+    let index = begin_multipart(s3, refs, ".local/multipart.bin", "wrong-offset-negative").await?;
+    let object = &refs.objects[index];
+    let mut parts = Vec::new();
+    let mut remaining = object.size;
+    while remaining > 0 {
+        let length = remaining.min(PART_SIZE);
+        let number = parts.len() as i32 + 1;
+        // This deliberately faulty request is the external negative control:
+        // every part reads from zero, while metadata still identifies the source.
+        let body = ByteStream::read_from()
+            .path(".local/multipart.bin")
+            .offset(0)
+            .length(Length::Exact(length))
+            .build()
+            .await?;
+        let result = s3
+            .upload_part()
+            .bucket(BUCKET)
+            .key(&object.object_key)
+            .upload_id(object.upload_id.as_deref().unwrap())
+            .part_number(number)
+            .body(body)
+            .send()
+            .on_heap()
+            .await?;
+        parts.push(
+            CompletedPart::builder()
+                .part_number(number)
+                .e_tag(result.e_tag().context("missing negative ETag")?)
+                .build(),
+        );
+        remaining -= length;
+    }
+    complete(s3, object, parts).on_heap().await?;
+    let rejected = verify(s3, object)
+        .on_heap()
+        .await
+        .err()
+        .is_some_and(|error| error.to_string() == "download content mismatch");
+    refs.objects[index].state = "failed-integrity".into();
+    save_refs(refs)?;
+    report.check(
+        "wrong-file-offset-object-rejected",
+        rejected,
+        "real multipart with each part offset=0 must fail full streamed SHA256; never ready",
+    )?;
     Ok(())
 }
 
@@ -780,6 +828,13 @@ async fn resume(s3: &Client, refs: &mut References, report: &mut Report) -> Resu
                     &format!("restart-nonready-object-{index}"),
                     invisible(s3, object).on_heap().await?,
                     format!("HEAD/GET 404; state {} retained", object.state),
+                )?;
+            }
+            "failed-integrity" => {
+                report.check(
+                    &format!("restart-rejected-content-{index}"),
+                    verify(s3, object).on_heap().await.is_err(),
+                    "object exists but content hash mismatches; failed-integrity remains nonready",
                 )?;
             }
             _ => anyhow::bail!("unrecognized persisted state"),

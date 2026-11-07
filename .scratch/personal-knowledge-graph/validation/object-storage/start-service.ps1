@@ -26,6 +26,18 @@ if (!(Test-Path -LiteralPath $credentialsPath)) {
 if ($existing) {
     $owner = docker inspect --format '{{index .Config.Labels "noterion.issue"}}' $container
     if ($owner -ne '10') { throw 'Existing container ownership does not match Issue 10' }
+    $expectedImage = docker image inspect $image --format '{{.Id}}'
+    if ($LASTEXITCODE -ne 0) { throw 'Cannot resolve pinned reference image identity' }
+    $actualImage = docker inspect --format '{{.Image}}' $container
+    if ($actualImage -ne $expectedImage) { throw 'Existing container does not use the pinned Issue 10 image' }
+    $bindings = docker inspect --format '{{json .HostConfig.PortBindings}}' $container | ConvertFrom-Json
+    $apiBindings = @($bindings.'9000/tcp')
+    if ($apiBindings.Count -ne 1 -or $apiBindings[0].HostIp -ne '127.0.0.1' -or $apiBindings[0].HostPort -ne '19100' -or @($bindings.PSObject.Properties).Count -ne 1) {
+        throw 'Existing container does not use the isolated loopback binding'
+    }
+    $mounts = @(docker inspect --format '{{json .Mounts}}' $container | ConvertFrom-Json)
+    $dataMounts = @($mounts | Where-Object { $_.Destination -eq '/data' -and $_.Type -eq 'volume' -and $_.Name -eq $volume -and $_.RW })
+    if ($dataMounts.Count -ne 1) { throw 'Existing container does not mount the Issue 10 data volume' }
     if ($Restart) { docker restart $container | Out-Null }
     else { docker start $container | Out-Null }
 } else {

@@ -2,7 +2,7 @@
 
 任务来源：[GitHub Issue #10](https://github.com/jking412/Noterion/issues/10)。程序仅操作本目录定义的隔离资源。开始时仓库提交为 `69ce7671f75cad8997534a34319d67bf956d4669`。
 
-当前状态：**固定组合已通过**。完整套件通过 **46 项断言，另加文件流上传探针**；成功、拒绝、未完成和未知结果均有实际证据。下游 #11／#13 可复用本组合和访问契约，继续各自的资料保存／视频验证。
+当前状态：**固定组合已通过**。完整套件通过 **49 项断言，另加文件流上传探针**；成功、拒绝、未完成和未知结果均有实际证据。下游 #11／#13 可复用本组合和访问契约，继续各自的资料保存／视频验证。
 
 ## 固定组合
 
@@ -37,11 +37,12 @@
 | Range | SDK 与临时 GET 的中部、suffix、开放终点均精确匹配字节；HTTP 206、Content-Range 和 Content-Length 正确；越界 416。`ranges.json` |
 | 鉴权 | 正确 SigV4／预签名 GET 成功；匿名、错误 secret、篡改、过期、用 GET URL 执行 PUT 均 403；拒绝写入后原对象完整。缺失对象为独立的 404。`ranges.json` |
 | 三分片 | 8 MiB＋8 MiB＋1,048,699 字节；全部片传完仍不可读取，完成后流式校验 17,825,915 字节。`multipart.json` |
+| 错误偏移负例 | 实际把三片都从源文件 offset 0 上传并完成；大小及声明元信息正确，完整 SHA-256 必须不匹配，状态保持 failed-integrity；重启后仍拒绝该对象。`multipart.json`、`resume.json`、`verify.json` |
 | 非法完成与取消 | 真实 `400 InvalidPart`；取消后 `NoSuchUpload`，对象保持 404。`failures.json` |
 | 200 响应体错误 | 受控代理注入 `HTTP 200 + XML InvalidPart`，SDK 返回错误，真实对象未完成；此项与 RustFS 真实兼容性分开记录。`failures.json` |
 | 响应丢失 | 真实 PUT 和 complete 返回 200 后代理断开；客户端传输错误，服务器有本体，持久记录仍 unknown。`failures.json`、`proxy-events.jsonl` |
 | 稳定引用与重启 | 源文件删除、不同 OS 进程，仅按稳定引用核验；两条 unknown 核验后才转 verified，failed/cancelled/receiving 保持非就绪。`resume.json`、前后引用快照 |
-| 服务持久化 | 保留卷重启 RustFS，签名接口就绪后由另一新进程再次读取；四个已验证对象仍一致，四个非就绪对象仍不可读。`verify.json` |
+| 服务持久化 | 保留卷重启 RustFS，签名接口就绪后由另一新进程再次读取；四个已验证对象仍一致，四个非就绪对象仍不可读，另一个完整但偏移错误的对象仍被内容核验拒绝。`verify.json` |
 
 机器可读报告与 [完整执行输出](evidence/full-suite.txt) 保存在 `evidence/`；[环境事实](evidence/environment.json) 记录镜像摘要和锁文件摘要；[TDD 记录](evidence/tdd-history.md) 同时保留红阶段与实际修正的问题。原始本地日志、依赖、凭据及合成源文件不提交。
 

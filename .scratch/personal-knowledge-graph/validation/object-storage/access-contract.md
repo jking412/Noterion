@@ -1,6 +1,6 @@
 # Issue #10：供 #11／#13 复用的对象访问契约
 
-状态：**固定组合已通过真实接口验证**（46 项断言另加文件流上传探针，见 `evidence/`）。本文描述对象访问模块的工程边界，不新增业务规格，不表示文件资料保存或视频查看已经验收。验收来源为 [Issue #10](https://github.com/jking412/Noterion/issues/10)，职责遵循 [ADR 0003](../../../../docs/adr/0003-use-configurable-object-storage.md)。
+状态：**固定组合已通过真实接口验证**（49 项断言另加文件流上传探针，见 `evidence/`）。本文描述对象访问模块的工程边界，不新增业务规格，不表示文件资料保存或视频查看已经验收。验收来源为 [Issue #10](https://github.com/jking412/Noterion/issues/10)，职责遵循 [ADR 0003](../../../../docs/adr/0003-use-configurable-object-storage.md)。
 
 ## 固定参考组合与资源
 

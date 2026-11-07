@@ -1,7 +1,8 @@
 $ErrorActionPreference = 'Stop'
 Set-Location -LiteralPath $PSScriptRoot
-$image = docker image inspect rustfs/rustfs:1.0.4 --format '{{.Id}}'
-if ($LASTEXITCODE -ne 0) { throw 'Cannot read reference image identity' }
+$image = docker inspect issue-10-rustfs --format '{{.Image}}'
+if ($LASTEXITCODE -ne 0) { throw 'Cannot read running reference container image identity' }
+$containerImageReference = docker inspect issue-10-rustfs --format '{{.Config.Image}}'
 $dockerVersion = docker version --format '{{.Server.Version}}'
 $environment = [ordered]@{
     captured_at_utc = [DateTime]::UtcNow.ToString('o')
@@ -14,6 +15,7 @@ $environment = [ordered]@{
     docker_server = $dockerVersion
     reference_image = 'rustfs/rustfs:1.0.4'
     image_id = $image
+    container_image_reference = $containerImageReference
     sdk = 'aws-sdk-s3 =1.122.0'
     sdk_http_client = 'aws-smithy-http-client =1.1.13, Rustls/Ring'
     cargo_lock_sha256 = (Get-FileHash -LiteralPath Cargo.lock -Algorithm SHA256).Hash.ToLowerInvariant()
