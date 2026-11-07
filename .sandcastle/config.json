@@ -1,0 +1,16 @@
+{
+  "repository": "jking412/Noterion",
+  "targetBranch": "main",
+  "issues": "all-open-at-start",
+  "model": null,
+  "maxParallel": 2,
+  "firstPassParallel": 1,
+  "maxRepairRounds": 3,
+  "runHours": 4,
+  "finishGraceMinutes": 10,
+  "idleTimeoutSeconds": 600,
+  "verificationTimeoutMinutes": 30,
+  "execution": "local-codex-cli-full-access",
+  "autoMerge": true,
+  "closeCompletedIssues": true
+}
