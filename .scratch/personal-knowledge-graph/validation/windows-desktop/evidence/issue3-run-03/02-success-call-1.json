@@ -1,0 +1,23 @@
+{
+  "capturedAt": "2026-11-07T13:49:39.645Z",
+  "window": {
+    "app": "process:D:\\person\\application\\knowledgeGraph\\.scratch\\personal-knowledge-graph\\validation\\windows-desktop\\target\\debug\\issue3-windows-smoke.exe",
+    "id": 266318,
+    "title": "Issue3 — Noterion Windows / Rust smoke"
+  },
+  "accessibility": {
+    "document_text": "issue3-桌面-001",
+    "focused_element": "25 文档 Issue3 Windows desktop smoke Value: http://tauri.localhost/ ID: RootWebArea",
+    "tree": "Window: \"Issue3 — Noterion Windows / Rust smoke\", App: issue3-windows-smoke.exe.\n\t0 窗口 Issue3 — Noterion Windows / Rust smoke Secondary Actions: Raise\n\t\t1 窗格\n\t\t\t8 窗格\n\t\t\t\t9 窗格 Issue3 Windows desktop smoke\n\t\t\t\t\t10 窗格 (disabled)\n\t\t\t\t\t11 窗格 (disabled)\n\t\t\t\t\t12 区域 Issue3 Windows desktop smoke - Web 内容\n\t\t\t\t\t\t13 区域\n\t\t\t\t\t\t\t14 区域\n\t\t\t\t\t\t\t15 区域\n\t\t\t\t\t\t\t\t16 区域\n\t\t\t\t\t\t\t\t\t17 区域\n\t\t\t\t\t\t\t\t\t18 区域\n\t\t\t\t\t\t\t\t\t\t19 区域\n\t\t\t\t\t\t\t\t\t\t\t20 区域\n\t\t\t\t\t\t\t\t\t\t\t\t25 文档 Issue3 Windows desktop smoke Value: http://tauri.localhost/ ID: RootWebArea\n\t\t\t\t\t\t\t\t\t\t\t\t\t26 主要\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t27 文本 NOTERION · ISSUE #3 · WINDOWS DESKTOP\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t28 标题 真实桌面 → Rust → 可见结果\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t29 文本 输入验证文本，点击按钮。结果由当前 Tauri 进程的 Rust command 生成。\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t30 文本 验证文本\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t31 编辑 (settable, string) 验证文本 Value: issue3-桌面-001 ID: request\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t32 按钮 调用 Rust\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t33 区域 Rust 返回结果\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t34 标题 返回结果\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t35 状态 ID: status\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t40 文本 Rust OK | ISSUE3-桌面-001 | chars=13 | call=1 | pid=23144\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t41 文本 { \"original\": \"issue3-桌面-001\", \"uppercase\": \"ISSUE3-桌面-001\", \"charCount\": 13, \"call\": 1, \"pid\": 23144, \"runId\": \"issue3-run-03\", \"rustUnixMs\": 1794059378847 }\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t38 文本 独立验证宿主 · 无数据库 · 无监听端口 · 嵌入式本地页面\n\t\t\t\t\t\t\t\t\t21 区域\n\t\t\t\t\t\t\t\t\t22 区域\n\t\t\t\t\t\t\t\t\t23 区域\n\t\t\t\t\t\t\t24 区域\n\t\t2 标题栏 (settable, string) Value: Issue3 — Noterion Windows / Rust smoke\n\t\t\t3 菜单栏 系统 ID: MenuBar\n\t\t\t\t4 菜单项 系统\n\t\t\t5 按钮 最小化\n\t\t\t6 按钮 最大化\n\t\t\t7 按钮 关闭\n\nDocument text: ```\nissue3-桌面-001\n```"
+  },
+  "screenshots": [
+    {
+      "height": 671,
+      "id": "screenshot-0",
+      "originX": 123,
+      "originY": 114,
+      "width": 883,
+      "zIndex": 0
+    }
+  ]
+}

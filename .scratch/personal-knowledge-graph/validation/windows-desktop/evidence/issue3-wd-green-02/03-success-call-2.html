@@ -1,0 +1,37 @@
+<html lang="zh-CN"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Issue3 Windows desktop smoke</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer=""></script>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">NOTERION · ISSUE #3 · WINDOWS DESKTOP</p>
+    <h1>真实桌面 → Rust → 可见结果</h1>
+    <p>输入验证文本，点击按钮。结果由当前 Tauri 进程的 Rust command 生成。</p>
+    <form id="roundtrip-form">
+      <label for="request">验证文本</label>
+      <div class="controls">
+        <input id="request" name="request" type="text" autocomplete="off" spellcheck="false">
+        <button type="submit">调用 Rust</button>
+      </div>
+    </form>
+    <section aria-label="Rust 返回结果">
+      <h2>返回结果</h2>
+      <p id="status" role="status" aria-live="polite">Rust OK | DOCKER-知识-002 | chars=13 | call=2 | pid=47304</p>
+      <pre id="details">{
+  "original": "docker-知识-002",
+  "uppercase": "DOCKER-知识-002",
+  "charCount": 13,
+  "call": 2,
+  "pid": 47304,
+  "runId": "issue3-wd-green-02",
+  "rustUnixMs": 1794065317638
+}</pre>
+    </section>
+    <p class="footnote">独立验证宿主 · 无数据库 · 无监听端口 · 嵌入式本地页面</p>
+  </main>
+
+
+</body></html>

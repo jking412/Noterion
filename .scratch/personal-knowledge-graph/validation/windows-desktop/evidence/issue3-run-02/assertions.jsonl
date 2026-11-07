@@ -1,0 +1,3 @@
+{"verdict":"PASS","assertion":"visible Rust response","expected":"Rust OK | ISSUE3-桌面-001 | chars=13 | call=1 | pid=41252","at":"2026-11-07T13:47:25.640Z"}
+{"verdict":"PASS","assertion":"visible Rust response","expected":"Rust OK | DOCKER-知识-002 | chars=13 | call=2 | pid=41252","at":"2026-11-07T13:48:01.533Z"}
+{"verdict":"PASS","assertion":"visible Rust rejection","expected":"Rust ERROR | EMPTY_REQUEST | Rust 拒绝空白输入 | call=3 | pid=41252","at":"2026-11-07T13:48:15.555Z"}

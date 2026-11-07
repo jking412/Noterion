@@ -1,0 +1,7 @@
+Starting Microsoft Edge WebDriver 136.0.3240.76 (77e9ec69748f08de141572c1eec5e1ad497c7be6) on port 33030
+To submit feedback, report a bug, or suggest new features, please visit https://github.com/MicrosoftEdge/EdgeWebDriver
+
+Remote connections are allowed by an allowlist (127.0.0.1).
+Please see https://aka.ms/WebDriverSecurity for suggestions on keeping Microsoft Edge WebDriver safe.
+
+msedgedriver was started successfully on port 33030.

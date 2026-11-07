@@ -1,0 +1,9 @@
+rust=rustc 1.93.1 (01f6ddf75 2026-02-11)
+command=cargo build --manifest-path D:\person\application\knowledgeGraph\.scratch\personal-knowledge-graph\validation\windows-desktop\Cargo.toml --locked --offline
+CARGO_HOME=D:\person\application\knowledgeGraph\.scratch\personal-knowledge-graph\validation\windows-desktop\.cargo-home
+CARGO_TARGET_DIR=D:\person\application\knowledgeGraph\.scratch\personal-knowledge-graph\validation\windows-desktop\target
+VCToolsInstallDir=D:\VS\VC\Tools\MSVC\14.43.34808\
+WindowsSdkDir=D:\Windows Kits\10\
+WindowsSDKVersion=10.0.22621.0\
+   Compiling issue3-windows-smoke v0.1.0 (D:\person\application\knowledgeGraph\.scratch\personal-knowledge-graph\validation\windows-desktop)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 7.44s

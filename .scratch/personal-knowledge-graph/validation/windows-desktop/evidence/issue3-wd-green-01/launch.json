@@ -1,0 +1,13 @@
+{
+  "runId": "issue3-wd-green-01",
+  "pid": 11700,
+  "executable": "D:\\person\\application\\knowledgeGraph\\.scratch\\personal-knowledge-graph\\validation\\windows-desktop\\target\\debug\\issue3-windows-smoke.exe",
+  "sha256": "DD029C5E9FF382EAB6179972A942FD363AE48D870193B1CFC3431C3E39E91311",
+  "driverVersion": "Microsoft Edge WebDriver 136.0.3240.76 (77e9ec69748f08de141572c1eec5e1ad497c7be6)",
+  "driverSha256": "76F549B492A89DBACEE027AC6A726836944F04645ECAA5FA9A2045C84303D6ED",
+  "port": 33030,
+  "webviewData": "D:\\person\\application\\knowledgeGraph\\.scratch\\personal-knowledge-graph\\validation\\windows-desktop\\evidence\\issue3-wd-green-01\\webview-data",
+  "sessionId": "cb4bd82e1d3fa784ab6a4c86d07eee1f",
+  "launchedAt": "2026-11-07T15:28:34.569Z",
+  "transport": "W3C WebDriver / Microsoft WebView2"
+}

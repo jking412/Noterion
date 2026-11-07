@@ -1,0 +1,16 @@
+:root { font-family: "Segoe UI", "Microsoft YaHei", sans-serif; color: #142e44; background: #eef3f6; }
+body { margin: 0; }
+main { max-width: 780px; padding: 40px; margin: auto; }
+.eyebrow { font-size: 12px; letter-spacing: 2px; color: #537286; }
+h1 { font-size: 29px; margin: 14px 0; }
+p { line-height: 1.6; }
+label { display: block; font-weight: 600; margin: 28px 0 9px; }
+.controls { display: flex; gap: 12px; }
+input { flex: 1; min-width: 0; font: inherit; padding: 12px; border: 1px solid #7894a7; border-radius: 6px; }
+button { font: inherit; padding: 10px 22px; color: white; background: #155b85; border: none; border-radius: 6px; cursor: pointer; }
+input:focus, button:focus { outline: 3px solid #d29b28; outline-offset: 3px; }
+section { margin-top: 28px; background: white; padding: 20px 24px; border: 1px solid #d5dfe5; border-radius: 8px; }
+h2 { font-size: 17px; margin: 0; }
+#status { font-weight: 600; overflow-wrap: anywhere; }
+pre { font-family: Consolas, monospace; font-size: 13px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.footnote { font-size: 12px; color: #587383; }
