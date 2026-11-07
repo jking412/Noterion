@@ -1,0 +1,110 @@
+{
+  "variant": "A",
+  "selected": "troubleshoot",
+  "query": "",
+  "matchMode": "all",
+  "graphState": "current",
+  "simulatedSourceRevision": 3,
+  "graphRevision": 3,
+  "knowledgePointCount": 8,
+  "knowledgePoints": [
+    {
+      "id": "troubleshoot",
+      "name": "容器排障",
+      "parents": [
+        "linux"
+      ],
+      "materials": [
+        "file-docker",
+        "link-exec"
+      ]
+    },
+    {
+      "id": "linux",
+      "name": "Linux 运维",
+      "parents": [],
+      "materials": [
+        "file-docker"
+      ]
+    },
+    {
+      "id": "mysql",
+      "name": "MySQL",
+      "parents": [],
+      "materials": [
+        "file-locks"
+      ]
+    },
+    {
+      "id": "mysql-lock",
+      "name": "锁",
+      "parents": [
+        "mysql"
+      ],
+      "materials": [
+        "file-locks"
+      ]
+    },
+    {
+      "id": "row-lock",
+      "name": "行锁",
+      "parents": [
+        "mysql-lock"
+      ],
+      "materials": [
+        "file-locks"
+      ]
+    },
+    {
+      "id": "concurrency",
+      "name": "并发编程",
+      "parents": [],
+      "materials": [
+        "file-locks"
+      ]
+    },
+    {
+      "id": "code-lock",
+      "name": "锁",
+      "parents": [
+        "concurrency"
+      ],
+      "materials": [
+        "file-locks"
+      ]
+    },
+    {
+      "id": "independent",
+      "name": "待整理的想法",
+      "parents": [],
+      "materials": []
+    }
+  ],
+  "fileCount": 2,
+  "lastAction": "图已模拟赶上版本 3",
+  "graphViews": [
+    {
+      "key": "C-local-main",
+      "camera": {
+        "x": -146.48972602739727,
+        "y": -120,
+        "w": 360.47945205479454,
+        "h": 285
+      },
+      "labels": true,
+      "neighbors": false
+    },
+    {
+      "key": "A-all-main",
+      "camera": {
+        "x": -202.03846153846155,
+        "y": 30,
+        "w": 1259.076923076923,
+        "h": 720
+      },
+      "labels": true,
+      "neighbors": false
+    }
+  ],
+  "persistence": "none; reload resets demo"
+}

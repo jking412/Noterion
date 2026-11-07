@@ -1,0 +1,30 @@
+[
+  {
+    "file": "index.html",
+    "sha256": "1c62fe84506b594ca281995afb13d8788572c25c48e7f13cce7973a0b75a988d"
+  },
+  {
+    "file": "prototype.css",
+    "sha256": "2eda1fe2b22d70729c27f0d773746e5d01570e165fc880686d8e1513e143eb07"
+  },
+  {
+    "file": "prototype.js",
+    "sha256": "458c1874b8efa56ca2ca6b8eb99ae56127c65bd7a33c211718a99e52c4d4d62c"
+  },
+  {
+    "file": "graph-canvas.js",
+    "sha256": "59be8114bad7c7be8edb989ae2ffb265761c0b9af62947a9f2e7484e3f24e578"
+  },
+  {
+    "file": "serve.py",
+    "sha256": "6e523d24776ed83f38b611af0b4ea12dd5ca47c0459714e032e2f4d9b66fcce8"
+  },
+  {
+    "file": "assets/docker-demo.html",
+    "sha256": "e860acbca2e20d334e8904fa60f11d372b1940c3414d75eff591d75c4255f2ba"
+  },
+  {
+    "file": "assets/locks-demo.html",
+    "sha256": "cce2fb29b7e9a15822f0dadf9f81ff27e25e92029825ef16280e6ffc82b4d00f"
+  }
+]
