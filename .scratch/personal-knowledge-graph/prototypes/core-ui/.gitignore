@@ -1,0 +1,6 @@
+# Local private Site checkout and generated package; canonical prototype lives here.
+hosted/
+issue1-site.tar.gz
+*.log
+__pycache__/
+.issue1-index*
