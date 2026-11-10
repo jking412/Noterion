@@ -1,0 +1,10 @@
+{
+  "verdict": "FAIL",
+  "runId": "issue-13-audio-only-red",
+  "scenario": "codec",
+  "hostPid": 44524,
+  "sessionClosed": true,
+  "hostExited": true,
+  "assertions": 4,
+  "at": "2026-11-10T09:46:42.557Z"
+}

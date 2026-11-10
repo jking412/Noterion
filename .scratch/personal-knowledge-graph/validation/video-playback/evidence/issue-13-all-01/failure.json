@@ -1,0 +1,5 @@
+{
+  "verdict": "FAIL",
+  "message": "Timed out: unsupported FFV1 emits a real media error",
+  "at": "2026-11-10T09:45:25.620Z"
+}

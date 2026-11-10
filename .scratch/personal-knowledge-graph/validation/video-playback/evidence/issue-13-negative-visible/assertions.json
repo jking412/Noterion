@@ -1,0 +1,12 @@
+[
+  {
+    "label": "real WebView starts with no media bytes in frontend",
+    "verdict": "PASS",
+    "at": "2026-11-10T09:52:04.159Z"
+  },
+  {
+    "label": "the opened source is a real 1–2 GB MP4",
+    "verdict": "PASS",
+    "at": "2026-11-10T09:52:06.048Z"
+  }
+]

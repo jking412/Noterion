@@ -1,0 +1,32 @@
+[
+  {
+    "sample": "h264",
+    "connectionId": "issue-13-rustfs-local",
+    "bucket": "issue-13-video",
+    "objectKey": "issue-13/issue-13-h264-aac.mp4",
+    "fileName": "issue-13-h264-aac.mp4",
+    "mime": "video/mp4",
+    "size": 1277422426,
+    "sha256": "4c93ae3aba536be8a84d0498a2460dfab67fc309803eb2120613e0abd8ff00a7"
+  },
+  {
+    "sample": "webm",
+    "connectionId": "issue-13-rustfs-local",
+    "bucket": "issue-13-video",
+    "objectKey": "issue-13/issue-13-vp9-opus.webm",
+    "fileName": "issue-13-vp9-opus.webm",
+    "mime": "video/webm",
+    "size": 1845591,
+    "sha256": "2418e0afb4a028c555c7e7042bc99f0a4566e049662c313c61e556c1db8aa259"
+  },
+  {
+    "sample": "ffv1",
+    "connectionId": "issue-13-rustfs-local",
+    "bucket": "issue-13-video",
+    "objectKey": "issue-13/issue-13-ffv1-pcm.mkv",
+    "fileName": "issue-13-ffv1-pcm.mkv",
+    "mime": "video/x-matroska",
+    "size": 10937767,
+    "sha256": "9e336dcd0afcf6ebdd6b90b649d5e8c0c67d9d51f8aeb0c80e66e10ea8870505"
+  }
+]

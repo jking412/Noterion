@@ -1,0 +1,24 @@
+{
+  "clientBytes": 8409578,
+  "server": {
+    "atMs": 1794304491163,
+    "bytesRead": 8671722,
+    "bytesWritten": 8638954,
+    "contentRange": null,
+    "declaredLength": 1277422426,
+    "disconnected": true,
+    "elapsedMs": 78,
+    "endMs": 1794304491241,
+    "event": "media-request",
+    "method": "GET",
+    "mode": "no-range",
+    "origin": null,
+    "range": null,
+    "readFailed": false,
+    "sample": "h264",
+    "status": 200,
+    "upstreamRange": null,
+    "upstreamStatus": 200
+  },
+  "upperBoundBytes": 67108864
+}

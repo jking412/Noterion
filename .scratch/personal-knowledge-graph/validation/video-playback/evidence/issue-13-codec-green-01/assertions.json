@@ -1,0 +1,37 @@
+[
+  {
+    "label": "real WebView starts with no media bytes in frontend",
+    "verdict": "PASS",
+    "at": "2026-11-10T09:48:07.119Z"
+  },
+  {
+    "label": "the opened source is a real 1–2 GB MP4",
+    "verdict": "PASS",
+    "at": "2026-11-10T09:48:08.926Z"
+  },
+  {
+    "label": "supported large video actually plays decoded frames",
+    "verdict": "PASS",
+    "at": "2026-11-10T09:48:10.308Z"
+  },
+  {
+    "label": "WebM VP9 and Opus actually play and seek",
+    "verdict": "PASS",
+    "at": "2026-11-10T09:48:12.599Z"
+  },
+  {
+    "label": "unsupported FFV1 exposes the actual missing video track or playback error",
+    "verdict": "PASS",
+    "at": "2026-11-10T09:48:12.994Z"
+  },
+  {
+    "label": "external player opens the verified cache and presents unsupported media",
+    "verdict": "PASS",
+    "at": "2026-11-10T09:48:22.194Z"
+  },
+  {
+    "label": "real WebView CORS allows bounded reads, expiry rejects new reads, renewal restores access",
+    "verdict": "PASS",
+    "at": "2026-11-10T09:48:29.048Z"
+  }
+]

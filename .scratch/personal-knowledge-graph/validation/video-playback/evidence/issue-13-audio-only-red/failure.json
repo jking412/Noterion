@@ -1,0 +1,5 @@
+{
+  "verdict": "FAIL",
+  "message": "audio-only demux must expose the video incompatibility and external opening",
+  "at": "2026-11-10T09:46:41.679Z"
+}

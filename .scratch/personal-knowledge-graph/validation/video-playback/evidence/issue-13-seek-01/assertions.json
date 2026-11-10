@@ -1,0 +1,32 @@
+[
+  {
+    "label": "real WebView starts with no media bytes in frontend",
+    "verdict": "PASS",
+    "at": "2026-11-10T09:43:39.769Z"
+  },
+  {
+    "label": "the opened source is a real 1–2 GB MP4",
+    "verdict": "PASS",
+    "at": "2026-11-10T09:43:41.619Z"
+  },
+  {
+    "label": "supported large video actually plays decoded frames",
+    "verdict": "PASS",
+    "at": "2026-11-10T09:43:42.935Z"
+  },
+  {
+    "label": "dragging the timeline seeks and resumes a remote decoded interval",
+    "verdict": "PASS",
+    "at": "2026-11-10T09:43:43.649Z"
+  },
+  {
+    "label": "remote seek caused a nonzero Range and an actual partial response",
+    "verdict": "PASS",
+    "at": "2026-11-10T09:43:54.364Z"
+  },
+  {
+    "label": "remote Range returns exact source bytes and out-of-bounds returns 416",
+    "verdict": "PASS",
+    "at": "2026-11-10T09:43:54.402Z"
+  }
+]

@@ -1,0 +1,17 @@
+{
+  "first": {
+    "status": 206,
+    "bytes": 32,
+    "contentRange": null,
+    "allowOrigin": null
+  },
+  "expired": {
+    "status": 403
+  },
+  "renewed": {
+    "status": 206,
+    "bytes": 32,
+    "contentRange": null,
+    "allowOrigin": null
+  }
+}

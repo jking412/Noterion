@@ -1,0 +1,5 @@
+rust=rustc 1.93.1 (01f6ddf75 2026-02-11)
+command=cargo build --manifest-path D:\person\application\knowledgeGraph\.scratch\personal-knowledge-graph\validation\video-playback\Cargo.toml --locked --offline
+
+   Compiling issue13-video-playback v0.1.0 (D:\person\application\knowledgeGraph\.scratch\personal-knowledge-graph\validation\video-playback)
+    Finished `dev` profile [unoptimized] target(s) in 8.34s

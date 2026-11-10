@@ -1,0 +1,13 @@
+{
+  "status": "EXTERNAL OPENED",
+  "pid": 8120,
+  "size": 10937767,
+  "sha256": "9e336dcd0afcf6ebdd6b90b649d5e8c0c67d9d51f8aeb0c80e66e10ea8870505",
+  "path": "D:\\person\\application\\knowledgeGraph\\.scratch\\personal-knowledge-graph\\validation\\video-playback\\.local/view-cache\\issue-13-ffv1-pcm.mkv",
+  "window": {
+    "Id": 8120,
+    "ProcessName": "ffplay",
+    "MainWindowHandle": 1837758,
+    "MainWindowTitle": "D:\\person\\application\\knowledgeGraph\\.scratch\\personal-knowledge-graph\\validation\\video-playback\\.local/view-cache\\issue-13-ffv1-pcm.mkv"
+  }
+}

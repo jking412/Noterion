@@ -1,0 +1,23 @@
+rust=rustc 1.93.1 (01f6ddf75 2026-02-11)
+command=cargo build --manifest-path D:\person\application\knowledgeGraph\.scratch\personal-knowledge-graph\validation\video-playback\Cargo.toml --offline
+
+warn: could not canonicalize path: 'D:\person\application\knowledgeGraph\.scratch\personal-knowledge-graph\validation\video-playback'
+warn: could not canonicalize path: 'D:\person\application\knowledgeGraph\.scratch\personal-knowledge-graph\validation'
+warn: could not canonicalize path: 'D:\person\application\knowledgeGraph\.scratch\personal-knowledge-graph'
+warn: could not canonicalize path: 'D:\person\application\knowledgeGraph\.scratch'
+warn: could not canonicalize path: 'D:\person\application\knowledgeGraph'
+warn: could not canonicalize path: 'D:\person\application'
+warn: could not canonicalize path: 'D:\person'
+warn: could not canonicalize path: 'D:\'
+error: failed to select a version for `http`.
+    ... required by package `tauri v2.10.3`
+    ... which satisfies dependency `tauri = "=2.10.3"` (locked to 2.10.3) of package `issue13-video-playback v0.1.0 (D:\person\application\knowledgeGraph\.scratch\personal-knowledge-graph\validation\video-playback)`
+versions that meet the requirements `^1` (locked to 1.4.0) are: 1.4.0
+
+all possible versions conflict with previously selected packages.
+
+  previously selected package `http v1.5.0`
+    ... which satisfies dependency `http-1x = "^1"` (locked to 1.5.0) of package `aws-sdk-s3 v1.122.0`
+    ... which satisfies dependency `aws-sdk-s3 = "=1.122.0"` (locked to 1.122.0) of package `issue13-video-playback v0.1.0 (D:\person\application\knowledgeGraph\.scratch\personal-knowledge-graph\validation\video-playback)`
+
+failed to select a version for `http` which could resolve this conflict

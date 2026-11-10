@@ -1,0 +1,9 @@
+{
+  "verdict": "FAIL",
+  "runId": "issue-13-start-green-01",
+  "scenario": "start",
+  "sessionClosed": false,
+  "hostExited": false,
+  "assertions": 0,
+  "at": "2026-11-10T09:40:58.422Z"
+}

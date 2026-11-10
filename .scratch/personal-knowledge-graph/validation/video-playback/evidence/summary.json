@@ -1,0 +1,124 @@
+{
+  "verdict": "PASS",
+  "issue": 13,
+  "sampleBytes": 1277422426,
+  "sampleSha256": "4c93ae3aba536be8a84d0498a2460dfab67fc309803eb2120613e0abd8ff00a7",
+  "fullRuns": [
+    {
+      "runId": "issue-13-all-04",
+      "exeSha256": "f3b79759976cedc3117d98d59ce5208a68351acfe5199475ee152c3e63163b58",
+      "assertions": 13,
+      "hostPid": 38496,
+      "firstPlayingMs": 336,
+      "seekCompletedMs": 73,
+      "seekSeconds": 539.610231,
+      "remoteRange": "bytes=954630144-",
+      "ordinaryGet": {
+        "status": 200,
+        "requestRange": null,
+        "bytes": 1277422426,
+        "sha256": "4c93ae3aba536be8a84d0498a2460dfab67fc309803eb2120613e0abd8ff00a7",
+        "elapsedMs": 8057,
+        "peakClientRss": 121450496,
+        "peakClientHeap": 11899360
+      },
+      "cancelledUpstreamBytes": 8671722,
+      "resources": {
+        "method": "Win32_Process about every 0.5 s plus collection latency; sums are per process group and include shared pages in RSS; sampled values, not allocation proofs",
+        "samples": 37,
+        "rustRssMinMiB": 35.68,
+        "rustRssMaxMiB": 42.31,
+        "rustPrivateMaxMiB": 10.52,
+        "webviewRssMinMiB": 351.62,
+        "webviewRssMaxMiB": 621.13,
+        "webviewPrivateMaxMiB": 509.08,
+        "recordedJsHeapMaxMiB": 5.72,
+        "profileDiskMaxBytes": 10673893,
+        "externalCacheBytes": 10937767
+      },
+      "external": {
+        "pid": 8120,
+        "sha256": "9e336dcd0afcf6ebdd6b90b649d5e8c0c67d9d51f8aeb0c80e66e10ea8870505",
+        "bytes": 10937767,
+        "maxPlaybackSeconds": 5.95,
+        "visibleWindowHandle": 1837758
+      },
+      "signature": {
+        "first": {
+          "status": 206,
+          "bytes": 32,
+          "contentRange": null,
+          "allowOrigin": null
+        },
+        "expired": {
+          "status": 403
+        },
+        "renewed": {
+          "status": 206,
+          "bytes": 32,
+          "contentRange": null,
+          "allowOrigin": null
+        }
+      }
+    },
+    {
+      "runId": "issue-13-all-05",
+      "exeSha256": "f3b79759976cedc3117d98d59ce5208a68351acfe5199475ee152c3e63163b58",
+      "assertions": 13,
+      "hostPid": 32184,
+      "firstPlayingMs": 292,
+      "seekCompletedMs": 65,
+      "seekSeconds": 539.524974,
+      "remoteRange": "bytes=954630144-",
+      "ordinaryGet": {
+        "status": 200,
+        "requestRange": null,
+        "bytes": 1277422426,
+        "sha256": "4c93ae3aba536be8a84d0498a2460dfab67fc309803eb2120613e0abd8ff00a7",
+        "elapsedMs": 7469,
+        "peakClientRss": 123920384,
+        "peakClientHeap": 11925184
+      },
+      "cancelledUpstreamBytes": 8737258,
+      "resources": {
+        "method": "Win32_Process about every 0.5 s plus collection latency; sums are per process group and include shared pages in RSS; sampled values, not allocation proofs",
+        "samples": 38,
+        "rustRssMinMiB": 35.66,
+        "rustRssMaxMiB": 41.37,
+        "rustPrivateMaxMiB": 10.15,
+        "webviewRssMinMiB": 351.27,
+        "webviewRssMaxMiB": 581.92,
+        "webviewPrivateMaxMiB": 522.43,
+        "recordedJsHeapMaxMiB": 6.93,
+        "profileDiskMaxBytes": 10673853,
+        "externalCacheBytes": 10937767
+      },
+      "external": {
+        "pid": 37288,
+        "sha256": "9e336dcd0afcf6ebdd6b90b649d5e8c0c67d9d51f8aeb0c80e66e10ea8870505",
+        "bytes": 10937767,
+        "maxPlaybackSeconds": 5.95,
+        "visibleWindowHandle": 3018316
+      },
+      "signature": {
+        "first": {
+          "status": 206,
+          "bytes": 32,
+          "contentRange": null,
+          "allowOrigin": null
+        },
+        "expired": {
+          "status": 403
+        },
+        "renewed": {
+          "status": 206,
+          "bytes": 32,
+          "contentRange": null,
+          "allowOrigin": null
+        }
+      }
+    }
+  ],
+  "negativeVisibleExpectation": "FAIL as required; native host exited",
+  "generatedAt": "2026-11-10T09:57:25.446Z"
+}

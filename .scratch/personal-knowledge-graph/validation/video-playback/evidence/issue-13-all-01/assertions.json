@@ -1,0 +1,52 @@
+[
+  {
+    "label": "real WebView starts with no media bytes in frontend",
+    "verdict": "PASS",
+    "at": "2026-11-10T09:44:25.105Z"
+  },
+  {
+    "label": "the opened source is a real 1–2 GB MP4",
+    "verdict": "PASS",
+    "at": "2026-11-10T09:44:26.869Z"
+  },
+  {
+    "label": "supported large video actually plays decoded frames",
+    "verdict": "PASS",
+    "at": "2026-11-10T09:44:28.312Z"
+  },
+  {
+    "label": "dragging the timeline seeks and resumes a remote decoded interval",
+    "verdict": "PASS",
+    "at": "2026-11-10T09:44:28.993Z"
+  },
+  {
+    "label": "remote seek caused a nonzero Range and an actual partial response",
+    "verdict": "PASS",
+    "at": "2026-11-10T09:44:39.731Z"
+  },
+  {
+    "label": "remote Range returns exact source bytes and out-of-bounds returns 416",
+    "verdict": "PASS",
+    "at": "2026-11-10T09:44:39.767Z"
+  },
+  {
+    "label": "WebView ordinary GET plays without frontend full-file aggregation",
+    "verdict": "PASS",
+    "at": "2026-11-10T09:44:42.467Z"
+  },
+  {
+    "label": "early ordinary-GET cancellation stops upstream with bounded read-ahead",
+    "verdict": "PASS",
+    "at": "2026-11-10T09:44:44.098Z"
+  },
+  {
+    "label": "ordinary GET streams the entire 1.28 GB with an independent SHA256 match",
+    "verdict": "PASS",
+    "at": "2026-11-10T09:44:53.170Z"
+  },
+  {
+    "label": "WebM VP9 and Opus actually play and seek",
+    "verdict": "PASS",
+    "at": "2026-11-10T09:44:55.447Z"
+  }
+]
