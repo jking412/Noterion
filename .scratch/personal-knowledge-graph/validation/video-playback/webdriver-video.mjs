@@ -141,7 +141,7 @@ try {
       assert.ok(cancelled && cancelled.bytesWritten < 64 * 1024 * 1024, 'cancellation stops upstream before 64 MiB rather than reading the complete object');
       await save('no-range-cancel.json', { clientBytes: received, server: cancelled, upperBoundBytes: 64 * 1024 * 1024 });
       await expect('early ordinary-GET cancellation stops upstream with bounded read-ahead', async () => {});
-      const samples = JSON.parse(await fs.readFile(path.join(root, 'evidence/samples.json'), 'utf8'));
+      const samples = JSON.parse((await fs.readFile(path.join(root, 'evidence/samples.json'), 'utf8')).replace(/^\uFEFF/, ''));
       const expected = samples.samples.find(s => s.file.endsWith('issue-13-h264-aac.mp4'));
       await save('no-range-full.json', await fullGet(ordinarySource, expected));
       await expect('ordinary GET streams the entire 1.28 GB with an independent SHA256 match', async () => {});

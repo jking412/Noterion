@@ -1,6 +1,6 @@
 {
   "verdict": "PASS",
-  "filesScanned": 232,
+  "filesScanned": 260,
   "violatingPaths": [],
   "checks": [
     "actual local trial credential values",

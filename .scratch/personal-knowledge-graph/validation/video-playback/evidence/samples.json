@@ -1,4 +1,4 @@
-{
+﻿{
   "version": 1,
   "ffmpeg": "ffmpeg version 9.0.1-essentials_build-www.gyan.dev Copyright (c) 2000-2026 the FFmpeg developers",
   "purpose": "Issue 13 non-sensitive synthetic moving test pattern and sine wave; original generated media, no user content",

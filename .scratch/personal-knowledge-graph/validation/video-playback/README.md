@@ -2,7 +2,7 @@
 
 任务来源：[Issue #13](https://github.com/jking412/Noterion/issues/13)。本目录只验证资料查看路径；正式应用功能、PostgreSQL 资料保存、安装器和其他 Issue 不在本次实现中。开始时共享 checkout 为 `main`，基点 `c5c4312d177f752e35788dd23f7e86b4503a5518`。其他聊天的文件与服务未纳入本任务修改。
 
-最终证据以 `evidence/summary.json`、各运行目录和 `evidence/review.md` 为准。早期播放通过但缺少进程资源时间序列的 `all-02/all-03` 仅作为行为证据；最终验收采用强制采样的 `all-04/all-05`，每次均独立启动、删除 WebDriver session 并确认真实宿主退出。错误预期对照应当失败。
+最终证据以 `evidence/summary.json`、各运行目录和 `evidence/review.md` 为准。早期播放通过但缺少进程资源时间序列的 `all-02/all-03` 仅作为行为证据；补强采样后 `all-04/all-05` 全部通过，代码审查修复元数据 BOM 兼容后又通过 `all-06`。最终审计采用 `all-05/all-06`，每次均独立启动、删除 WebDriver session 并确认真实宿主退出。错误预期对照应当失败。
 
 ## 固定环境与真实样本
 
@@ -43,6 +43,19 @@
 
 `evidence/summary.json` 汇总最终两轮的起播、拖动、应用 RSS/私有字节、WebView 进程组 RSS/私有字节、实际记录的 JS heap、profile 磁盘、全流客户端峰值与取消字节。原始 Windows 观测在运行目录的 `resources.jsonl`：约每 0.5 秒加采集耗时，实际时间戳保留。进程组 RSS 会重复计入共享页，不能当作精确物理内存；JS heap 记录值也不是所有瞬时分配的证明。
 
+| 最终测量 | all-05 | all-06 |
+| --- | ---: | ---: |
+| 起播 / 拖动完成 | 292 / 65 ms | 297 / 70 ms |
+| Rust 宿主最高采样 RSS / 私有字节 | 41.37 / 10.15 MiB | 41.09 / 10.41 MiB |
+| WebView 进程组最高采样 RSS / 私有字节 | 581.92 / 522.43 MiB | 577.40 / 481.88 MiB |
+| 已记录 JS heap 最大值 | 6.93 MiB | 8.56 MiB |
+| 完整普通 GET / 测试客户端峰值 RSS | 7,469 ms / 118.18 MiB | 9,610 ms / 116.47 MiB |
+| 8 MiB 取消探针实际上游读取 | 8,737,258 字节 | 8,671,722 字节 |
+| WebView profile 与驱动日志最高磁盘量 | 10,673,853 字节 | 10,673,854 字节 |
+| Windows 资源观测数量 | 38 | 39 |
+
+上表是本机短时实验结果，不是通用延迟或内存保证。图像截图还显示了视频内烧录的约 8:59 时间，与真实媒体位置一致。最终运行后的源码只去除了一个文件末尾空行；实测 exe 摘要和完整原始运行版本固定保存于各 `environment.json`。
+
 对象服务由 `sample-service.ps1` 独立记录，Docker CLI 采样实际约 2 秒一次。`service-resources.jsonl` 覆盖上传及先前完整播放轮次。`service-memory-detail.json` 显示一次约 1.66 GB 的 cgroup 使用中 file 类约 1.42 GB，而 RustFS 进程 RSS 约 257 MiB；最终 `service-memory-final.json` 中 file 类降到约 94 MB、进程 RSS 约 294 MiB，期间未重启或改配置。必须为对象服务与操作系统页缓存另留资源，不能把前端有界误写成整个对象服务始终只占 64 KiB。
 
 内置播放没有创建整视频查看副本；WebView 自身 profile 的磁盘成本单独采样。外部打开需要完整本机派生缓存，本次 FFV1 缓存 **10,937,767 字节**；若外开大文件，磁盘成本随文件大小增长。缓存不是正式来源，没有扩展自动清理、外部编辑或通用转码政策。
@@ -65,7 +78,7 @@ node ./webdriver-video.mjs --run=issue-13-new-full-b --scenario=all
 
 `generate-samples.ps1` 拒绝覆盖现有样本；已有本次样本时跳过生成。`start-service.ps1` 核对标签、固定镜像、唯一 loopback 端口和卷，拒绝接管所有权不符资源。首次没有前置缓存时用 `build.ps1` 在线构建；`-SeedFromExistingCache` 只读复制 Issue #3/#10 缓存到本目录 `.local/cargo-home`，不写前置目录。锁文件已由 Cargo 生成，正常构建使用 `--locked`。
 
-每次 run ID 必须全新，runner 拒绝覆盖旧证据。`--scenario=start/playback/seek/codec/all` 可缩短反馈；完整验收使用 `all`。`sample-resources.ps1` 的首次写入、运行存活和最后观测覆盖是通过条件，采样器 stderr 放在忽略的 `.local/runs/<id>/`。服务端另开窗口执行 `./sample-service.ps1 -Seconds 120 -Phase replay`。`verify-evidence.mjs` 是本次交付的固定证据审计，固定核对 `all-04/all-05` 和错误预期对照；新运行按同一字段人工或调整审计的运行名核对。
+每次 run ID 必须全新，runner 拒绝覆盖旧证据。`--scenario=start/playback/seek/codec/all` 可缩短反馈；完整验收使用 `all`。`sample-resources.ps1` 的首次写入、运行存活和最后观测覆盖是通过条件，采样器 stderr 放在忽略的 `.local/runs/<id>/`。服务端另开窗口执行 `./sample-service.ps1 -Seconds 120 -Phase replay`。`verify-evidence.mjs` 是本次交付的固定证据审计，固定核对 `all-05/all-06` 和错误预期对照；新运行按同一字段人工或调整审计的运行名核对。已实际验证 Windows PowerShell 5.1 风格的 UTF-8 BOM 元数据，runner 与审计均兼容该 BOM。
 
 随机本地凭据只在忽略的 `.local/service.env` 与 Rust/服务环境中。完整签名 URL、临时入口 token、驱动原始日志、WebView profile、Cargo 缓存与真实媒体均留在忽略目录，未提交；截图与证据只显示安全 metadata。测试退出后回收自己创建的宿主/驱动；外部 ffplay 在 6 秒样本结束后自动退出。隔离对象容器、卷及合成对象保留供复现，没有删除已有数据。
 

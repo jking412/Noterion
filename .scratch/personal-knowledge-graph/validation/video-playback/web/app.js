@@ -62,4 +62,3 @@ $('#signature').addEventListener('click', async () => {
   } catch { $('#signature-status').textContent = 'ERROR | CORS 或签名探针未完成'; }
 });
 setInterval(update, 250); update();
-

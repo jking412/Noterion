@@ -11,7 +11,7 @@ const runs = [];
 const expectedSize = 1_277_422_426;
 const expectedHash = '4c93ae3aba536be8a84d0498a2460dfab67fc309803eb2120613e0abd8ff00a7';
 const mib = n => Math.round(n / 1048576 * 100) / 100;
-for (const runId of ['issue-13-all-04', 'issue-13-all-05']) {
+for (const runId of ['issue-13-all-05', 'issue-13-all-06']) {
   const directory = path.join(evidence, runId);
   const read = name => json(path.join(directory, name + '.json'));
   const result = await read('result'); assert.equal(result.verdict, 'PASS'); assert.equal(result.assertions, 13); assert.equal(result.hostExited, true); assert.equal(result.sessionClosed, true);

@@ -33,3 +33,7 @@ runner 随后保存采样器 stdout/stderr，并强制要求首次真实写入�
 - 没有声称整个宿主都严格测试先行：最初 tracer 先于宿主，随后在真实外部边界上逐个增加观察；FFV1 业务修复有实际红绿，资源证据由独立审计先红后补强。不新增私有模块测试边界，不以编译或短视频替代大视频验收。
 
 没有实质业务范围变化，没有新增用户决定。正式应用实施、云端、系统默认播放器和长时间压力等未执行项见 README。
+
+## Spec 审查发现的 BOM 复现问题
+
+Windows PowerShell 5.1 的 `Set-Content -Encoding utf8` 会生成带 BOM 的 JSON。旧 runner 直接 JSON.parse，和审计脚本的处理不一致。实际把 `evidence/samples.json` 保存成带 BOM 文件后，旧解析命令确切返回 SyntaxError / Unexpected token，随后才补 runner 剥离开头 BOM 的规则。元数据保留 BOM，不改变视频字节或摘要。`all-06` 再次以同一真实 exe 完成 13 项行为断言及 39 条全程资源观测，完整普通 GET 和外部播放均通过。最终独立审计采用 all-05/all-06，PASS；源码末尾空行的清理仅作静态检查，不改变媒体逻辑。
