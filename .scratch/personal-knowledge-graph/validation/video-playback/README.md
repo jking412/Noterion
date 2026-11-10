@@ -2,6 +2,8 @@
 
 任务来源：[Issue #13](https://github.com/jking412/Noterion/issues/13)。本目录只验证资料查看路径；正式应用功能、PostgreSQL 资料保存、安装器和其他 Issue 不在本次实现中。开始时共享 checkout 为 `main`，基点 `c5c4312d177f752e35788dd23f7e86b4503a5518`。其他聊天的文件与服务未纳入本任务修改。
 
+状态：**真实验证通过，Issue #13 已 completed/closed，6 项验收全部勾选**。经用户对具体摘要及目的地明确授权，[完成摘要已发布](https://github.com/jking412/Noterion/issues/13#issuecomment-6764657564)。代码与完整证据本地提交为 `9e4de17`、`e1983bc`，未推送共享分支。发布状态见 `evidence/publication.json`。
+
 最终证据以 `evidence/summary.json`、各运行目录和 `evidence/review.md` 为准。早期播放通过但缺少进程资源时间序列的 `all-02/all-03` 仅作为行为证据；补强采样后 `all-04/all-05` 全部通过，代码审查修复元数据 BOM 兼容后又通过 `all-06`。最终审计采用 `all-05/all-06`，每次均独立启动、删除 WebDriver session 并确认真实宿主退出。错误预期对照应当失败。
 
 ## 固定环境与真实样本
