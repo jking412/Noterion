@@ -21,7 +21,7 @@ function point(id: string, topicIds: string[] = [], isTheme = false): KnowledgeP
 describe('仅补充新知识点的布局', () => {
   it('places every new normal-fixture node and its full label clear of saved nodes and other new labels', () => {
     const seed = createSeedData()
-    const source = readFileSync(new URL('../../public/test-data/01-docker-resources.md', import.meta.url), 'utf8')
+    const source = readFileSync(new URL('../../validation/fixtures/graph-input.md', import.meta.url), 'utf8')
     const draft = parseImport(source, 'markdown')
     draft.rows.find((row) => row.id === 'container-troubleshoot')!.resolution = 'keep'
     const imported = buildImportPlan(draft, seed).data!

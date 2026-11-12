@@ -166,7 +166,7 @@ fn serve(host: &MediaHost, mut socket: TcpStream) -> std::io::Result<()> {
         }
         Ok(())
     })();
-    host.log(serde_json::json!({"event":"file-read","method":method,"range":range,"start":start,"end":end,"size":file.size,"bytesRead":read,"bytesWritten":written,"bufferBytes":65536,"cancelled":file.cancelled.load(Ordering::SeqCst),"complete":written==length,"error":outcome.as_ref().err().map(|e|e.to_string())}));
+    host.log(serde_json::json!({"event":"file-read","method":method,"range":range,"start":start,"end":end,"size":file.size,"bytesRead":read,"bytesWritten":written,"bufferBytes":65536,"cancelled":file.cancelled.load(Ordering::SeqCst)||outcome.is_err(),"revoked":file.cancelled.load(Ordering::SeqCst),"disconnected":outcome.is_err(),"complete":written==length,"error":outcome.as_ref().err().map(|e|e.to_string())}));
     outcome
 }
 fn parse_range(value: &str, size: u64) -> Result<(u64, u64), ()> {
@@ -245,6 +245,40 @@ fn classify(filename: &str) -> (String, String) {
     };
     (kind.into(), mime.into())
 }
+fn ensure_copy_space(directory: &std::path::Path, required: u64) -> Result<(), String> {
+    use std::os::windows::ffi::OsStrExt;
+    #[link(name = "kernel32")]
+    unsafe extern "system" {
+        fn GetDiskFreeSpaceExW(
+            directory: *const u16,
+            available: *mut u64,
+            total: *mut u64,
+            free: *mut u64,
+        ) -> i32;
+    }
+    let directory: Vec<u16> = directory.as_os_str().encode_wide().chain(Some(0)).collect();
+    let mut available = 0u64;
+    if unsafe {
+        GetDiskFreeSpaceExW(
+            directory.as_ptr(),
+            &mut available,
+            std::ptr::null_mut(),
+            std::ptr::null_mut(),
+        )
+    } == 0
+    {
+        return Err(format!(
+            "无法检查资料目录的可用空间：{}",
+            std::io::Error::last_os_error()
+        ));
+    }
+    if required > available {
+        return Err(format!(
+            "资料目录磁盘空间不足：需要 {required} 字节，可用 {available} 字节。未添加资料。"
+        ));
+    }
+    Ok(())
+}
 #[tauri::command]
 pub async fn resource_add_file(
     path: String,
@@ -274,6 +308,7 @@ pub async fn resource_add_file(
         let original=source.metadata().map_err(|e|e.to_string())?;
         if !original.is_file(){return Err("请选择文件，而不是文件夹。".into());}
         let directory=store.lock().map_err(|_|"数据忙，请重启后重试。")?.files_dir()?;
+        ensure_copy_space(&directory, original.len())?;
         let id=uuid::Uuid::new_v4().to_string();
         let partial=directory.join(format!("{id}.partial"));
         let final_path=directory.join(store::managed_name(&id,&filename));
