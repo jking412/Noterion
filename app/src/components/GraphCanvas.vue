@@ -12,6 +12,7 @@ const props = withDefaults(defineProps<{
   positions: Record<string, Point>
   selectedId: string | null
   graphState: 'ready' | 'updating' | 'unavailable'
+  busy?: boolean
   focusRequest: { id: string; seq: number } | null
   viewportInsets?: Partial<ViewportInsets>
 }>(), {
@@ -326,6 +327,7 @@ watch(() => props.graphState, (state, previous) => {
   if (state !== 'ready') { menu.value = null; cancelDrag(); cancelCameraAnimation(); cancelPendingFocus() }
   else if (previous !== 'ready' && props.selectedId) queueFocus(props.selectedId)
 })
+watch(() => props.busy, (busy) => { if (busy) { menu.value = null; cancelDrag() } })
 
 function changeZoom(factor: number) {
   if (!ready.value) return
@@ -342,6 +344,7 @@ function changeZoom(factor: number) {
 
 function startDrag(event: PointerEvent, point: KnowledgePoint) {
   if (!ready.value || event.button !== 0) return
+  if (props.busy) { event.stopPropagation(); emit('select', point.id); return }
   event.stopPropagation()
   event.preventDefault()
   menu.value = null
@@ -358,7 +361,7 @@ function startDrag(event: PointerEvent, point: KnowledgePoint) {
 }
 
 function moveDrag(event: PointerEvent) {
-  if (!drag || event.pointerId !== drag.pointerId || !ready.value) return
+  if (!drag || event.pointerId !== drag.pointerId || !ready.value || props.busy) return
   const dx = event.clientX - drag.startX
   const dy = event.clientY - drag.startY
   if (!drag.moved && Math.hypot(dx, dy) < 4) return
@@ -461,7 +464,7 @@ function openContextMenu(event: MouseEvent, point: KnowledgePoint) {
 }
 
 function menuAction(action: 'edit' | 'delete') {
-  if (!menu.value || !ready.value) return
+  if (!menu.value || !ready.value || props.busy) return
   const id = menu.value.id
   menu.value = null
   if (action === 'edit') emit('edit', id)
@@ -662,11 +665,11 @@ defineExpose({ fitAll, focusNode })
       @pointerdown.stop
     >
       <div class="node-menu-title">{{ menuPoint.name }}</div>
-      <button type="button" role="menuitem" @click="menuAction('edit')">
+      <button type="button" role="menuitem" :disabled="busy" @click="menuAction('edit')">
         <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m12.7 3.5 3.8 3.8M4 16l1-4L13.7 3.3a1.4 1.4 0 0 1 2 0l1 1a1.4 1.4 0 0 1 0 2L8 15l-4 1Z"/></svg>
         编辑知识点
       </button>
-      <button type="button" role="menuitem" @click="menuAction('delete')">
+      <button type="button" role="menuitem" :disabled="busy" @click="menuAction('delete')">
         <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3.5 5.5h13M8 3.5h4M5.5 5.5l.8 11h7.4l.8-11M8 8.5v5m4-5v5"/></svg>
         从图中删除
       </button>

@@ -70,7 +70,10 @@ export function useNoterion() {
     if (!deletingId.value) return
     if (await run('point_delete', { id: deletingId.value, revision: deleteRevision.value }, '知识点已删除，全部资料已保留')) deletingId.value = null
   }
-  async function movePoint(id: string, position: Point) { await run('point_move', { id, position }) }
+  async function movePoint(id: string, position: Point) {
+    // Failed writes keep the committed snapshot and discard the local drag projection.
+    if (!(await run('point_move', { id, position }))) graphKey.value++
+  }
   async function restoreGraph() {
     graphState.value = 'updating'
     if (await load()) { graphKey.value++; graphState.value = 'ready'; if (selectedId.value) selectPoint(selectedId.value) }
