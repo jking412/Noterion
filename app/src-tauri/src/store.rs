@@ -114,30 +114,40 @@ pub fn managed_name(id: &str, filename: &str) -> String {
 
 impl Store {
     pub fn new() -> Self {
-        let config_dir = std::env::var_os("NOTERION_CONFIG_DIR")
-            .map(PathBuf::from)
+        let override_dir = std::env::var_os("NOTERION_CONFIG_DIR").map(PathBuf::from);
+        let executable_dir = std::env::current_exe()
+            .ok()
+            .and_then(|path| path.parent().map(Path::to_path_buf))
+            .unwrap_or_default();
+        // Only a directory pointer lives in the user's settings directory. Knowledge
+        // and managed copies stay in the installation directory or an explicit choice.
+        let config_dir = override_dir
+            .clone()
             .or_else(|| {
-                std::env::current_exe()
-                    .ok()
-                    .and_then(|path| path.parent().map(Path::to_path_buf))
+                std::env::var_os("LOCALAPPDATA").map(|path| PathBuf::from(path).join("Noterion"))
             })
             .unwrap_or_default();
+        let root = override_dir.unwrap_or(executable_dir).join("data");
         let mut store = Self {
-            root: config_dir.join("data"),
+            root,
             config_dir,
             connection: None,
             error: None,
         };
-        if let Err(error) = store.initialize() {
+        if let Err(error) = store.initialize(true) {
             store.error = Some(error);
         }
         store
     }
 
-    fn initialize(&mut self) -> Result<(), String> {
-        if !self.config_dir.is_absolute() || !self.config_dir.is_dir() {
-            return Err("应用配置目录不可用，请选择可写的数据目录后重试。".into());
+    fn initialize(&mut self, allow_create: bool) -> Result<(), String> {
+        if !self.config_dir.is_absolute() {
+            return Err(
+                "用户配置目录不可用，无法保存数据目录选择。请检查 LOCALAPPDATA 设置。".into(),
+            );
         }
+        fs::create_dir_all(&self.config_dir)
+            .map_err(|e| disk_error("无法创建用户配置目录，正式数据未转移到其他位置", e))?;
         match fs::read(self.config_dir.join("directory.json")) {
             Ok(bytes) => {
                 let config: DirectoryConfig = serde_json::from_slice(&bytes)
@@ -147,6 +157,12 @@ impl Store {
                 self.connection = Some(connection);
             }
             Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+                if !allow_create {
+                    return Err(
+                        "数据目录配置缺失，未创建新数据。请选择原数据目录，或明确创建新数据。"
+                            .into(),
+                    );
+                }
                 // Configuration absence never authorizes overwriting a nonempty directory.
                 let create = !self.root.join(DATABASE).exists();
                 let (root, connection) = open_store(&self.root, create)?;
@@ -670,7 +686,17 @@ fn lock_store(state: &SharedStore) -> Result<std::sync::MutexGuard<'_, Store>, S
 
 #[tauri::command]
 pub fn app_load(state: tauri::State<'_, SharedStore>) -> Result<Snapshot, String> {
-    lock_store(&state)?.snapshot()
+    let mut store = lock_store(&state)?;
+    if store.error.is_some() {
+        // A directory disconnected at startup may have returned. Retry only the
+        // persisted choice; missing settings never authorize creating a new store.
+        store.error = None;
+        store.connection = None;
+        if let Err(error) = store.initialize(false) {
+            store.error = Some(error);
+        }
+    }
+    store.snapshot()
 }
 #[tauri::command]
 pub fn directory_select(
