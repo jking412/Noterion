@@ -5,6 +5,13 @@ import { zoom, zoomIdentity, type ZoomBehavior, type ZoomTransform } from 'd3-zo
 import type { KnowledgePoint, Point, ThemeColor } from '../domain/types'
 import { completePositions } from '../graph/layout'
 
+// The debug desktop host can request one real rendering failure for end-to-end acceptance.
+const graphFailureWindow = window as Window & { __NOTERION_GRAPH_FAIL_ONCE__?: boolean }
+if (graphFailureWindow.__NOTERION_GRAPH_FAIL_ONCE__ === true) {
+  delete graphFailureWindow.__NOTERION_GRAPH_FAIL_ONCE__
+  throw new Error('Desktop acceptance: requested one graph rendering failure')
+}
+
 interface ViewportInsets { left: number; right: number; top: number; bottom: number }
 
 const props = withDefaults(defineProps<{
