@@ -571,7 +571,7 @@ async function storageFaultsScenario() {
     await savePoint({name:'资料目录故障时知识仍可保存',description:'结构化数据可用'});await search('结构化数据');assert.equal((await results()).length,1);
   } finally {await fs.rename(moved,files);}
   const sddl=owned(path.join(local,'files-original.sddl'));
-  const permission=mode=>{const result=spawnSync('powershell.exe',['-NoProfile','-ExecutionPolicy','Bypass','-File',path.join(app,'validation/directory-write-fault.ps1'),'-Directory',files,'-FixtureRoot',local,'-SddlFile',sddl,'-Mode',mode],{windowsHide:true,encoding:'utf8'});assert.equal(result.status,0,result.stderr);};
+  const permission=mode=>{const result=spawnSync('pwsh.exe',['-NoProfile','-ExecutionPolicy','Bypass','-File',path.join(app,'validation/directory-write-fault.ps1'),'-Directory',files,'-FixtureRoot',local,'-SddlFile',sddl,'-Mode',mode],{windowsHide:true,encoding:'utf8'});assert.equal(result.status,0,result.stderr);};
   permission('deny');
   try {
     const probe=owned(path.join(files,'acceptance-write-probe-'+run));let denied=false;
