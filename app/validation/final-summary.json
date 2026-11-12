@@ -1,0 +1,777 @@
+{
+  "generatedAt": "2026-11-12T12:40:57.347Z",
+  "exeSha256": "0dd5e4697a38a1b23b7ea5dcace9545757d0195b5822b6c0e4e9e08de39d5207",
+  "results": [
+    {
+      "run": "issue-21-offline-release-all-03",
+      "verdict": "PASS",
+      "scenario": "all",
+      "offline": true,
+      "assertions": [
+        {
+          "label": "manual create returns committed knowledge and full description",
+          "verdict": "PASS",
+          "at": "2026-11-12T12:37:11.415Z"
+        },
+        {
+          "label": "actual WebM VP9/Opus decodes, pointer seeks and continues advancing",
+          "verdict": "PASS",
+          "at": "2026-11-12T12:37:15.966Z",
+          "detail": {
+            "start": {
+              "currentTime": 0.615683,
+              "decodedFrames": 23,
+              "duration": 12.008,
+              "error": null,
+              "jsHeapUsed": 11329163,
+              "paused": false,
+              "readyState": 4,
+              "videoHeight": 720,
+              "videoWidth": 1280
+            },
+            "seek": {
+              "currentTime": 7.420898,
+              "decodedFrames": 74,
+              "duration": 12.008,
+              "error": null,
+              "jsHeapUsed": 11718020,
+              "paused": false,
+              "readyState": 4,
+              "videoHeight": 720,
+              "videoWidth": 1280
+            },
+            "continued": {
+              "currentTime": 9.230151,
+              "decodedFrames": 128,
+              "duration": 12.008,
+              "error": null,
+              "jsHeapUsed": 11789502,
+              "paused": false,
+              "readyState": 4,
+              "videoHeight": 720,
+              "videoWidth": 1280
+            }
+          }
+        },
+        {
+          "label": "same names preserve separate knowledge; optional description can be empty",
+          "verdict": "PASS",
+          "at": "2026-11-12T12:37:19.461Z"
+        },
+        {
+          "label": "name, description, short Chinese and special fragments search literally",
+          "verdict": "PASS",
+          "at": "2026-11-12T12:37:22.756Z"
+        },
+        {
+          "label": "shared point opens from either theme and edited content is shared",
+          "verdict": "PASS",
+          "at": "2026-11-12T12:37:23.951Z"
+        },
+        {
+          "label": "arbitrary-length topic cycle is rejected without closing the draft",
+          "verdict": "PASS",
+          "at": "2026-11-12T12:37:25.530Z"
+        },
+        {
+          "label": "normal restart retains edited content and complete topic detachment as independent knowledge",
+          "verdict": "PASS",
+          "at": "2026-11-12T12:37:39.902Z"
+        },
+        {
+          "label": "abnormal process exit preserves acknowledged durable commit",
+          "verdict": "PASS",
+          "at": "2026-11-12T12:37:54.141Z"
+        },
+        {
+          "label": "delete preview lists cascade, retained shared point and irreversible file retention",
+          "verdict": "PASS",
+          "at": "2026-11-12T12:37:55.761Z"
+        },
+        {
+          "label": "deleted cascade never reappears after restart; shared and independent knowledge remain",
+          "verdict": "PASS",
+          "at": "2026-11-12T12:38:11.883Z"
+        },
+        {
+          "label": "actual pointer dragging persists the node local position across a real desktop restart",
+          "verdict": "PASS",
+          "at": "2026-11-12T12:38:27.773Z",
+          "detail": {
+            "before": "translate(699.2286226811905 326.41561434785115)",
+            "moved": "translate(774.2286229466174 372.24894784338983)",
+            "restarted": "translate(774.2286229466174 372.24894784338983)"
+          }
+        },
+        {
+          "label": "real zoom and background pointer pan change the rendered camera",
+          "verdict": "PASS",
+          "at": "2026-11-12T12:38:28.912Z",
+          "detail": {
+            "zoomBefore": "100%",
+            "zoomAfter": "120%",
+            "cameraBefore": "translate(-29.07341999370749 -167.56755757141218) scale(1.4399999949038025)",
+            "cameraAfter": "translate(35.92658000629251 -122.56755757141218) scale(1.4399999949038025)"
+          }
+        },
+        {
+          "label": "search result selection locates and highlights the requested graph node and complete detail",
+          "verdict": "PASS",
+          "at": "2026-11-12T12:38:29.382Z"
+        },
+        {
+          "label": "one saved resource is reusable from two knowledge details and detaching one keeps the other",
+          "verdict": "PASS",
+          "at": "2026-11-12T12:38:34.063Z"
+        },
+        {
+          "label": "managed image survives moving the source and restarting",
+          "verdict": "PASS",
+          "at": "2026-11-12T12:38:47.676Z",
+          "detail": {
+            "width": 960,
+            "height": 540
+          }
+        },
+        {
+          "label": "same filenames in different source directories do not overwrite or share the wrong copy",
+          "verdict": "PASS",
+          "at": "2026-11-12T12:38:48.759Z"
+        },
+        {
+          "label": "missing source file reports failure and keeps the draft instead of ready resource",
+          "verdict": "PASS",
+          "at": "2026-11-12T12:38:49.150Z"
+        },
+        {
+          "label": "real 1.28 GB local video starts with decoded frames",
+          "verdict": "PASS",
+          "at": "2026-11-12T12:38:56.104Z",
+          "detail": {
+            "currentTime": 1.032362,
+            "decodedFrames": 35,
+            "duration": 720,
+            "error": null,
+            "jsHeapUsed": 9805074,
+            "paused": false,
+            "readyState": 4,
+            "videoHeight": 720,
+            "videoWidth": 1280
+          }
+        },
+        {
+          "label": "distant pointer seek continues playing",
+          "verdict": "PASS",
+          "at": "2026-11-12T12:39:01.871Z",
+          "detail": {
+            "seek": {
+              "currentTime": 539.434282,
+              "decodedFrames": 71,
+              "duration": 720,
+              "error": null,
+              "jsHeapUsed": 10253282,
+              "paused": false,
+              "readyState": 4,
+              "videoHeight": 720,
+              "videoWidth": 1280
+            },
+            "continued": {
+              "currentTime": 544.439654,
+              "decodedFrames": 221,
+              "duration": 720,
+              "error": null,
+              "jsHeapUsed": 9605623,
+              "paused": false,
+              "readyState": 4,
+              "videoHeight": 720,
+              "videoWidth": 1280
+            }
+          }
+        },
+        {
+          "label": "local range protocol returns independent distant bytes and 416 for overflow",
+          "verdict": "PASS",
+          "at": "2026-11-12T12:39:02.071Z"
+        },
+        {
+          "label": "ordinary GET streams full video with independent hash, then cancellation stops a new read",
+          "verdict": "PASS",
+          "at": "2026-11-12T12:39:06.694Z",
+          "detail": {
+            "bytes": 1277422426,
+            "peakClientRss": 207314944,
+            "cancelledClientBytes": 8388608,
+            "cancelledServer": {
+              "bufferBytes": 65536,
+              "bytesRead": 8716288,
+              "bytesWritten": 8650752,
+              "cancelled": true,
+              "complete": false,
+              "disconnected": true,
+              "end": 1277422425,
+              "error": "远程主机强迫关闭了一个现有的连接。 (os error 10054)",
+              "event": "file-read",
+              "method": "GET",
+              "range": null,
+              "revoked": false,
+              "size": 1277422426,
+              "start": 0
+            },
+            "fullServer": {
+              "bufferBytes": 65536,
+              "bytesRead": 1277422426,
+              "bytesWritten": 1277422426,
+              "cancelled": false,
+              "complete": true,
+              "disconnected": false,
+              "end": 1277422425,
+              "error": null,
+              "event": "file-read",
+              "method": "GET",
+              "range": null,
+              "revoked": false,
+              "size": 1277422426,
+              "start": 0
+            }
+          }
+        },
+        {
+          "label": "unsupported codec presents honest failure and system-app fallback",
+          "verdict": "PASS",
+          "at": "2026-11-12T12:39:08.114Z"
+        },
+        {
+          "label": "creating a store refuses a nonempty unrelated directory without changing current facts",
+          "verdict": "PASS",
+          "at": "2026-11-12T12:39:09.991Z"
+        },
+        {
+          "label": "opening absent data reports a real error and does not create an empty store",
+          "verdict": "PASS",
+          "at": "2026-11-12T12:39:10.836Z"
+        },
+        {
+          "label": "explicit new directory and opening an existing directory keep separate durable content",
+          "verdict": "PASS",
+          "at": "2026-11-12T12:39:15.193Z"
+        },
+        {
+          "label": "link stores only address and supports multiple point associations with reusable lookup",
+          "verdict": "PASS",
+          "at": "2026-11-12T12:39:17.097Z"
+        },
+        {
+          "label": "copy cancellation never presents a ready resource or successful record",
+          "verdict": "PASS",
+          "at": "2026-11-12T12:39:18.825Z"
+        },
+        {
+          "label": "killing the application during copy cannot leave a ready formal resource after restart",
+          "verdict": "PASS",
+          "at": "2026-11-12T12:39:32.983Z"
+        },
+        {
+          "label": "a missing managed copy is marked missing and cannot be reported as ready or opened",
+          "verdict": "PASS",
+          "at": "2026-11-12T12:39:46.430Z"
+        },
+        {
+          "label": "previously chosen directory going offline does not silently create an empty replacement",
+          "verdict": "PASS",
+          "at": "2026-11-12T12:40:00.030Z"
+        },
+        {
+          "label": "restoring the selected directory reloads current committed facts",
+          "verdict": "PASS",
+          "at": "2026-11-12T12:40:13.820Z"
+        },
+        {
+          "label": "external SQLite write lock rejects editing while retaining the original fact and the user draft",
+          "verdict": "PASS",
+          "at": "2026-11-12T12:40:21.537Z"
+        },
+        {
+          "label": "failed locked deletion preserves the complete preview and reports no success",
+          "verdict": "PASS",
+          "at": "2026-11-12T12:40:28.552Z"
+        },
+        {
+          "label": "complete file copy followed by locked record commit never reports a ready resource",
+          "verdict": "PASS",
+          "at": "2026-11-12T12:40:34.697Z"
+        },
+        {
+          "label": "unlock and reread recover original facts without partial edit, deletion or failed file record",
+          "verdict": "PASS",
+          "at": "2026-11-12T12:40:36.523Z"
+        },
+        {
+          "label": "missing managed file directory rejects copying without silently recreating it",
+          "verdict": "PASS",
+          "at": "2026-11-12T12:40:37.098Z"
+        },
+        {
+          "label": "actual denied directory write reports copy failure and never presents ready data",
+          "verdict": "PASS",
+          "at": "2026-11-12T12:40:39.044Z"
+        },
+        {
+          "label": "restoring exact original directory permissions permits normal durable resource saving",
+          "verdict": "PASS",
+          "at": "2026-11-12T12:40:40.188Z"
+        },
+        {
+          "label": "a sparse source larger than actual available space is rejected before file allocation or ready record",
+          "verdict": "PASS",
+          "at": "2026-11-12T12:40:40.994Z",
+          "detail": {
+            "availableBytes": "563522170880",
+            "logicalSourceBytes": "564595912704",
+            "sourceIsSparse": true,
+            "method": "fsutil sparse setflag followed by logical truncate; no disk-filling fixture"
+          }
+        }
+      ],
+      "exe": "D:\\person\\application\\knowledgeGraph\\app\\dist-desktop\\noterion.exe",
+      "exeSha256": "0dd5e4697a38a1b23b7ea5dcace9545757d0195b5822b6c0e4e9e08de39d5207",
+      "driverVersion": "Microsoft Edge WebDriver 136.0.3240.76 (77e9ec69748f08de141572c1eec5e1ad497c7be6)",
+      "driverSha256": "76f549b492a89dbacee027ac6a726836944f04645ecaa5fa9a2045c84303d6ed",
+      "hostsExited": true,
+      "launches": 10,
+      "at": "2026-11-12T12:40:41.901Z",
+      "limits": [
+        "PDF screenshot requires explicit visual inspection",
+        "HTTP/HTTPS proxy isolation applies to WebView2; OS/native/external-app networking is unchanged"
+      ],
+      "resourceObservations": {
+        "samples": 300,
+        "peakWorkingSet": 861773824,
+        "peakPrivate": 1070571520,
+        "peakHostWorkingSet": 43843584,
+        "note": "Sum of process working sets includes shared pages; it is not unique physical memory. Node/driver/sampler excluded."
+      },
+      "fileReads": [
+        {
+          "bufferBytes": 65536,
+          "bytesRead": 1845591,
+          "bytesWritten": 1845591,
+          "cancelled": false,
+          "complete": true,
+          "disconnected": false,
+          "end": 1845590,
+          "error": null,
+          "event": "file-read",
+          "method": "GET",
+          "range": "bytes=0-",
+          "revoked": false,
+          "size": 1845591,
+          "start": 0
+        },
+        {
+          "bufferBytes": 65536,
+          "bytesRead": 10583,
+          "bytesWritten": 10583,
+          "cancelled": false,
+          "complete": true,
+          "disconnected": false,
+          "end": 1845590,
+          "error": null,
+          "event": "file-read",
+          "method": "GET",
+          "range": "bytes=1835008-",
+          "revoked": false,
+          "size": 1845591,
+          "start": 1835008
+        },
+        {
+          "bufferBytes": 65536,
+          "bytesRead": 797015,
+          "bytesWritten": 797015,
+          "cancelled": false,
+          "complete": true,
+          "disconnected": false,
+          "end": 1845590,
+          "error": null,
+          "event": "file-read",
+          "method": "GET",
+          "range": "bytes=1048576-",
+          "revoked": false,
+          "size": 1845591,
+          "start": 1048576
+        },
+        {
+          "bufferBytes": 65536,
+          "bytesRead": 5154,
+          "bytesWritten": 5154,
+          "cancelled": false,
+          "complete": true,
+          "disconnected": false,
+          "end": 5153,
+          "error": null,
+          "event": "file-read",
+          "method": "GET",
+          "range": null,
+          "revoked": false,
+          "size": 5154,
+          "start": 0
+        },
+        {
+          "bufferBytes": 65536,
+          "bytesRead": 68,
+          "bytesWritten": 68,
+          "cancelled": false,
+          "complete": true,
+          "disconnected": false,
+          "end": 67,
+          "error": null,
+          "event": "file-read",
+          "method": "GET",
+          "range": null,
+          "revoked": false,
+          "size": 68,
+          "start": 0
+        },
+        {
+          "bufferBytes": 65536,
+          "bytesRead": 1084,
+          "bytesWritten": 1084,
+          "cancelled": false,
+          "complete": true,
+          "disconnected": false,
+          "end": 1083,
+          "error": null,
+          "event": "file-read",
+          "method": "GET",
+          "range": null,
+          "revoked": false,
+          "size": 1084,
+          "start": 0
+        },
+        {
+          "bufferBytes": 65536,
+          "bytesRead": 30015488,
+          "bytesWritten": 29949952,
+          "cancelled": true,
+          "complete": false,
+          "disconnected": true,
+          "end": 1277422425,
+          "error": "远程主机强迫关闭了一个现有的连接。 (os error 10054)",
+          "event": "file-read",
+          "method": "GET",
+          "range": "bytes=0-",
+          "revoked": false,
+          "size": 1277422426,
+          "start": 0
+        },
+        {
+          "bufferBytes": 65536,
+          "bytesRead": 32,
+          "bytesWritten": 32,
+          "cancelled": false,
+          "complete": true,
+          "disconnected": false,
+          "end": 1000000031,
+          "error": null,
+          "event": "file-read",
+          "method": "GET",
+          "range": "bytes=1000000000-1000000031",
+          "revoked": false,
+          "size": 1277422426,
+          "start": 1000000000
+        },
+        {
+          "bufferBytes": 65536,
+          "bytesRead": 1277422426,
+          "bytesWritten": 1277422426,
+          "cancelled": false,
+          "complete": true,
+          "disconnected": false,
+          "end": 1277422425,
+          "error": null,
+          "event": "file-read",
+          "method": "GET",
+          "range": null,
+          "revoked": false,
+          "size": 1277422426,
+          "start": 0
+        },
+        {
+          "bufferBytes": 65536,
+          "bytesRead": 8716288,
+          "bytesWritten": 8650752,
+          "cancelled": true,
+          "complete": false,
+          "disconnected": true,
+          "end": 1277422425,
+          "error": "远程主机强迫关闭了一个现有的连接。 (os error 10054)",
+          "event": "file-read",
+          "method": "GET",
+          "range": null,
+          "revoked": false,
+          "size": 1277422426,
+          "start": 0
+        },
+        {
+          "bufferBytes": 65536,
+          "bytesRead": 27918336,
+          "bytesWritten": 27852800,
+          "cancelled": true,
+          "complete": false,
+          "disconnected": true,
+          "end": 1277422425,
+          "error": "远程主机强迫关闭了一个现有的连接。 (os error 10054)",
+          "event": "file-read",
+          "method": "GET",
+          "range": "bytes=954630144-",
+          "revoked": true,
+          "size": 1277422426,
+          "start": 954630144
+        },
+        {
+          "bufferBytes": 65536,
+          "bytesRead": 2883584,
+          "bytesWritten": 2818048,
+          "cancelled": true,
+          "complete": false,
+          "disconnected": true,
+          "end": 10937766,
+          "error": "远程主机强迫关闭了一个现有的连接。 (os error 10054)",
+          "event": "file-read",
+          "method": "GET",
+          "range": "bytes=0-",
+          "revoked": false,
+          "size": 10937767,
+          "start": 0
+        }
+      ],
+      "fileCopies": [
+        {
+          "bufferBytes": 131072,
+          "error": null,
+          "event": "file-copy",
+          "size": 1845591,
+          "success": true
+        },
+        {
+          "bufferBytes": 131072,
+          "error": null,
+          "event": "file-copy",
+          "size": 5154,
+          "success": true
+        },
+        {
+          "bufferBytes": 131072,
+          "error": null,
+          "event": "file-copy",
+          "size": 68,
+          "success": true
+        },
+        {
+          "bufferBytes": 131072,
+          "error": null,
+          "event": "file-copy",
+          "size": 1084,
+          "success": true
+        },
+        {
+          "bufferBytes": 131072,
+          "error": null,
+          "event": "file-copy",
+          "size": 1277422426,
+          "success": true
+        },
+        {
+          "bufferBytes": 131072,
+          "error": null,
+          "event": "file-copy",
+          "size": 10937767,
+          "success": true
+        },
+        {
+          "bufferBytes": 131072,
+          "error": "复制已取消，未添加资料。",
+          "event": "file-copy",
+          "size": 1277422426,
+          "success": false
+        },
+        {
+          "bufferBytes": 131072,
+          "error": null,
+          "event": "file-copy",
+          "size": 5154,
+          "success": true
+        },
+        {
+          "bufferBytes": 131072,
+          "error": "无法开始保存，原有内容未修改：database is locked",
+          "event": "file-copy",
+          "size": 5154,
+          "success": false
+        },
+        {
+          "bufferBytes": 131072,
+          "error": "无法创建文件副本：拒绝访问。 (os error 5)",
+          "event": "file-copy",
+          "size": 5154,
+          "success": false
+        },
+        {
+          "bufferBytes": 131072,
+          "error": null,
+          "event": "file-copy",
+          "size": 5154,
+          "success": true
+        }
+      ]
+    },
+    {
+      "run": "issue-21-ordinarydelete-release-01",
+      "verdict": "PASS",
+      "scenario": "ordinarydelete",
+      "offline": true,
+      "assertions": [
+        {
+          "label": "explicit ordinary-point delete previews exactly one knowledge point and retains its resource",
+          "verdict": "PASS",
+          "at": "2026-11-12T12:38:45.528Z"
+        },
+        {
+          "label": "ordinary knowledge deletion remains committed after restart and its saved image stays readable",
+          "verdict": "PASS",
+          "at": "2026-11-12T12:39:00.142Z"
+        }
+      ],
+      "exe": "D:\\person\\application\\knowledgeGraph\\app\\dist-desktop\\noterion.exe",
+      "exeSha256": "0dd5e4697a38a1b23b7ea5dcace9545757d0195b5822b6c0e4e9e08de39d5207",
+      "driverVersion": "Microsoft Edge WebDriver 136.0.3240.76 (77e9ec69748f08de141572c1eec5e1ad497c7be6)",
+      "driverSha256": "76f549b492a89dbacee027ac6a726836944f04645ecaa5fa9a2045c84303d6ed",
+      "hostsExited": true,
+      "launches": 2,
+      "at": "2026-11-12T12:39:01.310Z",
+      "limits": [
+        "HTTP/HTTPS proxy isolation applies to WebView2; OS/native/external-app networking is unchanged"
+      ],
+      "resourceObservations": {
+        "samples": 40,
+        "peakWorkingSet": 551727104,
+        "peakPrivate": 746795008,
+        "peakHostWorkingSet": 27168768,
+        "note": "Sum of process working sets includes shared pages; it is not unique physical memory. Node/driver/sampler excluded."
+      },
+      "fileReads": [
+        {
+          "bufferBytes": 65536,
+          "bytesRead": 5154,
+          "bytesWritten": 5154,
+          "cancelled": false,
+          "complete": true,
+          "disconnected": false,
+          "end": 5153,
+          "error": null,
+          "event": "file-read",
+          "method": "GET",
+          "range": null,
+          "revoked": false,
+          "size": 5154,
+          "start": 0
+        }
+      ],
+      "fileCopies": [
+        {
+          "bufferBytes": 131072,
+          "error": null,
+          "event": "file-copy",
+          "size": 5154,
+          "success": true
+        }
+      ]
+    },
+    {
+      "run": "issue-21-graphfailure-green-01",
+      "verdict": "PASS",
+      "scenario": "graphfailure",
+      "assertions": [
+        {
+          "label": "real graph setup exception is contained while saving, searching and details remain usable",
+          "verdict": "PASS",
+          "at": "2026-11-12T12:23:55.068Z"
+        },
+        {
+          "label": "knowledge resources remain readable while the real graph subtree has failed",
+          "verdict": "PASS",
+          "at": "2026-11-12T12:23:57.104Z"
+        },
+        {
+          "label": "graph recovery rereads current facts rather than reviving a stale name or description",
+          "verdict": "PASS",
+          "at": "2026-11-12T12:23:58.291Z"
+        }
+      ],
+      "exe": "D:\\person\\application\\knowledgeGraph\\app\\dist-desktop\\noterion.exe",
+      "exeSha256": "866de0560bb621b81150ea8c34729b820f0bbb2eb70b12352fdc3b70087cb522",
+      "driverVersion": "Microsoft Edge WebDriver 136.0.3240.76 (77e9ec69748f08de141572c1eec5e1ad497c7be6)",
+      "driverSha256": "76f549b492a89dbacee027ac6a726836944f04645ecaa5fa9a2045c84303d6ed",
+      "hostsExited": true,
+      "launches": 1,
+      "at": "2026-11-12T12:23:59.607Z",
+      "limits": [],
+      "resourceObservations": {
+        "samples": 9,
+        "peakWorkingSet": 572698624,
+        "peakPrivate": 844775424,
+        "peakHostWorkingSet": 34590720,
+        "note": "Sum of process working sets includes shared pages; it is not unique physical memory. Node/driver/sampler excluded."
+      },
+      "fileReads": [
+        {
+          "bufferBytes": 65536,
+          "bytesRead": 5154,
+          "bytesWritten": 5154,
+          "cancelled": false,
+          "complete": true,
+          "disconnected": false,
+          "end": 5153,
+          "error": null,
+          "event": "file-read",
+          "method": "GET",
+          "range": null,
+          "revoked": false,
+          "size": 5154,
+          "start": 0
+        }
+      ],
+      "fileCopies": [
+        {
+          "bufferBytes": 131072,
+          "error": null,
+          "event": "file-copy",
+          "size": 5154,
+          "success": true
+        }
+      ]
+    },
+    {
+      "run": "issue-21-create-red-01",
+      "verdict": "FAIL",
+      "scenario": "create",
+      "assertions": [],
+      "exe": "D:\\person\\application\\knowledgeGraph\\app\\dist-desktop\\noterion.exe",
+      "exeSha256": "aa03821b56cfabd9233df5568e4def7261b9c45b04aac24ac4f8fb06787d307e",
+      "driverVersion": "Microsoft Edge WebDriver 136.0.3240.76 (77e9ec69748f08de141572c1eec5e1ad497c7be6)",
+      "driverSha256": "76f549b492a89dbacee027ac6a726836944f04645ecaa5fa9a2045c84303d6ed",
+      "hostsExited": true,
+      "launches": 1,
+      "at": "2026-11-12T12:14:08.413Z",
+      "limits": [],
+      "resourceObservations": {
+        "samples": 2,
+        "peakWorkingSet": 473939968,
+        "peakPrivate": 564264960,
+        "peakHostWorkingSet": 33312768,
+        "note": "Sum of process working sets includes shared pages; it is not unique physical memory. Node/driver/sampler excluded."
+      },
+      "fileReads": [],
+      "fileCopies": []
+    }
+  ]
+}

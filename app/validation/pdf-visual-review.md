@@ -1,13 +1,5 @@
-# Actual embedded PDF review
+# 最终 PDF 视检
 
-2026-11-12. The first integrated media screenshot was captured as soon as its iframe existed and appeared blank. A focused rerun on the same formal exe waited three seconds after opening the saved PDF through the real resource-library UI.
+2026-11-12，root实际读取并检查 `evidence/issue-21-offline-release-all-03/05-pdf-inspect-required.png`：正式资料入口打开本地管理副本，WebView2内置只读查看器已显示工具栏、页码1/1、Noterion resource checklist标题、Offline demo日期、三条操作和docker stats正文。图片中的正文与测试PDF一致，判断为渲染通过。等待真实查看器启动后拍摄，不以iframe或load事件替代正文。
 
-Command: `node app/scripts/acceptance.mjs --run=issue-21-pdf-diagnostic-01 --scenario=pdf --port=33222 --exe=D:/person/application/knowledgeGraph/.scratch/personal-knowledge-graph/validation/windows-desktop/target/debug/noterion.exe --fixtures-root=D:/person/application/knowledgeGraph`.
-
-The actual desktop screenshot `evidence/issue-21-pdf-diagnostic-01/pdf-after-3-seconds.png` was opened and visually inspected: the built-in viewer shows its toolbar, page **1 / 1**, zoom controls and the real `Noterion resource checklist` document, including its checklist and `docker stats --no-stream` command. It is not a blank iframe or a replacement HTML page. Screenshot after read-only frame observation shows the same PDF.
-
-Read-only WebDriver frame observation returned `contentType: application/pdf`, a 909×525 embedded PDF element and the Runtime PDF plugin inventory. Its DOM body text is empty because the built-in viewer renders through its embedded plugin; that empty DOM is not the rendering verdict. The screenshot is the rendering evidence.
-
-Actual exe SHA-256: `d8000abc375671a1863a1ce3a2665e9abe0b37a96f0114ffd9f9f35e6a2f7e1d`. WebView2/driver: `136.0.3240.76`. The runner used isolated app/profile data, closed its session and confirmed its owned host exited. This proves this actual local PDF on this Runtime; it does not assert every PDF feature or all malformed/encrypted documents work.
-
-No bundled third-party PDF renderer is needed for the demonstrated basic read-only preview. The media scenario now waits three seconds before taking its PDF review screenshot; the iframe load event itself remains insufficient as a pass condition.
+同轮1280×800与1600×1000截图已检查，主要控件和资料访问可用；空间不足错误时已无旧成功toast。

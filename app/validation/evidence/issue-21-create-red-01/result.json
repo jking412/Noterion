@@ -1,0 +1,14 @@
+{
+  "verdict": "FAIL",
+  "run": "issue-21-create-red-01",
+  "scenario": "create",
+  "assertions": 0,
+  "exe": "D:\\person\\application\\knowledgeGraph\\app\\dist-desktop\\noterion.exe",
+  "exeSha256": "aa03821b56cfabd9233df5568e4def7261b9c45b04aac24ac4f8fb06787d307e",
+  "driverVersion": "Microsoft Edge WebDriver 136.0.3240.76 (77e9ec69748f08de141572c1eec5e1ad497c7be6)",
+  "driverSha256": "76f549b492a89dbacee027ac6a726836944f04645ecaa5fa9a2045c84303d6ed",
+  "hostsExited": true,
+  "launches": 1,
+  "at": "2026-11-12T12:14:08.413Z",
+  "limits": []
+}

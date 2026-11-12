@@ -1,0 +1,34 @@
+{"bufferBytes":65536,"event":"process-started","exe":"D:\\person\\application\\knowledgeGraph\\app\\dist-desktop\\noterion.exe","pid":5864,"port":62640}
+{"bufferBytes":131072,"error":null,"event":"file-copy","size":1845591,"success":true}
+{"bufferBytes":65536,"bytesRead":1845591,"bytesWritten":1845591,"cancelled":false,"complete":true,"disconnected":false,"end":1845590,"error":null,"event":"file-read","method":"GET","range":"bytes=0-","revoked":false,"size":1845591,"start":0}
+{"bufferBytes":65536,"bytesRead":10583,"bytesWritten":10583,"cancelled":false,"complete":true,"disconnected":false,"end":1845590,"error":null,"event":"file-read","method":"GET","range":"bytes=1835008-","revoked":false,"size":1845591,"start":1835008}
+{"bufferBytes":65536,"bytesRead":797015,"bytesWritten":797015,"cancelled":false,"complete":true,"disconnected":false,"end":1845590,"error":null,"event":"file-read","method":"GET","range":"bytes=1048576-","revoked":false,"size":1845591,"start":1048576}
+{"bufferBytes":65536,"event":"process-started","exe":"D:\\person\\application\\knowledgeGraph\\app\\dist-desktop\\noterion.exe","pid":24572,"port":56899}
+{"bufferBytes":65536,"event":"process-started","exe":"D:\\person\\application\\knowledgeGraph\\app\\dist-desktop\\noterion.exe","pid":28744,"port":58365}
+{"bufferBytes":65536,"event":"process-started","exe":"D:\\person\\application\\knowledgeGraph\\app\\dist-desktop\\noterion.exe","pid":33564,"port":50372}
+{"bufferBytes":65536,"event":"process-started","exe":"D:\\person\\application\\knowledgeGraph\\app\\dist-desktop\\noterion.exe","pid":50588,"port":58197}
+{"bufferBytes":131072,"error":null,"event":"file-copy","size":5154,"success":true}
+{"bufferBytes":65536,"event":"process-started","exe":"D:\\person\\application\\knowledgeGraph\\app\\dist-desktop\\noterion.exe","pid":23624,"port":55080}
+{"bufferBytes":65536,"bytesRead":5154,"bytesWritten":5154,"cancelled":false,"complete":true,"disconnected":false,"end":5153,"error":null,"event":"file-read","method":"GET","range":null,"revoked":false,"size":5154,"start":0}
+{"bufferBytes":131072,"error":null,"event":"file-copy","size":68,"success":true}
+{"bufferBytes":65536,"bytesRead":68,"bytesWritten":68,"cancelled":false,"complete":true,"disconnected":false,"end":67,"error":null,"event":"file-read","method":"GET","range":null,"revoked":false,"size":68,"start":0}
+{"bufferBytes":131072,"error":null,"event":"file-copy","size":1084,"success":true}
+{"bufferBytes":65536,"bytesRead":1084,"bytesWritten":1084,"cancelled":false,"complete":true,"disconnected":false,"end":1083,"error":null,"event":"file-read","method":"GET","range":null,"revoked":false,"size":1084,"start":0}
+{"bufferBytes":131072,"error":null,"event":"file-copy","size":1277422426,"success":true}
+{"bufferBytes":65536,"bytesRead":30015488,"bytesWritten":29949952,"cancelled":true,"complete":false,"disconnected":true,"end":1277422425,"error":"远程主机强迫关闭了一个现有的连接。 (os error 10054)","event":"file-read","method":"GET","range":"bytes=0-","revoked":false,"size":1277422426,"start":0}
+{"bufferBytes":65536,"bytesRead":32,"bytesWritten":32,"cancelled":false,"complete":true,"disconnected":false,"end":1000000031,"error":null,"event":"file-read","method":"GET","range":"bytes=1000000000-1000000031","revoked":false,"size":1277422426,"start":1000000000}
+{"bufferBytes":65536,"bytesRead":1277422426,"bytesWritten":1277422426,"cancelled":false,"complete":true,"disconnected":false,"end":1277422425,"error":null,"event":"file-read","method":"GET","range":null,"revoked":false,"size":1277422426,"start":0}
+{"bufferBytes":65536,"bytesRead":8716288,"bytesWritten":8650752,"cancelled":true,"complete":false,"disconnected":true,"end":1277422425,"error":"远程主机强迫关闭了一个现有的连接。 (os error 10054)","event":"file-read","method":"GET","range":null,"revoked":false,"size":1277422426,"start":0}
+{"bufferBytes":65536,"bytesRead":27918336,"bytesWritten":27852800,"cancelled":true,"complete":false,"disconnected":true,"end":1277422425,"error":"远程主机强迫关闭了一个现有的连接。 (os error 10054)","event":"file-read","method":"GET","range":"bytes=954630144-","revoked":true,"size":1277422426,"start":954630144}
+{"bufferBytes":131072,"error":null,"event":"file-copy","size":10937767,"success":true}
+{"bufferBytes":65536,"bytesRead":2883584,"bytesWritten":2818048,"cancelled":true,"complete":false,"disconnected":true,"end":10937766,"error":"远程主机强迫关闭了一个现有的连接。 (os error 10054)","event":"file-read","method":"GET","range":"bytes=0-","revoked":false,"size":10937767,"start":0}
+{"event":"external-open","id":"02dfa276-4488-4fa3-937c-8fa4e7f75a6a","path":"\\\\?\\D:\\person\\application\\knowledgeGraph\\app\\validation\\evidence\\issue-21-offline-release-all-03\\local\\config\\data\\files\\02dfa276-4488-4fa3-937c-8fa4e7f75a6a.mkv","result":42,"success":true}
+{"bufferBytes":131072,"error":"复制已取消，未添加资料。","event":"file-copy","size":1277422426,"success":false}
+{"bufferBytes":65536,"event":"process-started","exe":"D:\\person\\application\\knowledgeGraph\\app\\dist-desktop\\noterion.exe","pid":30624,"port":63818}
+{"bufferBytes":131072,"error":null,"event":"file-copy","size":5154,"success":true}
+{"bufferBytes":65536,"event":"process-started","exe":"D:\\person\\application\\knowledgeGraph\\app\\dist-desktop\\noterion.exe","pid":35764,"port":57727}
+{"bufferBytes":65536,"event":"process-started","exe":"D:\\person\\application\\knowledgeGraph\\app\\dist-desktop\\noterion.exe","pid":8660,"port":50068}
+{"bufferBytes":65536,"event":"process-started","exe":"D:\\person\\application\\knowledgeGraph\\app\\dist-desktop\\noterion.exe","pid":26880,"port":60580}
+{"bufferBytes":131072,"error":"无法开始保存，原有内容未修改：database is locked","event":"file-copy","size":5154,"success":false}
+{"bufferBytes":131072,"error":"无法创建文件副本：拒绝访问。 (os error 5)","event":"file-copy","size":5154,"success":false}
+{"bufferBytes":131072,"error":null,"event":"file-copy","size":5154,"success":true}

@@ -1,0 +1,33 @@
+{
+  "capabilities": {
+    "acceptInsecureCerts": false,
+    "browserName": "webview2",
+    "browserVersion": "136.0.3240.76",
+    "fedcm:accounts": true,
+    "ms:edgeOptions": {
+      "debuggerAddress": "localhost:60581"
+    },
+    "msedge": {
+      "msedgedriverVersion": "136.0.3240.76 (77e9ec69748f08de141572c1eec5e1ad497c7be6)",
+      "userDataDir": ""
+    },
+    "networkConnectionEnabled": false,
+    "pageLoadStrategy": "normal",
+    "platformName": "windows",
+    "proxy": {},
+    "setWindowRect": true,
+    "strictFileInteractability": false,
+    "timeouts": {
+      "implicit": 0,
+      "pageLoad": 300000,
+      "script": 30000
+    },
+    "unhandledPromptBehavior": "dismiss and notify",
+    "webauthn:extension:credBlob": true,
+    "webauthn:extension:largeBlob": true,
+    "webauthn:extension:minPinLength": true,
+    "webauthn:extension:prf": true,
+    "webauthn:virtualAuthenticators": true
+  },
+  "sessionId": "773fcda32713003b48536c180d8f7f4b"
+}

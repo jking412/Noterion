@@ -1,0 +1,18 @@
+{
+  "verdict": "PASS",
+  "run": "issue-21-offline-release-all-03",
+  "scenario": "all",
+  "offline": true,
+  "assertions": 39,
+  "exe": "D:\\person\\application\\knowledgeGraph\\app\\dist-desktop\\noterion.exe",
+  "exeSha256": "0dd5e4697a38a1b23b7ea5dcace9545757d0195b5822b6c0e4e9e08de39d5207",
+  "driverVersion": "Microsoft Edge WebDriver 136.0.3240.76 (77e9ec69748f08de141572c1eec5e1ad497c7be6)",
+  "driverSha256": "76f549b492a89dbacee027ac6a726836944f04645ecaa5fa9a2045c84303d6ed",
+  "hostsExited": true,
+  "launches": 10,
+  "at": "2026-11-12T12:40:41.901Z",
+  "limits": [
+    "PDF screenshot requires explicit visual inspection",
+    "HTTP/HTTPS proxy isolation applies to WebView2; OS/native/external-app networking is unchanged"
+  ]
+}

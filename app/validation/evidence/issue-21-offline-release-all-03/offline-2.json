@@ -1,0 +1,18 @@
+{
+  "mode": "WebView2 HTTP/HTTPS proxy isolation",
+  "verifiedUnusedProxyPort": 62630,
+  "arguments": "--proxy-server=http://127.0.0.1:62630 --proxy-bypass-list=\"<-loopback>;tauri.localhost;ipc.localhost;127.0.0.1;[::1]\"",
+  "probes": [
+    {
+      "url": "http://example.com/",
+      "navigationError": "WebDriver POST /session/86e3c48d2bbb65c216c07350e43ea5b3/url: {\"error\":\"unknown error\",\"message\":\"unknown error: net::ERR_PROXY_CONNECTION_FAILED\\n  (Session info: MicrosoftEdge=136.0.3240.76)\",\"stacktrace\":\"\\tGetHandleVerifier [0x00007FF7AFDEF965+25029]\\n\\t(No symbol) [0x00007FF7AFD44970]\\n\\tMicrosoft::Applications::Events::EventProperty::to_string [0x00007FF7B004AA6A+1947706]\\n\\t(No symbol) [0x00007FF7AFB08A30]\\n\\t(No symbol) [0x00007FF7AFAFCE6F]\\n\\t(No symbol) [0x00007FF7AFAFE4CD]\\n\\t(No symbol) [0x00007FF7AFAFD0D9]\\n\\t(No symbol) [0x00007FF7AFAFCCDC]\\n\\t(No symbol) [0x00007FF7AFAFCA28]\\n\\t(No symbol) [0x00007FF7AFAFAA69]\\n\\t(No symbol) [0x00007FF7AFAFB03C]\\n\\t(No symbol) [0x00007FF7AFB0F06A]\\n\\t(No symbol) [0x00007FF7AFB96D1E]\\n\\t(No symbol) [0x00007FF7AFB7908A]\\n\\t(No symbol) [0x00007FF7AFB4E15D]\\n\\t(No symbol) [0x00007FF7AFB96698]\\n\\t(No symbol) [0x00007FF7AFB78DF3]\\n\\t(No symbol) [0x00007FF7AFB4D6A6]\\n\\t(No symbol) [0x00007FF7AFB4CBB3]\\n\\t(No symbol) [0x00007FF7AFB4D4D3]\\n\\t(No symbol) [0x00007FF7AFC55F0D]\\n\\t(No symbol) [0x00007FF7AFC63AAF]\\n\\t(No symbol) [0x00007FF7AFC5C49F]\\n\\tMicrosoft::Applications::Events::EventProperty::to_string [0x00007FF7AFEB4A1A+284650]\\n\\t(No symbol) [0x00007FF7AFD52301]\\n\\t(No symbol) [0x00007FF7AFD4ADA4]\\n\\t(No symbol) [0x00007FF7AFD4AEF3]\\n\\t(No symbol) [0x00007FF7AFD3CB36]\\n\\tBaseThreadInitThunk [0x00007FFE6BF4CD87+23]\\n\\tRtlUserThreadStart [0x00007FFE6C24CAEC+44]\\n\"}",
+      "rendered": "你尚未连接\n代理服务器可能有问题，或地址不正确。\n请尝试：\n正在与你的组织联系\n检查代理地址\nERR_PROXY_CONNECTION_FAILED\nMicrosoft Edge"
+    },
+    {
+      "url": "https://example.com/",
+      "navigationError": "WebDriver POST /session/86e3c48d2bbb65c216c07350e43ea5b3/url: {\"error\":\"unknown error\",\"message\":\"unknown error: net::ERR_PROXY_CONNECTION_FAILED\\n  (Session info: MicrosoftEdge=136.0.3240.76)\",\"stacktrace\":\"\\tGetHandleVerifier [0x00007FF7AFDEF965+25029]\\n\\t(No symbol) [0x00007FF7AFD44970]\\n\\tMicrosoft::Applications::Events::EventProperty::to_string [0x00007FF7B004AA6A+1947706]\\n\\t(No symbol) [0x00007FF7AFB08A30]\\n\\t(No symbol) [0x00007FF7AFAFCE6F]\\n\\t(No symbol) [0x00007FF7AFAFE4CD]\\n\\t(No symbol) [0x00007FF7AFAFD0D9]\\n\\t(No symbol) [0x00007FF7AFAFCCDC]\\n\\t(No symbol) [0x00007FF7AFAFCA28]\\n\\t(No symbol) [0x00007FF7AFAFAA69]\\n\\t(No symbol) [0x00007FF7AFAFB03C]\\n\\t(No symbol) [0x00007FF7AFB0F06A]\\n\\t(No symbol) [0x00007FF7AFB96D1E]\\n\\t(No symbol) [0x00007FF7AFB7908A]\\n\\t(No symbol) [0x00007FF7AFB4E15D]\\n\\t(No symbol) [0x00007FF7AFB96698]\\n\\t(No symbol) [0x00007FF7AFB78DF3]\\n\\t(No symbol) [0x00007FF7AFB4D6A6]\\n\\t(No symbol) [0x00007FF7AFB4CBB3]\\n\\t(No symbol) [0x00007FF7AFB4D4D3]\\n\\t(No symbol) [0x00007FF7AFC55F0D]\\n\\t(No symbol) [0x00007FF7AFC63AAF]\\n\\t(No symbol) [0x00007FF7AFC5C49F]\\n\\tMicrosoft::Applications::Events::EventProperty::to_string [0x00007FF7AFEB4A1A+284650]\\n\\t(No symbol) [0x00007FF7AFD52301]\\n\\t(No symbol) [0x00007FF7AFD4ADA4]\\n\\t(No symbol) [0x00007FF7AFD4AEF3]\\n\\t(No symbol) [0x00007FF7AFD3CB36]\\n\\tBaseThreadInitThunk [0x00007FFE6BF4CD87+23]\\n\\tRtlUserThreadStart [0x00007FFE6C24CAEC+44]\\n\"}",
+      "rendered": "你尚未连接\n代理服务器可能有问题，或地址不正确。\n请尝试：\n正在与你的组织联系\n检查代理地址\nERR_PROXY_CONNECTION_FAILED\nMicrosoft Edge"
+    }
+  ],
+  "limits": "Does not disable OS networking, native Rust sockets, UDP or externally opened applications."
+}
