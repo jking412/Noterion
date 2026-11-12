@@ -19,7 +19,7 @@ assert.ok(Object.keys(options).every(key => ['run','scenario','exe','driver','fi
 const run = options.run;
 assert.match(run ?? '', /^issue-21-[a-z0-9-]+$/);
 const scenario = options.scenario ?? 'core';
-assert.ok(['create','core','media','reliability','all'].includes(scenario));
+assert.ok(['create','core','pdf','media','reliability','all'].includes(scenario));
 const repo = options['fixtures-root'] ?? path.resolve(app, '..');
 const exe = path.resolve(options.exe ?? path.join(app, 'src-tauri/target/debug/noterion.exe'));
 const driverExe = path.resolve(options.driver ?? path.join(repo, '.scratch/personal-knowledge-graph/validation/windows-desktop/.tools/issue3-webdriver/msedgedriver.exe'));
@@ -273,6 +273,21 @@ async function openResource(title) {
   await click(`//article[@aria-label=${literal('学习资料：'+title)}]//button[normalize-space(.)='查看资料']`,'xpath');
 }
 async function closePreview() { await click('[aria-label="关闭弹窗"]'); }
+async function pdfScenario() {
+  const source=path.join(repo,'.scratch/personal-knowledge-graph/prototypes/core-ui/test-data/resources/resource-checklist.pdf');
+  await addFile(source,'独立PDF检查');await openResource('独立PDF检查');
+  await until(async()=>(await findAll('iframe.pdf-frame')).length,'PDF frame appears');
+  await delay(3000);await capture('pdf-after-3-seconds');
+  const outer=await observe('const f=document.querySelector("iframe.pdf-frame");return {src:f?.src,title:f?.title,rect:f?{width:f.clientWidth,height:f.clientHeight}:null,pluginTypes:[...navigator.plugins].map(p=>p.name)};');
+  let inner;
+  try{
+    await wd('POST','/frame',{id:{[elementKey]:await find('iframe.pdf-frame')}});
+    inner=await observe('return {url:location.href,title:document.title,contentType:document.contentType,readyState:document.readyState,text:document.body?.innerText,html:document.documentElement?.outerHTML.slice(0,12000),embedded:[...document.querySelectorAll("embed,object,iframe")].map(e=>({tag:e.tagName,type:e.type,src:e.src,width:e.clientWidth,height:e.clientHeight}))};');
+  }catch(error){inner={error:error.message};}
+  finally{await wd('POST','/frame',{id:null});}
+  await write('pdf-observation.json',{outer,inner,status:'REQUIRES_VISUAL_INSPECTION',screenshot:'pdf-after-3-seconds.png'});
+  await capture('pdf-after-observation');
+}
 async function mediaMetrics() {
   return observe('const v=document.querySelector(".video-preview"); return v ? {currentTime:v.currentTime,duration:Number.isFinite(v.duration)?v.duration:null,paused:v.paused,readyState:v.readyState,videoWidth:v.videoWidth,videoHeight:v.videoHeight,decodedFrames:v.getVideoPlaybackQuality().totalVideoFrames,error:v.error?.code??null,jsHeapUsed:performance.memory?.usedJSHeapSize??null} : null;');
 }
@@ -452,7 +467,8 @@ async function reliabilityScenario() {
 
 try {
   await launch(); await capture('00-start');
-  if (scenario !== 'media' && scenario !== 'reliability') await createScenario();
+  if (!['media','reliability','pdf'].includes(scenario)) await createScenario();
+  if (scenario === 'pdf') await pdfScenario();
   if (scenario === 'core' || scenario === 'all') await coreScenario();
   if (scenario === 'media' || scenario === 'all') await mediaScenario();
   if (scenario === 'reliability' || scenario === 'all') await reliabilityScenario();
