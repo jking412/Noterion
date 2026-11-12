@@ -19,7 +19,7 @@ assert.ok(Object.keys(options).every(key => ['run','scenario','exe','driver','fi
 const run = options.run;
 assert.match(run ?? '', /^issue-21-[a-z0-9-]+$/);
 const scenario = options.scenario ?? 'core';
-assert.ok(['create','core','pdf','media','reliability','storagefaults','all'].includes(scenario));
+assert.ok(['create','core','pdf','webm','graphfailure','media','reliability','storagefaults','all'].includes(scenario));
 const repo = options['fixtures-root'] ?? path.resolve(app, '..');
 const exe = path.resolve(options.exe ?? path.join(app, 'src-tauri/target/debug/noterion.exe'));
 const driverExe = path.resolve(options.driver ?? path.join(repo, '.scratch/personal-knowledge-graph/validation/windows-desktop/.tools/issue3-webdriver/msedgedriver.exe'));
@@ -114,7 +114,7 @@ async function launch() {
   const profile = path.join(local, 'profile-' + launches), temp = path.join(local,'temp-' + launches);
   await fs.mkdir(temp);
   driver = spawn(driverExe, [`--port=${port}`, '--allowed-ips=127.0.0.1', `--log-path=${path.join(local,'driver-' + launches + '.log')}`], {
-    windowsHide:true, stdio:['ignore','pipe','pipe'], env:{ ...process.env, NOTERION_CONFIG_DIR:config, NOTERION_WEBVIEW_DIR:profile, NOTERION_MEDIA_AUDIT:path.join(directory,'rust-events.jsonl'), TAURI_WEBVIEW_AUTOMATION:'true', TEMP:temp, TMP:temp }
+    windowsHide:true, stdio:['ignore','pipe','pipe'], env:{ ...process.env, ...(scenario==='graphfailure'?{NOTERION_GRAPH_FAIL_ONCE:'1'}:{}), NOTERION_CONFIG_DIR:config, NOTERION_WEBVIEW_DIR:profile, NOTERION_MEDIA_AUDIT:path.join(directory,'rust-events.jsonl'), TAURI_WEBVIEW_AUTOMATION:'true', TEMP:temp, TMP:temp }
   });
   driver.stdout.pipe(createWriteStream(path.join(local,'driver-' + launches + '-stdout.txt')));
   driver.stderr.pipe(createWriteStream(path.join(local,'driver-' + launches + '-stderr.txt')));
@@ -290,6 +290,40 @@ async function pdfScenario() {
 }
 async function mediaMetrics() {
   return observe('const v=document.querySelector(".video-preview"); return v ? {currentTime:v.currentTime,duration:Number.isFinite(v.duration)?v.duration:null,paused:v.paused,readyState:v.readyState,videoWidth:v.videoWidth,videoHeight:v.videoHeight,decodedFrames:v.getVideoPlaybackQuality().totalVideoFrames,error:v.error?.code??null,jsHeapUsed:performance.memory?.usedJSHeapSize??null} : null;');
+}
+async function dragVideo(fraction) {
+  const range=await find('[aria-label="视频播放位置"]');const rect=await wd('GET',`/element/${range}/rect`);
+  await wd('POST','/actions',{actions:[{type:'pointer',id:'mouse',parameters:{pointerType:'mouse'},actions:[{type:'pointerMove',duration:0,origin:'viewport',x:Math.round(rect.x+9),y:Math.round(rect.y+rect.height/2)},{type:'pointerDown',button:0},{type:'pointerMove',duration:500,origin:'viewport',x:Math.round(rect.x+9+fraction*(rect.width-18)),y:Math.round(rect.y+rect.height/2)},{type:'pointerUp',button:0}]}]});await wd('DELETE','/actions');
+}
+async function webmScenario() {
+  const source=path.join(repo,'.scratch/personal-knowledge-graph/validation/video-playback/.local/samples/issue-13-vp9-opus.webm');
+  await addFile(source,'WebM VP9 Opus');await openResource('WebM VP9 Opus');
+  await until(async()=>{const m=await mediaMetrics();return m?.duration>11&&m.duration<13;},'real WebM metadata');await click('[aria-label="播放视频"]');
+  const start=await until(async()=>{const m=await mediaMetrics();return m.currentTime>0.5&&!m.paused&&m.videoWidth>0&&m.decodedFrames>0&&m;},'WebM actually decodes frames');
+  await dragVideo(0.6);
+  const seek=await until(async()=>{const m=await mediaMetrics();return m.currentTime>6&&m.currentTime<10&&!m.paused&&m.decodedFrames>start.decodedFrames&&m;},'WebM pointer seek');
+  await delay(1800);const continued=await mediaMetrics();
+  await check('actual WebM VP9/Opus decodes, pointer seeks and continues advancing',async()=>{assert.ok(continued.currentTime>seek.currentTime+1);return{start,seek,continued};});
+  await capture('15-webm');await closePreview();
+}
+async function graphFailureScenario() {
+  await expectText('.graph-boundary-message','图谱暂时无法显示');
+  await savePoint({name:'图故障仍可保存',description:'图谱失败时正式数据仍可使用'});
+  await check('real graph setup exception is contained while saving, searching and details remain usable',async()=>{
+    await search('正式数据');assert.equal((await results()).length,1);await select('图故障仍可保存');assert.ok((await text('[data-testid="knowledge-details"]')).includes('图谱失败时正式数据仍可使用'));await expectText('.graph-boundary-message','图谱暂时无法显示');
+  });
+  await editPoint('图故障仍可保存',{name:'图恢复前的新名称',description:'恢复必须读取这份已提交新内容'});
+  const source=path.join(repo,'.scratch/personal-knowledge-graph/prototypes/core-ui/test-data/resources/container-resources.png');await addFile(source,'图故障资料');await associate('图故障资料',['图恢复前的新名称']);await select('图恢复前的新名称');
+  await click("//section[@data-testid='knowledge-details']//button[contains(.,'图故障资料')]",'xpath');
+  await check('knowledge resources remain readable while the real graph subtree has failed',async()=>{
+    await until(()=>observe('const i=document.querySelector(".image-preview img");return i?.complete&&i.naturalWidth>0;'),'image remains decoded under graph failure');
+  });await closePreview();await capture('16-graph-failed');
+  await clickText('恢复图谱');await expectAbsent('.graph-boundary-message');
+  await until(async()=>(await findAll('.graph-node')).length>0,'graph reconstructs current committed knowledge');
+  await check('graph recovery rereads current facts rather than reviving a stale name or description',async()=>{
+    await search('图故障仍可保存');assert.equal((await results()).length,0);await select('图恢复前的新名称');assert.ok((await text('[data-testid="knowledge-details"]')).includes('恢复必须读取这份已提交新内容'));
+    assert.ok((await observe('return [...document.querySelectorAll(".graph-node")].map(n=>n.getAttribute("aria-label"));')).some(value=>value.includes('图恢复前的新名称')));
+  });await capture('17-graph-recovered');
 }
 async function mediaScenario() {
   const samples=path.join(repo,'.scratch/personal-knowledge-graph/validation/video-playback/.local/samples');
@@ -530,8 +564,10 @@ async function storageFaultsScenario() {
 
 try {
   await launch(); await capture('00-start');
-  if (!['media','reliability','storagefaults','pdf'].includes(scenario)) await createScenario();
+  if (['create','core','all'].includes(scenario)) await createScenario();
   if (scenario === 'pdf') await pdfScenario();
+  if (scenario === 'webm' || scenario === 'media' || scenario === 'all') await webmScenario();
+  if (scenario === 'graphfailure') await graphFailureScenario();
   if (scenario === 'core' || scenario === 'all') await coreScenario();
   if (scenario === 'media' || scenario === 'all') await mediaScenario();
   if (scenario === 'reliability' || scenario === 'all') await reliabilityScenario();
