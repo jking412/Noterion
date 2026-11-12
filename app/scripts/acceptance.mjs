@@ -307,7 +307,9 @@ async function mediaScenario() {
   });await closePreview();
   await clickText('资料库');await clickText('添加资料');await fill('[aria-label="资料文件路径"]',path.join(fixture,'不存在.png'));await fill('[aria-label="资料名称"]','缺失源文件');await clickText('保存资料');
   await check('missing source file reports failure and keeps the draft instead of ready resource',async()=>{
-    await expectText('dialog','未保存成功');await until(async()=>/不存在|无法|失败|找不到|不能/.test(await text('[data-testid="storage-error"]')),'real missing source feedback');assert.equal((await findAll('[aria-label="资料文件路径"]')).length,1);
+    await expectText('dialog [role="alert"]','无法读取源文件');
+    assert.equal(await wd('GET',`/element/${await find('[aria-label="资料文件路径"]')}/property/value`),path.join(fixture,'不存在.png'));
+    assert.equal(await wd('GET',`/element/${await find('[aria-label="资料名称"]')}/property/value`),'缺失源文件');
   });await clickText('取消');assert.equal((await findAll(resourceRow('缺失源文件'),'xpath')).length,0);
   await addFile(pdf,'本地PDF'); await openResource('本地PDF');
   await until(async()=>(await findAll('iframe')).length,'embedded PDF frame');
@@ -415,7 +417,7 @@ async function reliabilityScenario() {
   await beginCopy(sample,'主动取消的资料');await clickText('取消复制');
   await check('copy cancellation never presents a ready resource or successful record',async()=>{
     await until(async()=>(await findAll(button('取消复制'),'xpath')).length===0,'cancel operation settles');
-    await expectText('dialog','未保存成功');await clickText('取消');
+    await expectText('dialog [role="alert"]','取消');await clickText('取消');
     assert.equal((await findAll(resourceRow('主动取消的资料'),'xpath')).length,0);
     assert.ok((await events()).some(event=>event.event==='file-copy'&&event.success===false),'Rust cancellation failure audit');
   });
