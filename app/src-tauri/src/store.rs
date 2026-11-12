@@ -214,12 +214,14 @@ impl Store {
         let next_revision = revision
             .checked_add(1)
             .ok_or("数据版本已超出可保存范围。")?;
+        let sqlite_revision =
+            i64::try_from(next_revision).map_err(|_| "数据版本已超出可保存范围。")?;
         let serialized =
             serde_json::to_string(&facts).map_err(|e| disk_error("无法整理待保存内容", e))?;
         transaction
             .execute(
                 "UPDATE noterion_state SET revision=?1, facts=?2 WHERE singleton=1",
-                params![next_revision, serialized],
+                params![sqlite_revision, serialized],
             )
             .map_err(|e| disk_error("正式保存失败，原有内容未修改", e))?;
         transaction
@@ -320,13 +322,15 @@ impl Store {
 }
 
 fn read_facts(connection: &Connection) -> Result<(Facts, u64), String> {
-    let (serialized, revision): (String, u64) = connection
+    let (serialized, sqlite_revision): (String, i64) = connection
         .query_row(
             "SELECT facts, revision FROM noterion_state WHERE singleton=1",
             [],
             |row| Ok((row.get(0)?, row.get(1)?)),
         )
         .map_err(|e| disk_error("正式存储读取失败，未显示为空库", e))?;
+    let revision =
+        u64::try_from(sqlite_revision).map_err(|_| "正式数据版本无效，未显示为空库。")?;
     let facts: Facts = serde_json::from_str(&serialized)
         .map_err(|e| disk_error("正式数据内容损坏，未显示为空库", e))?;
     validate_facts(&facts)?;
