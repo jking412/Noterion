@@ -19,7 +19,7 @@ assert.ok(Object.keys(options).every(key => ['run','scenario','exe','driver','fi
 const run = options.run;
 assert.match(run ?? '', /^issue-21-[a-z0-9-]+$/);
 const scenario = options.scenario ?? 'core';
-assert.ok(['create','core','pdf','media','reliability','all'].includes(scenario));
+assert.ok(['create','core','pdf','media','reliability','storagefaults','all'].includes(scenario));
 const repo = options['fixtures-root'] ?? path.resolve(app, '..');
 const exe = path.resolve(options.exe ?? path.join(app, 'src-tauri/target/debug/noterion.exe'));
 const driverExe = path.resolve(options.driver ?? path.join(repo, '.scratch/personal-knowledge-graph/validation/windows-desktop/.tools/issue3-webdriver/msedgedriver.exe'));
@@ -328,6 +328,7 @@ async function mediaScenario() {
   });await clickText('取消');assert.equal((await findAll(resourceRow('缺失源文件'),'xpath')).length,0);
   await addFile(pdf,'本地PDF'); await openResource('本地PDF');
   await until(async()=>(await findAll('iframe')).length,'embedded PDF frame');
+  await delay(3000); // Built-in PDF viewer initializes after the iframe element.
   await capture('05-pdf-inspect-required');
   await write('pdf-manual-inspection.json',{status:'REQUIRES_VISUAL_INSPECTION',reason:'iframe load alone does not establish rendered PDF; inspect real screenshot and WebView viewer frame',screenshot:'05-pdf-inspect-required.png'});
   await closePreview();
