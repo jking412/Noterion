@@ -126,6 +126,7 @@ async function launch() {
   const environment = await observe('return {url:location.href,userAgent:navigator.userAgent,visibility:document.visibilityState,invoke:typeof window.__TAURI__?.core?.invoke};');
   assert.equal(environment.url, 'http://tauri.localhost/'); assert.equal(environment.visibility, 'visible'); assert.equal(environment.invoke, 'function');
   await until(async () => (await findAll('[data-testid="create-point"]')).length, 'knowledge entry is rendered');
+  await until(async () => await wd('GET',`/element/${await find('[data-testid="create-point"]')}/enabled`) || (await findAll('[data-testid="storage-error"]')).length>0,'storage loads or reports an explicit error');
   // Process observation is independent of UI actions and cannot create facts.
   hostPid = (await events()).filter(event => event.event === 'process-started').at(-1)?.pid;
   if (!hostPid) {
@@ -305,7 +306,7 @@ async function mediaScenario() {
   });await closePreview();
   await clickText('资料库');await clickText('添加资料');await fill('[aria-label="资料文件路径"]',path.join(fixture,'不存在.png'));await fill('[aria-label="资料名称"]','缺失源文件');await clickText('保存资料');
   await check('missing source file reports failure and keeps the draft instead of ready resource',async()=>{
-    await until(async()=>/不存在|无法|失败|找不到/.test(await text('dialog')),'real missing source feedback');assert.equal((await findAll('[aria-label="资料文件路径"]')).length,1);
+    await expectText('dialog','未保存成功');await until(async()=>/不存在|无法|失败|找不到|不能/.test(await text('[data-testid="storage-error"]')),'real missing source feedback');assert.equal((await findAll('[aria-label="资料文件路径"]')).length,1);
   });await clickText('取消');assert.equal((await findAll(resourceRow('缺失源文件'),'xpath')).length,0);
   await addFile(pdf,'本地PDF'); await openResource('本地PDF');
   await until(async()=>(await findAll('iframe')).length,'embedded PDF frame');
