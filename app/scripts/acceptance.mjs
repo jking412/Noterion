@@ -51,6 +51,7 @@ assert.equal(driverVersionResult.status, 0);
 const driverVersion = driverVersionResult.stdout.trim();
 const assertions = [];
 let driver, session, hostPid, sampler, passed = false, launches = 0;
+let sampleDirectory;
 const ownedPids = new Set();
 
 async function command(method, route, body, timeoutMs = 20000) {
@@ -113,7 +114,7 @@ async function launch() {
   const profile = path.join(local, 'profile-' + launches), temp = path.join(local,'temp-' + launches);
   await fs.mkdir(temp);
   driver = spawn(driverExe, [`--port=${port}`, '--allowed-ips=127.0.0.1', `--log-path=${path.join(local,'driver-' + launches + '.log')}`], {
-    windowsHide:true, stdio:['ignore','pipe','pipe'], env:{ ...process.env, NOTERION_CONFIG_DIR:config, NOTERION_MEDIA_AUDIT:path.join(directory,'rust-events.jsonl'), TAURI_WEBVIEW_AUTOMATION:'true', TEMP:temp, TMP:temp }
+    windowsHide:true, stdio:['ignore','pipe','pipe'], env:{ ...process.env, NOTERION_CONFIG_DIR:config, NOTERION_WEBVIEW_DIR:profile, NOTERION_MEDIA_AUDIT:path.join(directory,'rust-events.jsonl'), TAURI_WEBVIEW_AUTOMATION:'true', TEMP:temp, TMP:temp }
   });
   driver.stdout.pipe(createWriteStream(path.join(local,'driver-' + launches + '-stdout.txt')));
   driver.stderr.pipe(createWriteStream(path.join(local,'driver-' + launches + '-stderr.txt')));
@@ -135,8 +136,13 @@ async function launch() {
   }
   ownedPids.add(hostPid);
   await write('launch-' + launches + '.json',{ environment,hostPid,driverPid:driver.pid,driverVersion,exe,exeSha256,driverSha256,config,profile });
+  sampleDirectory=path.join(local,'observations-'+launches);await fs.mkdir(sampleDirectory);
+  sampler=spawn('powershell.exe',['-NoProfile','-ExecutionPolicy','Bypass','-File',path.join(app,'validation/sample-resources.ps1'),'-RootPid',String(driver.pid),'-ClientPid',String(process.pid),'-RunDirectory',sampleDirectory,'-OutputFile',path.join(directory,'resources-'+launches+'.jsonl')],{windowsHide:true,stdio:['ignore','pipe','pipe']});
+  sampler.stdout.pipe(createWriteStream(path.join(sampleDirectory,'stdout.txt')));sampler.stderr.pipe(createWriteStream(path.join(sampleDirectory,'stderr.txt')));
+  await until(async()=>{assert.equal(sampler.exitCode,null,'resource sampler must remain alive');return(await fs.stat(path.join(directory,'resources-'+launches+'.jsonl'))).size>0;},'first actual Windows resource observation',15000);
 }
 async function stop({ crash = false } = {}) {
+  if(sampler){await fs.writeFile(path.join(sampleDirectory,'stop-sampler'),'stop');await Promise.race([new Promise(resolve=>sampler.once('exit',resolve)),delay(3000)]);if(sampler.exitCode===null)sampler.kill();sampler=undefined;}
   if (crash && hostPid && alive(hostPid)) process.kill(hostPid, 'SIGKILL');
   if (session) { try { await command('DELETE',`/session/${session}`); } catch (error) { if (!crash) throw error; } session = undefined; }
   if (driver) {
@@ -211,7 +217,9 @@ async function coreScenario() {
   await savePoint({name:'子主题',theme:true,topics:['Docker']});
   await savePoint({name:'孙主题',theme:true,topics:['子主题']});
   await check('arbitrary-length topic cycle is rejected without closing the draft',async()=>{
-    await select('Docker'); await click('[title="编辑知识点"]'); await click('input[aria-label="所属主题 孙主题"]'); await click('[data-testid="save-point"]');
+    await select('Docker'); await click('[title="编辑知识点"]');
+    assert.equal((await findAll('input[aria-label="所属主题 Docker"]')).length,0,'self-membership cannot be selected');
+    await click('input[aria-label="所属主题 孙主题"]'); await click('[data-testid="save-point"]');
     await expectText('[role="alert"]','循环'); assert.equal((await findAll('#knowledge-name')).length,1); await clickText('取消');
   });
   await editPoint('进入容器终端',{toggleTopics:['Docker','Linux']});
@@ -299,14 +307,19 @@ async function mediaScenario() {
     const expected=Buffer.alloc(32), source=await fs.open(videoFile);try{await source.read(expected,0,32,1_000_000_000);}finally{await source.close();}
     assert.deepEqual(Buffer.from(await response.arrayBuffer()),expected);
     const overflow=await fetch(mediaUrl,{headers:{Range:'bytes=2000000000-',Origin:'http://tauri.localhost'}}); assert.equal(overflow.status,416); await overflow.body?.cancel();
+    await until(async()=>(await events()).some(event=>event.event==='file-read'&&event.range==='bytes=1000000000-1000000031'&&event.bytesWritten===32),'actual 32-byte Rust read audit');
   });
   await check('ordinary GET streams full video with independent hash, then cancellation stops a new read',async()=>{
     const response=await fetch(mediaUrl); assert.equal(response.status,200); assert.equal(Number(response.headers.get('content-length')),1_277_422_426);
     const digest=createHash('sha256');let bytes=0,peakRss=0;for await(const chunk of response.body){digest.update(chunk);bytes+=chunk.byteLength;peakRss=Math.max(peakRss,process.memoryUsage().rss);}
     assert.equal(bytes,1_277_422_426);assert.equal(digest.digest('hex'),'4c93ae3aba536be8a84d0498a2460dfab67fc309803eb2120613e0abd8ff00a7');
+    const before=(await events()).length;
     const abort=new AbortController(), cancelled=await fetch(mediaUrl,{signal:abort.signal}), reader=cancelled.body.getReader();let received=0;
     while(received<8*1024*1024){const chunk=await reader.read();if(chunk.done)break;received+=chunk.value.byteLength;}abort.abort();await reader.cancel().catch(()=>{});await delay(500);
-    return {bytes,peakClientRss:peakRss,cancelledClientBytes:received};
+    const server=await until(async()=>(await events()).slice(before).find(event=>event.event==='file-read'&&event.cancelled&&!event.complete&&!event.range),'actual Rust cancellation audit');
+    assert.ok(server.bytesRead<64*1024*1024,'cancellation stops bounded read ahead before 64 MiB');
+    const full=(await events()).find(event=>event.event==='file-read'&&!event.range&&event.complete&&event.bytesWritten===1_277_422_426);assert.ok(full,'complete ordinary GET has actual full server byte audit');
+    return {bytes,peakClientRss:peakRss,cancelledClientBytes:received,cancelledServer:server,fullServer:full};
   });
   await closePreview();
   await addFile(path.join(samples,'issue-13-ffv1-pcm.mkv'),'不支持视频');await openResource('不支持视频');
