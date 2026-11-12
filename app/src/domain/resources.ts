@@ -14,7 +14,7 @@ export function resourceKind(filename: string): ResourceItem['kind'] {
 }
 
 export function resourceLabel(kind: ResourceItem['kind']): string {
-  return { text: '文本', markdown: 'Markdown', html: 'HTML', link: '链接', image: '图片', pdf: 'PDF', file: '文件' }[kind]
+  return { text: '文本', markdown: 'Markdown', html: 'HTML', link: '链接', image: '图片', pdf: 'PDF', video: '视频', file: '文件' }[kind]
 }
 
 export function validResourceUrl(value: string): string | null {

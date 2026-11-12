@@ -4,7 +4,7 @@ import { getTopicTags, validatePoint } from '../domain/logic'
 import type { KnowledgePoint, ResourceItem } from '../domain/types'
 import ModalShell from './ModalShell.vue'
 
-const props = defineProps<{ point: KnowledgePoint; points: KnowledgePoint[]; resources: ResourceItem[]; creating?: boolean }>()
+const props = defineProps<{ point: KnowledgePoint; points: KnowledgePoint[]; resources: ResourceItem[]; creating?: boolean; busy?: boolean; operationError?: string }>()
 const emit = defineEmits<{ save: [point: KnowledgePoint]; close: [] }>()
 const draft = ref<KnowledgePoint>({ ...props.point, topicIds: [...props.point.topicIds], resourceIds: [...props.point.resourceIds] })
 const submitted = ref(false)
@@ -27,7 +27,7 @@ function save() {
   <ModalShell :title="creating ? '新建知识点' : '编辑知识点'" wide @close="emit('close')">
     <form class="editor" novalidate @submit.prevent="save">
       <div class="editor-main">
-        <template v-if="creating"><label class="editor-label" for="knowledge-id">知识点 ID</label><input id="knowledge-id" v-model="draft.id" class="field" required autocomplete="off" /><p class="field-help">用于引用这个知识点；同名知识点可使用不同 ID。</p></template>
+        <h2 class="editor-label">内容</h2>
         <label class="editor-label" for="knowledge-name">名称</label>
         <input id="knowledge-name" v-model="draft.name" class="field" autofocus autocomplete="off" :aria-invalid="submitted && !draft.name.trim()" />
         <label class="check-option" style="margin-top:12px"><input v-model="draft.isTheme" type="checkbox" /><span>可作为主题组织其他知识点</span></label>
@@ -44,7 +44,7 @@ function save() {
           <p class="field-help">可选择多个主题；不选择时作为独立知识点保留。</p>
           <div class="option-list">
             <label v-for="theme in themes" :key="theme.id" class="check-option">
-              <input v-model="draft.topicIds" type="checkbox" :value="theme.id" />
+              <input v-model="draft.topicIds" type="checkbox" :value="theme.id" :aria-label="'所属主题 ' + theme.name" />
               <span><strong>{{ theme.name }}</strong><span v-if="getTopicTags(theme, points).length" class="theme-ancestors"><span v-for="ancestor in getTopicTags(theme, points)" :key="ancestor.id" class="tag">{{ ancestor.name }}</span></span></span>
             </label>
             <p v-if="!themes.length" class="field-help">暂无其他主题。</p>
@@ -62,9 +62,10 @@ function save() {
         </fieldset>
       </div>
       <p v-if="submitted && validation" class="validation-message" role="alert">{{ validation }}</p>
+      <p v-if="operationError" class="validation-message" role="alert">{{ operationError }}</p>
       <footer class="editor-footer">
-        <button class="button" type="button" @click="emit('close')">取消</button>
-        <button class="button button-primary" type="submit">{{ creating ? '创建知识点' : '保存修改' }}</button>
+        <button class="button" type="button" :disabled="busy" @click="emit('close')">取消</button>
+        <button class="button button-primary" data-testid="save-point" :disabled="busy" type="submit">{{ busy ? '正在保存…' : creating ? '创建知识点' : '保存修改' }}</button>
       </footer>
     </form>
   </ModalShell>

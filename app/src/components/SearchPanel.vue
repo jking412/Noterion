@@ -30,13 +30,15 @@ const emit = defineEmits<{ 'update:query': [value: string]; 'update:mode': [valu
         <li v-for="point in results" :key="point.id">
           <button class="result-item" :class="{ 'is-selected': selectedId === point.id }" :aria-pressed="selectedId === point.id" :data-result-id="point.id" @click="emit('select', point.id)">
             <span class="result-name">{{ point.name }}</span>
+            <span class="result-description">{{ point.description ? point.description.replace(/\s+/g, ' ').slice(0, 100) : '暂无描述' }}</span>
             <span class="result-tags"><span v-for="topic in getTopicTags(point, points)" :key="topic.id" class="tag">{{ topic.name }}</span><span v-if="!getTopicTags(point, points).length" class="point-type">{{ point.isTheme ? '主题' : '独立知识点' }}</span></span>
           </button>
         </li>
       </ul>
       <div v-else-if="hasQuery" class="search-empty"><Icon name="search" :size="26" /><strong>没有找到相关知识</strong><p>换个片段，或试试任意匹配。</p></div>
-      <div v-else class="search-empty search-start"><Icon name="search" :size="27" /><strong>{{ points.length ? '从记得的片段开始' : '先添加你的知识' }}</strong><p>{{ points.length ? '名称、命令，或一句描述。' : '导入知识后，可按名称或描述查找。' }}</p></div>
+      <div v-else class="search-empty search-start"><Icon name="search" :size="27" /><strong>{{ points.length ? '从记得的片段开始' : '先添加你的知识' }}</strong><p>{{ points.length ? '名称、命令，或一句描述。' : '新建知识点后，可按名称或描述查找。' }}</p></div>
     </div>
     <div class="search-footer"><span class="subtle-dot" />{{ points.length }} 个知识点<span class="footer-spacer" />个人知识图谱</div>
   </aside>
 </template>
+<style scoped>.result-description { display: block; font-size: 12px; color: #707070; line-height: 1.6; margin: 7px 0; overflow-wrap: anywhere; }</style>

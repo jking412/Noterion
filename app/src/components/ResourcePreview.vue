@@ -1,111 +1,79 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import type { ResourceItem } from '../domain/types'
-import { formatBytes, isolatedHtml, resourceLabel, validResourceUrl } from '../domain/resources'
+import { formatBytes, resourceLabel } from '../domain/resources'
+import { errorText, invoke } from '../desktop'
 import ModalShell from './ModalShell.vue'
-import Icon from './Icon.vue'
-
 const props = defineProps<{ resource: ResourceItem }>()
 const emit = defineEmits<{ close: []; import: [resource: ResourceItem] }>()
-const imageFailed = ref(false)
-watch(() => props.resource.id, () => { imageFailed.value = false })
-
-interface MarkdownBlock { kind: 'text' | 'heading' | 'code' | 'list' | 'quote'; text: string; level?: number; items?: string[] }
-
-const markdownBlocks = computed<MarkdownBlock[]>(() => {
-  const blocks: MarkdownBlock[] = []
-  let paragraph: string[] = []
-  let code: string[] | null = null
-  let fence = ''
-  const flushParagraph = () => {
-    if (paragraph.length) blocks.push({ kind: 'text', text: paragraph.join('\n') })
-    paragraph = []
-  }
-  for (const line of (props.resource.content ?? '').replace(/\r\n?/g, '\n').split('\n')) {
-    const fenceMatch = line.trim().match(/^(`{3,}|~{3,})/)
-    if (code !== null) {
-      if (line.trim() === fence) {
-        blocks.push({ kind: 'code', text: code.join('\n') })
-        code = null
-      } else code.push(line)
-      continue
+const mediaUrl = ref('')
+const error = ref('')
+const loading = ref(false)
+const externalStatus = ref('')
+const video = ref<HTMLVideoElement | null>(null)
+const time = ref(0)
+const duration = ref(0)
+const playing = ref(false)
+const text = ref('')
+let disposed = false
+let decodingTimer: ReturnType<typeof setTimeout> | undefined
+const textKind = computed(() => ['text','markdown','html'].includes(props.resource.kind))
+async function open() {
+  if (props.resource.kind === 'link') return
+  loading.value = true
+  try {
+    const media = await invoke<{ url: string; mime: string; size: number }>('media_open', { id: props.resource.id })
+    if (disposed) { await invoke('media_close', { url: media.url }); return }
+    mediaUrl.value = media.url
+    if (textKind.value) {
+      // Text is bounded for display. The managed original remains available through system open.
+      const response = await fetch(media.url, { headers: { Range: 'bytes=0-524287' } })
+      if (!response.ok) throw new Error('文本读取失败，请检查本地文件。')
+      text.value = await response.text()
     }
-    if (fenceMatch) { flushParagraph(); fence = fenceMatch[1]!; code = []; continue }
-    const heading = line.match(/^(#{1,6})\s+(.+)$/)
-    const listItem = line.match(/^\s*(?:[-*+] |\d+[.)] )(.+)$/)
-    const quote = line.match(/^>\s?(.*)$/)
-    if (heading) { flushParagraph(); blocks.push({ kind: 'heading', level: heading[1]!.length, text: heading[2]! }) }
-    else if (listItem) {
-      flushParagraph()
-      const previous = blocks.at(-1)
-      if (previous?.kind === 'list') previous.items!.push(listItem[1]!)
-      else blocks.push({ kind: 'list', text: '', items: [listItem[1]!] })
-    } else if (quote) { flushParagraph(); blocks.push({ kind: 'quote', text: quote[1]! }) }
-    else if (!line.trim()) flushParagraph()
-    else paragraph.push(line)
-  }
-  flushParagraph()
-  if (code !== null) blocks.push({ kind: 'code', text: code.join('\n') })
-  return blocks
+  } catch (e) { error.value = errorText(e) }
+  finally { if (!disposed) loading.value = false }
+}
+async function external() { externalStatus.value = ''; try { await invoke('resource_external', { id: props.resource.id }); externalStatus.value = '已请求系统应用打开。' } catch (e) { error.value = errorText(e) } }
+function videoFailure() { error.value = '当前视频无法读取或解码。可使用系统应用打开本机副本。'; playing.value = false }
+function checkVideo() {
+  clearTimeout(decodingTimer)
+  decodingTimer = setTimeout(() => { const element = video.value; if (element && element.readyState >= 1 && (!element.videoWidth || !element.videoHeight)) videoFailure() }, 2000)
+}
+async function togglePlayback() {
+  const element = video.value
+  if (!element) return
+  try { if (element.paused) { await element.play(); checkVideo() } else element.pause() }
+  catch { videoFailure() }
+}
+function seek(event: Event) { const element = video.value; if (element && Number.isFinite(element.duration)) element.currentTime = Number((event.target as HTMLInputElement).value) }
+function updateTime() { const element = video.value; if (element) { time.value = element.currentTime; duration.value = Number.isFinite(element.duration) ? element.duration : 0 } }
+function clock(value: number) { return Math.floor(value / 60) + ':' + String(Math.floor(value % 60)).padStart(2, '0') }
+onMounted(open)
+onBeforeUnmount(() => {
+  disposed = true; clearTimeout(decodingTimer)
+  if (video.value) { video.value.pause(); video.value.removeAttribute('src'); video.value.load() }
+  if (mediaUrl.value) void invoke('media_close', { url: mediaUrl.value }).catch(() => {})
 })
-
-const externalUrl = computed(() => validResourceUrl(props.resource.url ?? ''))
-const safeHtml = computed(() => isolatedHtml(props.resource.content || '<p>此资料暂无可预览内容。</p>'))
 </script>
-
 <template>
   <ModalShell :title="resource.title" wide @close="emit('close')">
-    <div class="resource-meta"><span class="tag">{{ resourceLabel(resource.kind) }}</span><span v-if="resource.filename">{{ resource.filename }}</span><span v-if="resource.size !== undefined">{{ formatBytes(resource.size) }}</span><code>{{ resource.id }}</code></div>
-    <template v-if="resource.kind === 'html'"><iframe class="html-preview" :title="resource.title" :srcdoc="safeHtml" sandbox="" referrerpolicy="no-referrer" /><p class="preview-fallback">HTML 预览不加载外部内容；完整文件可下载后打开。</p></template>
-    <article v-else-if="resource.kind === 'markdown'" class="markdown-preview">
-      <template v-for="(block, index) in markdownBlocks" :key="index">
-        <component :is="`h${block.level}`" v-if="block.kind === 'heading'">{{ block.text }}</component>
-        <pre v-else-if="block.kind === 'code'"><code>{{ block.text }}</code></pre>
-        <ul v-else-if="block.kind === 'list'"><li v-for="(item, itemIndex) in block.items" :key="itemIndex">{{ item }}</li></ul>
-        <blockquote v-else-if="block.kind === 'quote'">{{ block.text }}</blockquote>
-        <p v-else>{{ block.text }}</p>
-      </template>
-      <p v-if="!markdownBlocks.length" class="empty-content">此资料暂无可预览内容。</p>
-    </article>
-    <div v-else-if="resource.kind === 'link'" class="external-preview">
-      <p v-if="resource.content">{{ resource.content }}</p>
-      <p class="external-address">{{ resource.url }}</p>
-      <a v-if="externalUrl" class="button button-primary" :href="externalUrl" target="_blank" rel="noopener noreferrer">在新窗口打开资料 <span aria-hidden="true">↗</span></a>
-      <p v-else class="empty-content">此资料暂无可用的外部链接。</p>
-    </div>
-    <div v-else-if="resource.kind === 'image'" class="image-preview"><img v-if="resource.blobUrl && !imageFailed" :src="resource.blobUrl" :alt="resource.title" @error="imageFailed = true" /><p v-else class="empty-content">{{ imageFailed ? '浏览器无法显示这份图片，可下载原文件后打开。' : '图片文件已不可用，请重新添加资料。' }}</p></div>
-    <div v-else-if="resource.kind === 'pdf'" class="pdf-preview"><iframe v-if="resource.blobUrl" class="pdf-frame" :src="resource.blobUrl" :title="resource.title" referrerpolicy="no-referrer" /><p class="preview-fallback">PDF 由浏览器预览。如果当前浏览器无法显示，请下载文件后打开。</p></div>
-    <div v-else-if="resource.kind === 'file'" class="generic-file-preview"><Icon name="file" :size="36" /><h3>{{ resource.filename || resource.title }}</h3><p>此格式暂不支持页面内预览，可下载后使用对应应用打开。</p><a v-if="resource.blobUrl" class="button button-primary" :href="resource.blobUrl" :download="resource.filename || resource.title">下载文件</a><p v-else class="empty-content">文件已不可用，请重新添加资料。</p></div>
-    <pre v-else class="text-preview">{{ resource.content || '此资料暂无可预览内容。' }}</pre>
-    <footer class="preview-footer"><a v-if="resource.blobUrl && resource.kind !== 'file'" class="button" :href="resource.blobUrl" :download="resource.filename || resource.title">下载原文件</a><button class="button" type="button" @click="emit('close')">关闭预览</button><button class="button button-primary" type="button" @click="emit('import', resource)">导入知识</button></footer>
+    <div class="resource-meta"><span class="tag">{{ resourceLabel(resource.kind) }}</span><span v-if="resource.filename">{{ resource.filename }}</span><span v-if="resource.size !== undefined">{{ formatBytes(resource.size) }}</span></div>
+    <p v-if="loading" role="status">正在打开本机资料…</p>
+    <p v-if="error" class="preview-error" role="alert">{{ error }}</p>
+    <div v-if="resource.kind === 'link'" class="external-preview"><p>{{ resource.url }}</p><button class="button button-primary" @click="external">在系统浏览器打开</button></div>
+    <template v-else-if="mediaUrl">
+      <div v-if="resource.kind === 'video'" class="video-workspace"><video ref="video" class="video-preview" :src="mediaUrl" controls preload="metadata" @error="videoFailure" @loadedmetadata="updateTime(); checkVideo()" @timeupdate="updateTime" @play="playing = true; checkVideo()" @pause="playing = false" @loadeddata="checkVideo" /><div class="video-controls"><button class="button" aria-label="播放视频" @click="togglePlayback">{{ playing ? '暂停' : '播放' }}</button><input type="range" aria-label="视频播放位置" min="0" :max="duration || 1" step="1" :value="time" :disabled="!duration" @input="seek" /><span>{{ clock(time) }} / {{ clock(duration) }}</span></div><p class="preview-note">支持情况取决于本机 WebView2 解码能力；无法播放时可使用系统应用打开。</p></div>
+      <div v-else-if="resource.kind === 'image'" class="image-preview"><img :src="mediaUrl" :alt="resource.title" @error="error = '这份图片无法显示，可使用系统应用打开。'" /></div>
+      <div v-else-if="resource.kind === 'pdf'" class="pdf-preview"><iframe :src="mediaUrl" :title="resource.title" class="pdf-frame" /><p class="preview-note">本机只读 PDF 预览；若当前运行时无法显示，可使用系统应用打开。</p></div>
+      <pre v-else-if="textKind" class="text-preview">{{ text || '资料为空。' }}</pre>
+      <p v-else class="generic-preview">此格式暂不支持内置查看，请使用系统应用打开本机副本。</p>
+    </template>
+    <p v-if="textKind && (resource.size ?? 0) > 524288" class="preview-note">仅显示前 512 KB，可在系统应用中查看完整原文。</p>
+    <p v-if="externalStatus" role="status" class="preview-note">{{ externalStatus }}</p>
+    <footer class="preview-footer"><button class="button" @click="external">{{ resource.kind === 'link' ? '在系统浏览器打开' : '使用系统应用打开' }}</button><button class="button" @click="emit('close')">关闭预览</button><button class="button button-primary" @click="emit('import', resource)">导入知识</button></footer>
   </ModalShell>
 </template>
-
 <style scoped>
-.resource-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 18px; color: #646464; font-size: 12px; overflow-wrap: anywhere; }
-.resource-meta code { font: 11px Consolas,'Microsoft YaHei',monospace; }
-.image-preview { min-height: 250px; display: flex; justify-content: center; align-items: center; border: 1px solid #d9d9d9; border-radius: 10px; padding: 20px; background: #ffffffcf; }
-.image-preview img { display: block; max-width: 100%; max-height: 55dvh; object-fit: contain; }
-.pdf-frame { width: 100%; height: 56dvh; border: 1px solid #d9d9d9; border-radius: 8px; background: #fff; }
-.preview-fallback { margin: 12px 0 0; color: #646464; font-size: 12px; line-height: 1.8; }
-.generic-file-preview { min-height: 270px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; padding: 24px; border: 1px solid #d9d9d9; border-radius: 10px; background: #ffffffcf; text-align: center; }
-.generic-file-preview h3 { max-width: 100%; overflow-wrap: anywhere; font-size: 17px; font-weight: 600; }
-.generic-file-preview p { font-size: 13px; line-height: 1.8; color: #646464; }
-.html-preview { display: block; box-sizing: border-box; width: 100%; min-height: 430px; height: 58dvh; border: 1px solid #d9d9d9; border-radius: 10px; background: #fff; }
-.text-preview, .markdown-preview { min-height: 250px; margin: 0; padding: 22px 24px; border: 1px solid #d9d9d9; border-radius: 10px; background: #ffffffcf; color: #202020; font-size: 14px; line-height: 1.85; overflow-wrap: anywhere; }
-.text-preview { font-family: 'Cascadia Code', Consolas, 'Microsoft YaHei', monospace; white-space: pre-wrap; }
-.markdown-preview :deep(h1) { margin: 0 0 18px; font-size: 24px; }
-.markdown-preview :deep(h2) { margin: 24px 0 12px; font-size: 19px; }
-.markdown-preview :deep(h3), .markdown-preview :deep(h4), .markdown-preview :deep(h5), .markdown-preview :deep(h6) { margin: 20px 0 10px; font-size: 16px; }
-.markdown-preview :deep(p) { margin: 0 0 14px; white-space: pre-wrap; }
-.markdown-preview :deep(pre) { padding: 15px 18px; overflow-x: auto; border: 1px solid #d9d9d9; border-radius: 8px; background: #eee; font-family: 'Cascadia Code', Consolas, monospace; font-size: 13px; line-height: 1.7; }
-.markdown-preview :deep(ul) { padding-left: 24px; }
-.markdown-preview :deep(blockquote) { margin: 15px 0; padding-left: 14px; border-left: 3px solid #aaa; color: #646464; }
-.markdown-preview > :first-child { margin-top: 0; }
-.external-preview { padding: 20px 24px 28px; border: 1px solid #d9d9d9; border-radius: 10px; background: #ffffffcf; font-size: 14px; line-height: 1.8; }
-.external-preview > p:first-child { margin-top: 0; }
-.external-address { overflow-wrap: anywhere; color: #646464; font-size: 13px; }
-.external-preview .button { display: inline-flex; align-items: center; gap: 12px; text-decoration: none; }
-.empty-content { color: #646464; }
-.preview-footer { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; margin-top: 20px; padding-top: 18px; border-top: 1px solid #d9d9d9; }
+.resource-meta { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 18px; color: #646464; font-size: 12px; overflow-wrap: anywhere; }.video-preview { display: block; width: 100%; max-height: 53vh; min-height: 250px; background: #161616; border-radius: 9px; }.video-controls { display: flex; align-items: center; gap: 14px; margin: 12px 0; }.video-controls input { flex: 1; min-width: 0; accent-color: #444; }.video-controls span { font-size: 12px; color: #666; min-width: 85px; }.image-preview { min-height: 250px; display: grid; place-items: center; border: 1px solid #d9d9d9; border-radius: 10px; padding: 20px; background: #ffffffcf; }.image-preview img { max-width: 100%; max-height: 55vh; object-fit: contain; }.pdf-frame { width: 100%; height: 56vh; border: 1px solid #d9d9d9; border-radius: 8px; background: white; }.preview-note { color: #646464; font-size: 12px; line-height: 1.8; margin: 12px 0; }.preview-error { color: #8e3a2e; border: 1px solid #b5887b; background: #fff3ed; padding: 13px; border-radius: 8px; line-height: 1.8; margin-bottom: 15px; font-size: 13px; }.text-preview { min-height: 250px; max-height: 55vh; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; padding: 22px; border: 1px solid #d9d9d9; border-radius: 10px; background: #ffffffcf; font: 13px/1.85 Consolas,'Microsoft YaHei',monospace; }.external-preview,.generic-preview { padding: 25px; min-height: 180px; line-height: 1.9; overflow-wrap: anywhere; }.preview-footer { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 10px; margin-top: 20px; padding-top: 18px; border-top: 1px solid #d9d9d9; }
 </style>

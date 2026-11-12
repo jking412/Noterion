@@ -4,7 +4,7 @@ import { getTopicTags } from '../domain/logic'
 import type { DeleteImpact, KnowledgePoint, ResourceItem } from '../domain/types'
 import ModalShell from './ModalShell.vue'
 
-const props = defineProps<{ point: KnowledgePoint; points: KnowledgePoint[]; resources: ResourceItem[]; impact: DeleteImpact }>()
+const props = defineProps<{ point: KnowledgePoint; points: KnowledgePoint[]; resources: ResourceItem[]; impact: DeleteImpact; busy?: boolean; operationError?: string }>()
 const emit = defineEmits<{ confirm: []; close: [] }>()
 const deletedPoints = computed(() => props.points.filter(point => props.impact.deletedIds.includes(point.id)))
 const retainedPoints = computed(() => props.points.filter(point => props.impact.retainedIds.includes(point.id)))
@@ -39,11 +39,12 @@ const remainingPoints = computed(() => props.points.filter(point => !props.impac
     </div>
     <div class="delete-note">
       <p>全部 {{ resources.length }} 份资料及其文件均保留。</p>
-      <p>不提供回收站，删除后无法撤销。“重置演示”会清空当前页面的全部数据。</p>
+      <p>不提供回收站，删除后无法撤销。</p>
     </div>
     <footer class="delete-footer">
-      <button class="button" type="button" autofocus @click="emit('close')">取消</button>
-      <button class="button button-primary" type="button" :disabled="!deletedPoints.length" @click="emit('confirm')">确认删除 {{ deletedPoints.length }} 个知识点</button>
+      <p v-if="operationError" role="alert">{{ operationError }}</p>
+      <button class="button" type="button" :disabled="busy" autofocus @click="emit('close')">取消</button>
+      <button class="button button-primary" type="button" :disabled="busy || !deletedPoints.length" @click="emit('confirm')">确认删除 {{ deletedPoints.length }} 个知识点</button>
     </footer>
   </ModalShell>
 </template>

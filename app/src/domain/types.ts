@@ -18,7 +18,8 @@ export interface KnowledgePoint {
 export interface ResourceItem {
   id: string
   title: string
-  kind: 'text' | 'markdown' | 'html' | 'link' | 'image' | 'pdf' | 'file'
+  kind: 'text' | 'markdown' | 'html' | 'link' | 'image' | 'pdf' | 'video' | 'file'
+  status?: 'ready' | 'missing'
   content?: string
   url?: string
   filename?: string

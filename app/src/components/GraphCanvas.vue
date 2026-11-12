@@ -633,7 +633,7 @@ defineExpose({ fitAll, focusNode })
     <div v-if="!points.length && ready" class="graph-empty" :style="messagePosition">
       <svg viewBox="0 0 48 48" fill="none" aria-hidden="true"><circle cx="24" cy="14" r="5"/><circle cx="13" cy="33" r="5"/><circle cx="35" cy="33" r="5"/><path d="m21.5 18.3-6 10M26.5 18.3l6 10M18 33h12"/></svg>
       <p>图谱里还没有知识点</p>
-      <span>点击顶部“导入知识”或“新建知识点”，开始建立图谱。</span>
+      <span>点击顶部“新建知识点”，开始建立图谱。</span>
     </div>
 
     <div class="graph-controls" aria-label="图谱视图操作" @pointerdown.stop>
@@ -679,9 +679,9 @@ defineExpose({ fitAll, focusNode })
           <path d="M11 27a8 8 0 0 1-1-15.6 11 11 0 0 1 20-1.1A7.5 7.5 0 0 1 31 25" />
           <path d="m13 23 14 14m0-14L13 37" />
         </svg>
-        <h3>{{ graphState === 'updating' ? '图谱更新中' : '图服务不可用' }}</h3>
+        <h3>{{ graphState === 'updating' ? '图谱更新中' : '图谱暂时无法显示' }}</h3>
         <p>{{ graphState === 'updating' ? '正在更新已保存的知识，稍后恢复图操作。' : '搜索、描述和关联资料仍可使用。' }}</p>
-        <button v-if="graphState === 'unavailable'" class="graph-restore" type="button" @click="emit('restore')">恢复连接</button>
+        <button v-if="graphState === 'unavailable'" class="graph-restore" type="button" @click="emit('restore')">重新读取图谱</button>
       </div>
     </div>
   </div>

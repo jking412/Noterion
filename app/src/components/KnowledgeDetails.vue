@@ -54,10 +54,10 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
       <header class="details-header">
         <div class="details-heading"><h1>{{ point.name }}</h1>
         <div class="details-actions">
-          <button class="button" title="编辑知识点" @click="emit('edit', point.id)"><span>编辑</span></button>
+          <button class="button" data-testid="edit-point" title="编辑知识点" @click="emit('edit', point.id)"><span>编辑</span></button>
           <div class="action-menu-wrap" @keydown.esc="menuOpen = false">
-            <button ref="menuTrigger" class="icon-button" aria-label="知识点操作" :aria-expanded="menuOpen" aria-haspopup="menu" @click="togglePointMenu"><Icon name="more" /></button>
-            <Teleport to="body"><template v-if="menuOpen"><button class="menu-scrim point-menu-scrim" tabindex="-1" aria-label="关闭操作菜单" @click="closePointMenu" /><div ref="menuElement" class="popover-menu point-actions" role="menu" :style="{ left: menuPosition.x + 'px', top: menuPosition.y + 'px' }" @keydown.esc.stop.prevent="closePointMenu"><button role="menuitem" @click="menuAction('edit')"><Icon name="edit" />编辑知识点</button><button role="menuitem" :disabled="deleteDisabled" :title="deleteDisabled ? '图谱就绪后可删除' : undefined" @click="menuAction('delete')"><Icon name="trash" />{{ point.isTheme ? '删除主题' : '删除知识点' }}</button></div></template></Teleport>
+            <button ref="menuTrigger" class="icon-button" data-testid="point-menu" aria-label="知识点操作" :aria-expanded="menuOpen" aria-haspopup="menu" @click="togglePointMenu"><Icon name="more" /></button>
+            <Teleport to="body"><template v-if="menuOpen"><button class="menu-scrim point-menu-scrim" tabindex="-1" aria-label="关闭操作菜单" @click="closePointMenu" /><div ref="menuElement" class="popover-menu point-actions" role="menu" :style="{ left: menuPosition.x + 'px', top: menuPosition.y + 'px' }" @keydown.esc.stop.prevent="closePointMenu"><button role="menuitem" @click="menuAction('edit')"><Icon name="edit" />编辑知识点</button><button data-testid="delete-point" role="menuitem" :disabled="deleteDisabled" :title="deleteDisabled ? '图谱就绪后可删除' : undefined" @click="menuAction('delete')"><Icon name="trash" />{{ point.isTheme ? '删除主题' : '删除知识点' }}</button></div></template></Teleport>
           </div>
           <button class="icon-button" aria-label="关闭知识详情" @click="emit('close')"><Icon name="close" /></button>
         </div>
@@ -76,8 +76,7 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
         <section v-if="sections.understanding" class="detail-section understanding-column"><h2>个人理解</h2><p class="prose-text">{{ sections.understanding }}</p></section>
         <section class="detail-section resources-column"><div class="column-heading"><h2>关联资料 <span class="count">{{ attached.length }}</span></h2></div><div class="resource-list">
           <template v-for="resource in attached" :key="resource.id">
-            <a v-if="resource.kind === 'link'" :href="resource.url" target="_blank" rel="noopener noreferrer" class="resource-row"><Icon name="file" :size="18" /><span class="resource-title">{{ resource.title }}</span><span class="resource-action">打开<Icon name="external" :size="13" /></span></a>
-            <button v-else class="resource-row" @click="emit('preview', resource)"><Icon name="file" :size="18" /><span class="resource-title">{{ resource.title }}</span><span class="resource-action">预览</span></button>
+            <button class="resource-row" @click="emit('preview', resource)"><Icon name="file" :size="18" /><span class="resource-title">{{ resource.title }}</span><span class="resource-action">{{ resource.kind === 'link' ? '查看链接' : '预览' }}</span></button>
           </template>
           <p v-if="!attached.length" class="empty-column">还没有关联资料。</p>
         </div></section>
