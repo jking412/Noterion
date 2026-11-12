@@ -589,6 +589,7 @@ async function storageFaultsScenario() {
 
 async function spaceFaultScenario() {
   const root=await dataRoot(),volume=await fs.statfs(root,{bigint:true}),available=volume.bavail*volume.bsize;
+  const beforeFiles=new Set(await fs.readdir(path.join(root,'files')));
   assert.ok(available>1024n*1024n*1024n,'space probe requires at least 1 GiB actual free space');
   const logicalSize=available+1024n*1024n*1024n;assert.ok(logicalSize<BigInt(Number.MAX_SAFE_INTEGER));
   const source=owned(path.join(local,'仅用于空间预检查的稀疏源.bin'));
@@ -603,13 +604,13 @@ async function spaceFaultScenario() {
         const messages=await findAll('dialog [role="alert"]');
         if(messages.length&&/空间不足|空间不够|可用空间/.test(await wd('GET',`/element/${messages[0]}/text`)))return true;
         // Guard against a regressed precheck: never consume the whole disk.
-        const parts=(await fs.readdir(path.join(root,'files'))).filter(name=>name.endsWith('.partial'));
+        const parts=(await fs.readdir(path.join(root,'files'))).filter(name=>name.endsWith('.partial')&&!beforeFiles.has(name));
         for(const part of parts){if((await fs.stat(path.join(root,'files',part))).size>16*1024*1024){await clickText('取消复制');await settled();throw new Error('space precheck regressed; cancelled real copy after observing bounded partial data');}}
         return false;
       },'real insufficient-space precheck',10000);
       await settled();assert.ok(!(await text('.save-indicator')).includes('已保存到本机'));
       await clickText('取消');await expectAbsent('dialog');assert.equal((await findAll(resourceRow('空间不足不得就绪'),'xpath')).length,0);
-      const remaining=(await fs.readdir(path.join(root,'files'))).filter(name=>name.endsWith('.partial'));assert.equal(remaining.length,0,'space precheck leaves no partial file');
+      const remaining=(await fs.readdir(path.join(root,'files'))).filter(name=>name.endsWith('.partial')&&!beforeFiles.has(name));assert.equal(remaining.length,0,'space precheck leaves no new partial file');
       return{availableBytes:String(available),logicalSourceBytes:String(logicalSize),sourceIsSparse:true,method:'fsutil sparse setflag followed by logical truncate; no disk-filling fixture'};
     });
   } finally {await fs.unlink(source);}
