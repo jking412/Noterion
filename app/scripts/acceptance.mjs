@@ -21,7 +21,7 @@ const offline=options.offline==='true';
 const run = options.run;
 assert.match(run ?? '', /^issue-21-[a-z0-9-]+$/);
 const scenario = options.scenario ?? 'core';
-assert.ok(['create','core','pdf','webm','graphfailure','media','reliability','storagefaults','all'].includes(scenario));
+assert.ok(['create','core','pdf','webm','graphfailure','media','reliability','storagefaults','spacefault','all'].includes(scenario));
 const repo = options['fixtures-root'] ?? path.resolve(app, '..');
 const exe = path.resolve(options.exe ?? path.join(app, 'src-tauri/target/debug/noterion.exe'));
 const driverExe = path.resolve(options.driver ?? path.join(repo, '.scratch/personal-knowledge-graph/validation/windows-desktop/.tools/issue3-webdriver/msedgedriver.exe'));
@@ -587,6 +587,34 @@ async function storageFaultsScenario() {
   });
 }
 
+async function spaceFaultScenario() {
+  const root=await dataRoot(),volume=await fs.statfs(root,{bigint:true}),available=volume.bavail*volume.bsize;
+  assert.ok(available>1024n*1024n*1024n,'space probe requires at least 1 GiB actual free space');
+  const logicalSize=available+1024n*1024n*1024n;assert.ok(logicalSize<BigInt(Number.MAX_SAFE_INTEGER));
+  const source=owned(path.join(local,'仅用于空间预检查的稀疏源.bin'));
+  const file=await fs.open(source,'wx');await file.close();
+  const sparse=spawnSync('fsutil.exe',['sparse','setflag',source],{windowsHide:true,encoding:'utf8'});assert.equal(sparse.status,0,sparse.stderr);
+  try {
+    await fs.truncate(source,Number(logicalSize));
+    const sparseCheck=spawnSync('fsutil.exe',['sparse','queryflag',source],{windowsHide:true,encoding:'utf8'});assert.equal(sparseCheck.status,0,sparseCheck.stderr);
+    await clickText('资料库');await clickText('添加资料');await fill('[aria-label="资料文件路径"]',source);await fill('[aria-label="资料名称"]','空间不足不得就绪');await clickText('保存资料');
+    await check('a sparse source larger than actual available space is rejected before file allocation or ready record',async()=>{
+      await until(async()=>{
+        const messages=await findAll('dialog [role="alert"]');
+        if(messages.length&&/空间不足|空间不够|可用空间/.test(await wd('GET',`/element/${messages[0]}/text`)))return true;
+        // Guard against a regressed precheck: never consume the whole disk.
+        const parts=(await fs.readdir(path.join(root,'files'))).filter(name=>name.endsWith('.partial'));
+        for(const part of parts){if((await fs.stat(path.join(root,'files',part))).size>16*1024*1024){await clickText('取消复制');await settled();throw new Error('space precheck regressed; cancelled real copy after observing bounded partial data');}}
+        return false;
+      },'real insufficient-space precheck',10000);
+      await settled();assert.ok(!(await text('.save-indicator')).includes('已保存到本机'));
+      await clickText('取消');await expectAbsent('dialog');assert.equal((await findAll(resourceRow('空间不足不得就绪'),'xpath')).length,0);
+      const remaining=(await fs.readdir(path.join(root,'files'))).filter(name=>name.endsWith('.partial'));assert.equal(remaining.length,0,'space precheck leaves no partial file');
+      return{availableBytes:String(available),logicalSourceBytes:String(logicalSize),sourceIsSparse:true,method:'fsutil sparse setflag followed by logical truncate; no disk-filling fixture'};
+    });
+  } finally {await fs.unlink(source);}
+}
+
 try {
   await launch(); await capture('00-start');
   if (['create','core','all'].includes(scenario)) await createScenario();
@@ -597,6 +625,7 @@ try {
   if (scenario === 'media' || scenario === 'all') await mediaScenario();
   if (scenario === 'reliability' || scenario === 'all') await reliabilityScenario();
   if (scenario === 'storagefaults' || scenario === 'all') await storageFaultsScenario();
+  if (scenario === 'spacefault' || scenario === 'all') await spaceFaultScenario();
   const visible=await body();assert.ok(!/知识点 ID|资料 ID|knowledge-id|重置演示/.test(visible),'visible app has no prototype ID/reset workflow');
   await wd('POST','/window/rect',{width:1280,height:800}); await capture('09-layout-1280');
   await wd('POST','/window/rect',{width:1600,height:1000}); await capture('10-layout-1600');
