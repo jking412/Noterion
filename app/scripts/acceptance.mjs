@@ -19,7 +19,7 @@ assert.ok(Object.keys(options).every(key => ['run','scenario','exe','driver','fi
 const run = options.run;
 assert.match(run ?? '', /^issue-21-[a-z0-9-]+$/);
 const scenario = options.scenario ?? 'core';
-assert.ok(['create','core','media','all'].includes(scenario));
+assert.ok(['create','core','media','reliability','all'].includes(scenario));
 const repo = options['fixtures-root'] ?? path.resolve(app, '..');
 const exe = path.resolve(options.exe ?? path.join(app, 'src-tauri/target/debug/noterion.exe'));
 const driverExe = path.resolve(options.driver ?? path.join(repo, '.scratch/personal-knowledge-graph/validation/windows-desktop/.tools/issue3-webdriver/msedgedriver.exe'));
@@ -169,6 +169,7 @@ async function select(name, qualifier) {
   await expectText('[data-testid="knowledge-details"] h1',name);
 }
 async function savePoint({ name, description='', theme=false, topics=[] }) {
+  await clickText('知识图谱');
   await click('[data-testid="create-point"]');
   await fill('#knowledge-name',name); await fill('#knowledge-description',description);
   if (theme) await click("//label[contains(.,'可作为主题')]/input",'xpath');
@@ -220,7 +221,7 @@ async function coreScenario() {
     await select('Docker'); await click('[title="编辑知识点"]');
     assert.equal((await findAll('input[aria-label="所属主题 Docker"]')).length,0,'self-membership cannot be selected');
     await click('input[aria-label="所属主题 孙主题"]'); await click('[data-testid="save-point"]');
-    await expectText('[role="alert"]','循环'); assert.equal((await findAll('#knowledge-name')).length,1); await clickText('取消');
+    await expectText('dialog [role="alert"]','循环'); assert.equal((await findAll('#knowledge-name')).length,1); await clickText('取消');
   });
   await editPoint('进入容器终端',{toggleTopics:['Docker','Linux']});
   await stop(); await launch();
@@ -259,9 +260,15 @@ async function addFile(source,title) {
   await until(async()=>!(await findAll('[aria-label="资料文件路径"]')).length, 'file copy completes',120000);
   await expectText('body',title);
 }
+const resourceRow = title => `//article[@aria-label=${literal('学习资料：'+title)}]`;
+async function associate(title,names) {
+  await clickText('资料库');await click(resourceRow(title)+"//button[normalize-space(.)='关联知识点']",'xpath');
+  for(const name of names)await click(`input[aria-label=${JSON.stringify('关联知识点 '+name)}]`);
+  await click(containsButton('保存关联'),'xpath');await expectAbsent('dialog');
+}
 async function openResource(title) {
   await clickText('资料库');
-  await click(`//*[contains(concat(' ',normalize-space(@class),' '),' resource-library-row ') or contains(concat(' ',normalize-space(@class),' '),' resource-card ')][.//*[normalize-space(.)=${literal(title)}]]//button[contains(.,'预览')]`,'xpath');
+  await click(`//article[@aria-label=${literal('学习资料：'+title)}]//button[normalize-space(.)='查看资料']`,'xpath');
 }
 async function closePreview() { await click('[aria-label="关闭弹窗"]'); }
 async function mediaMetrics() {
@@ -272,16 +279,34 @@ async function mediaScenario() {
   const pdf=path.join(repo,'.scratch/personal-knowledge-graph/prototypes/core-ui/test-data/resources/resource-checklist.pdf');
   const png=path.join(repo,'.scratch/personal-knowledge-graph/prototypes/core-ui/test-data/resources/container-resources.png');
   const fixture=path.join(local,'中文 空格来源'); await fs.mkdir(fixture);
+  await savePoint({name:'资料复用甲'});await savePoint({name:'资料复用乙'});
   const imageSource=path.join(fixture,'同名.png'); await fs.copyFile(png,imageSource);
   await addFile(imageSource,'本地图片');
+  await associate('本地图片',['资料复用甲','资料复用乙']);
+  await check('one saved resource is reusable from two knowledge details and detaching one keeps the other',async()=>{
+    for(const name of ['资料复用甲','资料复用乙']){await select(name);assert.ok((await text('[data-testid="knowledge-details"]')).includes('本地图片'));}
+    await associate('本地图片',['资料复用甲']);await select('资料复用甲');assert.ok(!(await text('[data-testid="knowledge-details"]')).includes('本地图片'));
+    await select('资料复用乙');assert.ok((await text('[data-testid="knowledge-details"]')).includes('本地图片'));
+  });
   await fs.rename(imageSource,path.join(fixture,'已移动.png'));
   await stop(); await launch();
   await openResource('本地图片');
   await check('managed image survives moving the source and restarting',async()=>{
-    const image=await until(()=>observe('const i=document.querySelector(".resource-preview img, .preview-image"); return i?.complete&&i.naturalWidth>0 ? {width:i.naturalWidth,height:i.naturalHeight,src:i.currentSrc}:null;'),'decoded managed image');
+    const image=await until(()=>observe('const i=document.querySelector(".image-preview img"); return i?.complete&&i.naturalWidth>0 ? {width:i.naturalWidth,height:i.naturalHeight}:null;'),'decoded managed image');
     assert.ok(image.width>0&&image.height>0); return {width:image.width,height:image.height};
   });
   await capture('04-image'); await closePreview();
+  const other=path.join(fixture,'另一个目录');await fs.mkdir(other);const otherSource=path.join(other,'同名.png');
+  // The second same-named file is a different valid PNG with deterministic bytes.
+  const differentPng=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=','base64');
+  await fs.writeFile(otherSource,differentPng);await addFile(otherSource,'同名不同图片');await openResource('同名不同图片');
+  await check('same filenames in different source directories do not overwrite or share the wrong copy',async()=>{
+    const second=await until(()=>observe('const i=document.querySelector(".image-preview img");return i?.complete&&i.naturalWidth>0?{width:i.naturalWidth,height:i.naturalHeight}:null;'),'second same-named image decodes');assert.equal(second.width,1);assert.equal(second.height,1);
+  });await closePreview();
+  await clickText('资料库');await clickText('添加资料');await fill('[aria-label="资料文件路径"]',path.join(fixture,'不存在.png'));await fill('[aria-label="资料名称"]','缺失源文件');await clickText('保存资料');
+  await check('missing source file reports failure and keeps the draft instead of ready resource',async()=>{
+    await until(async()=>/不存在|无法|失败|找不到/.test(await text('dialog')),'real missing source feedback');assert.equal((await findAll('[aria-label="资料文件路径"]')).length,1);
+  });await clickText('取消');assert.equal((await findAll(resourceRow('缺失源文件'),'xpath')).length,0);
   await addFile(pdf,'本地PDF'); await openResource('本地PDF');
   await until(async()=>(await findAll('iframe')).length,'embedded PDF frame');
   await capture('05-pdf-inspect-required');
@@ -327,15 +352,106 @@ async function mediaScenario() {
     await until(async()=>{const m=await mediaMetrics();return m?.error || (m?.duration>0&&m.videoWidth===0);},'unsupported video evidence');
     await until(async()=>/不支持|无法|未能/.test(await body()),'visible unsupported feedback');
     assert.ok((await findAll(containsButton('系统应用'),'xpath')).length>0);
+    const before=(await events()).length;await clickText('使用系统应用打开');
+    await until(async()=>(await events()).slice(before).some(event=>event.event==='external-open'),'actual system association invocation audit');
+    await expectText('dialog','已请求系统应用打开');
   });
   await capture('08-unsupported'); await closePreview();
 }
 
+function owned(filename) {
+  const plain=value=>path.resolve(value.replace(/^\\\\\?\\/,'' )).toLowerCase();
+  assert.ok(plain(filename).startsWith(plain(local)+path.sep),'fault fixture must stay inside this run');
+  return filename;
+}
+async function dataRoot() {
+  await click('[aria-label="数据目录设置"]');
+  const root=await wd('GET',`/element/${await find('[aria-label="数据目录"]')}/property/value`);
+  owned(root);await closePreview();return root;
+}
+async function chooseRoot(root,create) {
+  await click('[aria-label="数据目录设置"]');await fill('[aria-label="数据目录"]',root);
+  await clickText(create?'创建新数据目录':'打开已有数据目录');
+  await expectAbsent('[aria-label="数据目录"]');
+}
+async function beginCopy(source,title) {
+  await clickText('资料库');await fill('[aria-label="搜索资料"]','');await clickText('添加资料');
+  await fill('[aria-label="资料文件路径"]',source);await fill('[aria-label="资料名称"]',title);await clickText('保存资料');
+  await until(async()=>(await findAll(button('取消复制'),'xpath')).length>0,'copy is active before fault',5000);
+}
+async function reliabilityScenario() {
+  await savePoint({name:'可靠性知识甲'});await savePoint({name:'可靠性知识乙'});
+  const original=await dataRoot();
+  const nonempty=owned(path.join(local,'已有其他内容'));await fs.mkdir(nonempty);await fs.writeFile(path.join(nonempty,'保留.txt'),'不可覆盖的已有内容');
+  await click('[aria-label="数据目录设置"]');await fill('[aria-label="数据目录"]',nonempty);await clickText('创建新数据目录');
+  await check('creating a store refuses a nonempty unrelated directory without changing current facts',async()=>{
+    await until(async()=>/非空|已有|不是空|内容/.test(await text('dialog [role="alert"]')),'nonempty create rejection');
+    assert.equal(await fs.readFile(path.join(nonempty,'保留.txt'),'utf8'),'不可覆盖的已有内容');
+  });await closePreview();await select('可靠性知识甲');
+  const absent=owned(path.join(local,'未创建的目录'));
+  await click('[aria-label="数据目录设置"]');await fill('[aria-label="数据目录"]',absent);await clickText('打开已有数据目录');
+  await check('opening absent data reports a real error and does not create an empty store',async()=>{
+    await until(async()=>/不存在|没有|无法|不可用/.test(await text('dialog [role="alert"]')),'absent open rejection');
+    await assert.rejects(fs.access(absent),error=>error.code==='ENOENT');
+  });await closePreview();
+  const fresh=owned(path.join(local,'用户指定 中文数据'));await chooseRoot(fresh,true);
+  await savePoint({name:'新目录知识',description:'只属于用户指定目录'});
+  await chooseRoot(original,false);await select('可靠性知识甲');
+  await chooseRoot(fresh,false);await select('新目录知识');await search('可靠性知识甲');assert.equal((await results()).length,0);
+  await chooseRoot(original,false);
+  await check('explicit new directory and opening an existing directory keep separate durable content',async()=>{
+    await select('可靠性知识甲');await search('新目录知识');assert.equal((await results()).length,0);
+  });
+  await clickText('资料库');await clickText('添加资料');await clickText('网页链接');await fill('[aria-label="资料名称"]','复用网页资料');await fill('[aria-label="网页地址"]','https://example.com/knowledge?q=%E9%94%81');
+  for(const name of ['可靠性知识甲','可靠性知识乙'])await click(`input[aria-label=${JSON.stringify('关联知识点 '+name)}]`);
+  await clickText('保存资料');await expectAbsent('dialog');
+  await check('link stores only address and supports multiple point associations with reusable lookup',async()=>{
+    await fill('[aria-label="搜索资料"]','复用网页');assert.equal((await findAll('.library-row')).length,1);assert.ok((await text('.library-row')).includes('https://example.com/knowledge?q=%E9%94%81'));
+    await fill('[aria-label="搜索资料"]','');for(const name of ['可靠性知识甲','可靠性知识乙']){await select(name);assert.ok((await text('[data-testid="knowledge-details"]')).includes('复用网页资料'));}
+  });await associate('复用网页资料',['可靠性知识甲']);await select('可靠性知识甲');assert.ok(!(await text('[data-testid="knowledge-details"]')).includes('复用网页资料'));
+  const sample=path.join(repo,'.scratch/personal-knowledge-graph/validation/video-playback/.local/samples/issue-13-h264-aac.mp4');
+  await beginCopy(sample,'主动取消的资料');await clickText('取消复制');
+  await check('copy cancellation never presents a ready resource or successful record',async()=>{
+    await until(async()=>(await findAll(button('取消复制'),'xpath')).length===0,'cancel operation settles');
+    await expectText('dialog','未保存成功');await clickText('取消');
+    assert.equal((await findAll(resourceRow('主动取消的资料'),'xpath')).length,0);
+    assert.ok((await events()).some(event=>event.event==='file-copy'&&event.success===false),'Rust cancellation failure audit');
+  });
+  await beginCopy(sample,'异常中断的资料');await stop({crash:true});await launch();await clickText('资料库');
+  await check('killing the application during copy cannot leave a ready formal resource after restart',async()=>{
+    assert.equal((await findAll(resourceRow('异常中断的资料'),'xpath')).length,0);await select('可靠性知识乙');assert.ok((await text('[data-testid="knowledge-details"]')).includes('复用网页资料'));
+  });
+  const files=path.join(original,'files'), beforeFiles=new Set(await fs.readdir(files));
+  const png=path.join(repo,'.scratch/personal-knowledge-graph/prototypes/core-ui/test-data/resources/container-resources.png');await addFile(png,'缺失副本测试');
+  const additions=(await fs.readdir(files)).filter(file=>!beforeFiles.has(file));assert.equal(additions.length,1,'one imported file creates one managed asset');
+  const managed=owned(path.join(files,additions[0])), moved=owned(managed+'.fault-moved');await fs.rename(managed,moved);
+  try {
+    await stop();await launch();await clickText('资料库');
+    await check('a missing managed copy is marked missing and cannot be reported as ready or opened',async()=>{
+      const id=await find(resourceRow('缺失副本测试'),'xpath');const row=await wd('GET',`/element/${id}/text`);assert.ok(row.includes('文件缺失'));assert.ok(!row.includes('就绪'));
+      await openResource('缺失副本测试');await until(async()=>/缺失|不可读|无法/.test(await text('dialog [role="alert"]')),'managed missing-file error');assert.equal((await findAll('dialog img,dialog iframe,dialog video')).length,0);
+    });await capture('11-missing-file');await closePreview();
+  } finally {await fs.rename(moved,managed);}
+  await stop();
+  const movedRoot=owned(original+'.fault-moved');await fs.rename(original,movedRoot);
+  try {
+    await launch();
+    await check('previously chosen directory going offline does not silently create an empty replacement',async()=>{
+      await until(async()=>/不可用|失联|不存在|无法|没有/.test(await text('[data-testid="storage-error"]')),'lost directory storage error');
+      assert.equal(await wd('GET',`/element/${await find('[data-testid="create-point"]')}/enabled`),false);
+      await assert.rejects(fs.access(original),error=>error.code==='ENOENT');
+    });await capture('12-directory-unavailable');
+  } finally {await stop();await fs.rename(movedRoot,original);}
+  await launch();await select('可靠性知识乙');
+  await check('restoring the selected directory reloads current committed facts',async()=>assert.ok((await text('[data-testid="knowledge-details"]')).includes('复用网页资料')));
+}
+
 try {
   await launch(); await capture('00-start');
-  if (scenario !== 'media') await createScenario();
+  if (scenario !== 'media' && scenario !== 'reliability') await createScenario();
   if (scenario === 'core' || scenario === 'all') await coreScenario();
   if (scenario === 'media' || scenario === 'all') await mediaScenario();
+  if (scenario === 'reliability' || scenario === 'all') await reliabilityScenario();
   const visible=await body();assert.ok(!/知识点 ID|资料 ID|knowledge-id|重置演示/.test(visible),'visible app has no prototype ID/reset workflow');
   await wd('POST','/window/rect',{width:1280,height:800}); await capture('09-layout-1280');
   await wd('POST','/window/rect',{width:1600,height:1000}); await capture('10-layout-1600');
