@@ -687,7 +687,7 @@ fn lock_store(state: &SharedStore) -> Result<std::sync::MutexGuard<'_, Store>, S
 #[tauri::command]
 pub fn app_load(state: tauri::State<'_, SharedStore>) -> Result<Snapshot, String> {
     let mut store = lock_store(&state)?;
-    if store.error.is_some() {
+    if store.error.is_some() && store.config_dir.join("directory.json").is_file() {
         // A directory disconnected at startup may have returned. Retry only the
         // persisted choice; missing settings never authorize creating a new store.
         store.error = None;
