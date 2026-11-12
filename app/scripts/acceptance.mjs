@@ -83,9 +83,7 @@ const literal = value => !value.includes("'") ? `'${value}'` : !value.includes('
 const button = label => `//button[normalize-space(.)=${literal(label)} or @aria-label=${literal(label)}]`;
 const containsButton = label => `//button[contains(normalize-space(.),${literal(label)})]`;
 async function click(selector, using) {
-  const id = await find(selector, using);
-  assert.equal(await wd('GET', `/element/${id}/displayed`), true, `Visible action ${selector}`);
-  await until(()=>wd('GET',`/element/${id}/enabled`),`enabled action ${selector}`);
+  const id=await until(async()=>{const candidate=await find(selector,using);return await wd('GET',`/element/${candidate}/displayed`)&&await wd('GET',`/element/${candidate}/enabled`)&&candidate;},`visible enabled action ${selector}`);
   await wd('POST', `/element/${id}/click`, {});
 }
 const clickText = label => click(button(label), 'xpath');
