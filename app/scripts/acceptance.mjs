@@ -80,6 +80,7 @@ const containsButton = label => `//button[contains(normalize-space(.),${literal(
 async function click(selector, using) {
   const id = await find(selector, using);
   assert.equal(await wd('GET', `/element/${id}/displayed`), true, `Visible action ${selector}`);
+  await until(()=>wd('GET',`/element/${id}/enabled`),`enabled action ${selector}`);
   await wd('POST', `/element/${id}/click`, {});
 }
 const clickText = label => click(button(label), 'xpath');
@@ -272,7 +273,8 @@ async function openResource(title) {
   await clickText('资料库');
   await click(`//article[@aria-label=${literal('学习资料：'+title)}]//button[normalize-space(.)='查看资料']`,'xpath');
 }
-async function closePreview() { await click('[aria-label="关闭弹窗"]'); }
+async function closePreview() { await click('[aria-label="关闭弹窗"]');await expectAbsent('dialog'); }
+async function settled() {await until(async()=>!(await text('.save-indicator')).includes('正在保存'),'current local operation has settled');}
 async function pdfScenario() {
   const source=path.join(repo,'.scratch/personal-knowledge-graph/prototypes/core-ui/test-data/resources/resource-checklist.pdf');
   await addFile(source,'独立PDF检查');await openResource('独立PDF检查');
@@ -510,23 +512,24 @@ async function storageFaultsScenario() {
   holder.stdout.pipe(createWriteStream(path.join(local,'sqlite-holder-stdout.txt')));holder.stderr.pipe(createWriteStream(path.join(local,'sqlite-holder-stderr.txt')));
   await until(async()=>{assert.equal(holder.exitCode,null,'independent SQLite lock holder remains alive');return(await fs.readFile(lockReady,'utf8'))==='LOCKED';},'real external SQLite write lock acquired');
   const source=path.join(repo,'.scratch/personal-knowledge-graph/prototypes/core-ui/test-data/resources/container-resources.png');
-  const expectLocked=()=>until(async()=>/locked|锁|无法开始保存/.test(await text('dialog [role="alert"]')),'actual store-lock error');
+  const expectLocked=async()=>{await settled();return until(async()=>/locked|锁|无法开始保存/.test(await text('dialog [role="alert"]')),'actual store-lock error');};
   try {
     await select('事务锁前知识');await click('[title="编辑知识点"]');await fill('#knowledge-description','锁定期间不应提交');await click('[data-testid="save-point"]');
     await check('external SQLite write lock rejects editing while retaining the original fact and the user draft',async()=>{
       await expectLocked();assert.equal(await wd('GET',`/element/${await find('#knowledge-description')}/property/value`),'锁定期间不应提交');
       assert.ok(!(await text('.save-indicator')).includes('已保存到本机'));
-    });await clickText('取消');await select('事务锁前知识');assert.ok((await text('[data-testid="knowledge-details"]')).includes('原描述应当保留'));
+    });await clickText('取消');await expectAbsent('dialog');await select('事务锁前知识');assert.ok((await text('[data-testid="knowledge-details"]')).includes('原描述应当保留'));
     await select('事务锁前主题');await click('[aria-label="知识点操作"]');await clickText('删除主题');await click(containsButton('确认删除 '),'xpath');
     await check('failed locked deletion preserves the complete preview and reports no success',async()=>{
+      await settled();
       await until(async()=>/locked|锁|无法开始保存/.test(await text('[data-testid="storage-error"]')),'actual locked deletion feedback');
       assert.equal((await findAll('.impact-columns')).length,1);assert.ok((await text('.impact-columns')).includes('事务锁前下属'));assert.ok(!(await text('.save-indicator')).includes('已保存到本机'));
-    });await clickText('取消');
+    });await clickText('取消');await expectAbsent('dialog');
     await clickText('资料库');await clickText('添加资料');await fill('[aria-label="资料文件路径"]',source);await fill('[aria-label="资料名称"]','文件完成但记录被锁');await clickText('保存资料');
     await check('complete file copy followed by locked record commit never reports a ready resource',async()=>{
       await expectLocked();assert.equal(await wd('GET',`/element/${await find('[aria-label="资料文件路径"]')}/property/value`),source);
       assert.ok((await events()).some(event=>event.event==='file-copy'&&event.success===false&&/locked|锁|保存/.test(event.error??'')));
-    });await capture('13-locked-commit');await clickText('取消');assert.equal((await findAll(resourceRow('文件完成但记录被锁'),'xpath')).length,0);
+    });await capture('13-locked-commit');await clickText('取消');await expectAbsent('dialog');assert.equal((await findAll(resourceRow('文件完成但记录被锁'),'xpath')).length,0);
   } finally {
     await fs.writeFile(lockStop,'stop');await Promise.race([new Promise(resolve=>holder.once('exit',resolve)),delay(3000)]);if(holder.exitCode===null)holder.kill();
   }
