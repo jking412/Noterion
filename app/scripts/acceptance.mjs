@@ -297,6 +297,10 @@ async function openResource(title) {
 }
 async function closePreview() { await click('[aria-label="关闭弹窗"]');await expectAbsent('dialog'); }
 async function settled() {await until(async()=>!(await text('.save-indicator')).includes('正在保存'),'current local operation has settled');}
+async function noStaleSuccess() {
+  // Permit the documented 180 ms leave transition, not the four-second toast timer.
+  await delay(250);assert.equal((await findAll('.toast-message')).length,0,'a failed operation cannot retain an earlier success toast');
+}
 async function pdfScenario() {
   const source=path.join(repo,'.scratch/personal-knowledge-graph/prototypes/core-ui/test-data/resources/resource-checklist.pdf');
   await addFile(source,'独立PDF检查');await openResource('独立PDF检查');
@@ -569,17 +573,20 @@ async function storageFaultsScenario() {
     await check('external SQLite write lock rejects editing while retaining the original fact and the user draft',async()=>{
       await expectLocked();assert.equal(await wd('GET',`/element/${await find('#knowledge-description')}/property/value`),'锁定期间不应提交');
       assert.ok(!(await text('.save-indicator')).includes('已保存到本机'));
+      await noStaleSuccess();
     });await clickText('取消');await expectAbsent('dialog');await select('事务锁前知识');assert.ok((await text('[data-testid="knowledge-details"]')).includes('原描述应当保留'));
     await select('事务锁前主题');await click('[aria-label="知识点操作"]');await clickText('删除主题');await click(containsButton('确认删除 '),'xpath');
     await check('failed locked deletion preserves the complete preview and reports no success',async()=>{
       await settled();
       await until(async()=>/locked|锁|无法开始保存/.test(await text('[data-testid="storage-error"]')),'actual locked deletion feedback');
       assert.equal((await findAll('.impact-columns')).length,1);assert.ok((await text('.impact-columns')).includes('事务锁前下属'));assert.ok(!(await text('.save-indicator')).includes('已保存到本机'));
+      await noStaleSuccess();
     });await clickText('取消');await expectAbsent('dialog');
     await clickText('资料库');await clickText('添加资料');await fill('[aria-label="资料文件路径"]',source);await fill('[aria-label="资料名称"]','文件完成但记录被锁');await clickText('保存资料');
     await check('complete file copy followed by locked record commit never reports a ready resource',async()=>{
       await expectLocked();assert.equal(await wd('GET',`/element/${await find('[aria-label="资料文件路径"]')}/property/value`),source);
       assert.ok((await events()).some(event=>event.event==='file-copy'&&event.success===false&&/locked|锁|保存/.test(event.error??'')));
+      await noStaleSuccess();
     });await capture('13-locked-commit');await clickText('取消');await expectAbsent('dialog');assert.equal((await findAll(resourceRow('文件完成但记录被锁'),'xpath')).length,0);
   } finally {
     await fs.writeFile(lockStop,'stop');await Promise.race([new Promise(resolve=>holder.once('exit',resolve)),delay(3000)]);if(holder.exitCode===null)holder.kill();
@@ -595,6 +602,7 @@ async function storageFaultsScenario() {
     await clickText('添加资料');await fill('[aria-label="资料文件路径"]',source);await fill('[aria-label="资料名称"]','目录缺失不得成功');await clickText('保存资料');
     await check('missing managed file directory rejects copying without silently recreating it',async()=>{
       await expectText('dialog [role="alert"]','资料保存目录不可用');await assert.rejects(fs.access(files),error=>error.code==='ENOENT');assert.ok(!(await text('.save-indicator')).includes('已保存到本机'));
+      await noStaleSuccess();
     });await clickText('取消');assert.equal((await findAll(resourceRow('目录缺失不得成功'),'xpath')).length,0);
     await savePoint({name:'资料目录故障时知识仍可保存',description:'结构化数据可用'});await search('结构化数据');assert.equal((await results()).length,1);
   } finally {await fs.rename(moved,files);}
@@ -607,7 +615,7 @@ async function storageFaultsScenario() {
     if(!denied){await fs.unlink(probe);throw new Error('fixture ACL did not deny writes; cannot claim a permission failure test');}
     await clickText('资料库');await clickText('添加资料');await fill('[aria-label="资料文件路径"]',source);await fill('[aria-label="资料名称"]','不可写目录不得成功');await clickText('保存资料');
     await check('actual denied directory write reports copy failure and never presents ready data',async()=>{
-      await expectText('dialog [role="alert"]','无法创建文件副本');assert.ok(!(await text('.save-indicator')).includes('已保存到本机'));await clickText('取消');assert.equal((await findAll(resourceRow('不可写目录不得成功'),'xpath')).length,0);
+      await expectText('dialog [role="alert"]','无法创建文件副本');assert.ok(!(await text('.save-indicator')).includes('已保存到本机'));await noStaleSuccess();await clickText('取消');assert.equal((await findAll(resourceRow('不可写目录不得成功'),'xpath')).length,0);
     });await capture('14-write-denied');
   } finally {permission('restore');}
   await addFile(source,'权限恢复后可保存');
@@ -638,6 +646,7 @@ async function spaceFaultScenario() {
         return false;
       },'real insufficient-space precheck',10000);
       await settled();assert.ok(!(await text('.save-indicator')).includes('已保存到本机'));
+      await noStaleSuccess();
       await clickText('取消');await expectAbsent('dialog');assert.equal((await findAll(resourceRow('空间不足不得就绪'),'xpath')).length,0);
       const remaining=(await fs.readdir(path.join(root,'files'))).filter(name=>name.endsWith('.partial')&&!beforeFiles.has(name));assert.equal(remaining.length,0,'space precheck leaves no new partial file');
       return{availableBytes:String(available),logicalSourceBytes:String(logicalSize),sourceIsSparse:true,method:'fsutil sparse setflag followed by logical truncate; no disk-filling fixture'};
