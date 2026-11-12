@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Linux 日常巡检清单</title>
+  <style>
+    :root{color-scheme:light;font:15px/1.7 "Microsoft YaHei","PingFang SC",sans-serif;color:#202020;background:#fcfcfc}
+    body{max-width:820px;margin:0 auto;padding:28px}
+    h1{margin:0 0 8px;font-size:25px;line-height:1.35}p{color:#646464}
+    section{margin:22px 0;padding:18px 20px;border:1px solid #dedede;border-radius:12px;background:white}
+    h2{margin:0 0 10px;font-size:18px}pre{margin:0;overflow:auto;padding:14px;border-radius:8px;background:#f0f0f0;font:14px/1.6 Consolas,monospace}
+    small{color:#646464}
+  </style>
+</head>
+<body>
+  <h1>Linux 日常巡检清单</h1>
+  <p>从主机资源到服务状态，按顺序收集证据。</p>
+  <section><h2>主机负载与内存</h2><pre>uptime
+free -h</pre></section>
+  <section><h2>文件系统空间</h2><pre>df -h
+df -i</pre></section>
+  <section><h2>进程与服务</h2><pre>ps aux
+systemctl --failed
+journalctl -u &lt;服务名&gt; -n 100 --no-pager</pre></section>
+  <small>示例命令用于阅读与复制，本演示不会在本机执行这些命令。</small>
+</body>
+</html>
