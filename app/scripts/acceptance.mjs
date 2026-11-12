@@ -21,7 +21,7 @@ const offline=options.offline==='true';
 const run = options.run;
 assert.match(run ?? '', /^issue-21-[a-z0-9-]+$/);
 const scenario = options.scenario ?? 'core';
-assert.ok(['create','core','pdf','webm','graphinteraction','graphfailure','media','reliability','storagefaults','spacefault','all'].includes(scenario));
+assert.ok(['create','core','pdf','webm','graphinteraction','graphfailure','ordinarydelete','media','reliability','storagefaults','spacefault','all'].includes(scenario));
 const repo = options['fixtures-root'] ?? path.resolve(app, '..');
 const exe = path.resolve(options.exe ?? path.join(app, 'src-tauri/target/debug/noterion.exe'));
 const driverExe = path.resolve(options.driver ?? path.join(repo, '.scratch/personal-knowledge-graph/validation/windows-desktop/.tools/issue3-webdriver/msedgedriver.exe'));
@@ -653,6 +653,22 @@ async function spaceFaultScenario() {
     });
   } finally {await fs.unlink(source);}
 }
+async function ordinaryDeleteScenario() {
+  await savePoint({name:'明确删除的普通知识点',description:'删除后不可从搜索或重启恢复'});
+  const source=path.join(repo,'.scratch/personal-knowledge-graph/prototypes/core-ui/test-data/resources/container-resources.png');
+  await addFile(source,'普通点删除保留图片');await associate('普通点删除保留图片',['明确删除的普通知识点']);await select('明确删除的普通知识点');
+  await click('[aria-label="知识点操作"]');await clickText('删除知识点');
+  await until(async()=>(await findAll('.impact-columns')).length>0,'ordinary-point delete preview');
+  await check('explicit ordinary-point delete previews exactly one knowledge point and retains its resource',async()=>{
+    assert.equal((await findAll('.impact-section:first-child .point-list li')).length,1);assert.ok((await text('.impact-section:first-child')).includes('明确删除的普通知识点'));assert.ok((await text('.delete-note')).includes('保留'));
+  });await capture('20-ordinary-delete-preview');
+  await clickText('确认删除 1 个知识点');await expectAbsent('dialog');await search('明确删除的普通知识点');assert.equal((await results()).length,0);
+  await stop();await launch();
+  await check('ordinary knowledge deletion remains committed after restart and its saved image stays readable',async()=>{
+    await search('明确删除的普通知识点');assert.equal((await results()).length,0);
+    await openResource('普通点删除保留图片');await until(()=>observe('const i=document.querySelector(".image-preview img");return i?.complete&&i.naturalWidth>0;'),'retained image decodes after ordinary-point deletion and restart');
+  });await capture('21-ordinary-delete-retained-image');await closePreview();
+}
 
 try {
   await launch(); await capture('00-start');
@@ -666,6 +682,7 @@ try {
   if (scenario === 'reliability' || scenario === 'all') await reliabilityScenario();
   if (scenario === 'storagefaults' || scenario === 'all') await storageFaultsScenario();
   if (scenario === 'spacefault' || scenario === 'all') await spaceFaultScenario();
+  if (scenario === 'ordinarydelete') await ordinaryDeleteScenario();
   const visible=await body();assert.ok(!/知识点 ID|资料 ID|knowledge-id|重置演示/.test(visible),'visible app has no prototype ID/reset workflow');
   await wd('POST','/window/rect',{width:1280,height:800}); await capture('09-layout-1280');
   await wd('POST','/window/rect',{width:1600,height:1000}); await capture('10-layout-1600');
