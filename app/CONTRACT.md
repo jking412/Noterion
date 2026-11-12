@@ -6,7 +6,7 @@ The frontend uses `window.__TAURI__.core.invoke`. All mutations resolve only aft
 
 Core commands (Rust module `store.rs`, public `Store` shared as `Arc<Mutex<Store>>`):
 - `app_load()` -> Snapshot. Does not create an absent previously selected store.
-- `directory_select(path: string, create: boolean)` -> Snapshot. Explicit create/open; existing data never overwritten. Persist chosen root beside executable. Default root is `exe-parent/data`, only first use may create it. `NOTERION_CONFIG_DIR` overrides config/default location for isolated desktop acceptance.
+- `directory_select(path: string, create: boolean)` -> Snapshot. Explicit create/open; existing data never overwritten. Persist only the directory pointer in `%LOCALAPPDATA%/Noterion/directory.json`. Default formal data root is `exe-parent/data`, only first use may create it. `NOTERION_CONFIG_DIR` overrides config/default location for isolated desktop acceptance.
 - `point_save(point: KnowledgePoint, creating: boolean)` -> Snapshot. Generate identity in Rust for creates, enforce names, references, arbitrary cycle prevention.
 - `delete_preview(id: string)` -> `{deletedIds, retainedIds}`.
 - `point_delete(id: string, revision: number)` -> Snapshot, reject stale preview.
