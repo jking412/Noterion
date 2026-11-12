@@ -466,13 +466,76 @@ async function reliabilityScenario() {
   await check('restoring the selected directory reloads current committed facts',async()=>assert.ok((await text('[data-testid="knowledge-details"]')).includes('复用网页资料')));
 }
 
+async function storageFaultsScenario() {
+  await savePoint({name:'事务锁前知识',description:'原描述应当保留'});
+  await savePoint({name:'事务锁前主题',theme:true});await savePoint({name:'事务锁前下属',topics:['事务锁前主题']});
+  const root=await dataRoot(), sqliteFiles=(await fs.readdir(root)).filter(name=>name.endsWith('.sqlite3'));
+  assert.equal(sqliteFiles.length,1,'one formal SQLite file for external environment lock injection');
+  const lockReady=owned(path.join(local,'sqlite-lock-ready')),lockStop=owned(path.join(local,'sqlite-lock-stop'));
+  const holder=spawn('python',['-u',path.join(app,'validation/hold-store-lock.py'),owned(path.join(root,sqliteFiles[0])),lockReady,lockStop],{windowsHide:true,stdio:['ignore','pipe','pipe']});
+  holder.stdout.pipe(createWriteStream(path.join(local,'sqlite-holder-stdout.txt')));holder.stderr.pipe(createWriteStream(path.join(local,'sqlite-holder-stderr.txt')));
+  await until(async()=>{assert.equal(holder.exitCode,null,'independent SQLite lock holder remains alive');return(await fs.readFile(lockReady,'utf8'))==='LOCKED';},'real external SQLite write lock acquired');
+  const source=path.join(repo,'.scratch/personal-knowledge-graph/prototypes/core-ui/test-data/resources/container-resources.png');
+  const expectLocked=()=>until(async()=>/locked|锁|无法开始保存/.test(await text('dialog [role="alert"]')),'actual store-lock error');
+  try {
+    await select('事务锁前知识');await click('[title="编辑知识点"]');await fill('#knowledge-description','锁定期间不应提交');await click('[data-testid="save-point"]');
+    await check('external SQLite write lock rejects editing while retaining the original fact and the user draft',async()=>{
+      await expectLocked();assert.equal(await wd('GET',`/element/${await find('#knowledge-description')}/property/value`),'锁定期间不应提交');
+      assert.ok(!(await text('.save-indicator')).includes('已保存到本机'));
+    });await clickText('取消');await select('事务锁前知识');assert.ok((await text('[data-testid="knowledge-details"]')).includes('原描述应当保留'));
+    await select('事务锁前主题');await click('[aria-label="知识点操作"]');await clickText('删除主题');await click(containsButton('确认删除 '),'xpath');
+    await check('failed locked deletion preserves the complete preview and reports no success',async()=>{
+      await until(async()=>/locked|锁|无法开始保存/.test(await text('[data-testid="storage-error"]')),'actual locked deletion feedback');
+      assert.equal((await findAll('.impact-columns')).length,1);assert.ok((await text('.impact-columns')).includes('事务锁前下属'));assert.ok(!(await text('.save-indicator')).includes('已保存到本机'));
+    });await clickText('取消');
+    await clickText('资料库');await clickText('添加资料');await fill('[aria-label="资料文件路径"]',source);await fill('[aria-label="资料名称"]','文件完成但记录被锁');await clickText('保存资料');
+    await check('complete file copy followed by locked record commit never reports a ready resource',async()=>{
+      await expectLocked();assert.equal(await wd('GET',`/element/${await find('[aria-label="资料文件路径"]')}/property/value`),source);
+      assert.ok((await events()).some(event=>event.event==='file-copy'&&event.success===false&&/locked|锁|保存/.test(event.error??'')));
+    });await capture('13-locked-commit');await clickText('取消');assert.equal((await findAll(resourceRow('文件完成但记录被锁'),'xpath')).length,0);
+  } finally {
+    await fs.writeFile(lockStop,'stop');await Promise.race([new Promise(resolve=>holder.once('exit',resolve)),delay(3000)]);if(holder.exitCode===null)holder.kill();
+  }
+  await clickText('重新读取图谱');
+  await check('unlock and reread recover original facts without partial edit, deletion or failed file record',async()=>{
+    await select('事务锁前知识');const detail=await text('[data-testid="knowledge-details"]');assert.ok(detail.includes('原描述应当保留'));assert.ok(!detail.includes('锁定期间不应提交'));
+    for(const name of ['事务锁前主题','事务锁前下属'])await select(name);
+    await clickText('资料库');assert.equal((await findAll(resourceRow('文件完成但记录被锁'),'xpath')).length,0);
+  });
+  const files=owned(path.join(root,'files')),moved=owned(files+'.missing-fault');await fs.rename(files,moved);
+  try {
+    await clickText('添加资料');await fill('[aria-label="资料文件路径"]',source);await fill('[aria-label="资料名称"]','目录缺失不得成功');await clickText('保存资料');
+    await check('missing managed file directory rejects copying without silently recreating it',async()=>{
+      await expectText('dialog [role="alert"]','资料保存目录不可用');await assert.rejects(fs.access(files),error=>error.code==='ENOENT');assert.ok(!(await text('.save-indicator')).includes('已保存到本机'));
+    });await clickText('取消');assert.equal((await findAll(resourceRow('目录缺失不得成功'),'xpath')).length,0);
+    await savePoint({name:'资料目录故障时知识仍可保存',description:'结构化数据可用'});await search('结构化数据');assert.equal((await results()).length,1);
+  } finally {await fs.rename(moved,files);}
+  const sddl=owned(path.join(local,'files-original.sddl'));
+  const permission=mode=>{const result=spawnSync('powershell.exe',['-NoProfile','-ExecutionPolicy','Bypass','-File',path.join(app,'validation/directory-write-fault.ps1'),'-Directory',files,'-FixtureRoot',local,'-SddlFile',sddl,'-Mode',mode],{windowsHide:true,encoding:'utf8'});assert.equal(result.status,0,result.stderr);};
+  permission('deny');
+  try {
+    const probe=owned(path.join(files,'acceptance-write-probe-'+run));let denied=false;
+    try{await fs.writeFile(probe,'probe',{flag:'wx'});}catch(error){assert.ok(['EACCES','EPERM'].includes(error.code));denied=true;}
+    if(!denied){await fs.unlink(probe);throw new Error('fixture ACL did not deny writes; cannot claim a permission failure test');}
+    await clickText('资料库');await clickText('添加资料');await fill('[aria-label="资料文件路径"]',source);await fill('[aria-label="资料名称"]','不可写目录不得成功');await clickText('保存资料');
+    await check('actual denied directory write reports copy failure and never presents ready data',async()=>{
+      await expectText('dialog [role="alert"]','无法创建文件副本');assert.ok(!(await text('.save-indicator')).includes('已保存到本机'));await clickText('取消');assert.equal((await findAll(resourceRow('不可写目录不得成功'),'xpath')).length,0);
+    });await capture('14-write-denied');
+  } finally {permission('restore');}
+  await addFile(source,'权限恢复后可保存');
+  await check('restoring exact original directory permissions permits normal durable resource saving',async()=>{
+    const id=await find(resourceRow('权限恢复后可保存'),'xpath');assert.ok((await wd('GET',`/element/${id}/text`)).includes('就绪'));
+  });
+}
+
 try {
   await launch(); await capture('00-start');
-  if (!['media','reliability','pdf'].includes(scenario)) await createScenario();
+  if (!['media','reliability','storagefaults','pdf'].includes(scenario)) await createScenario();
   if (scenario === 'pdf') await pdfScenario();
   if (scenario === 'core' || scenario === 'all') await coreScenario();
   if (scenario === 'media' || scenario === 'all') await mediaScenario();
   if (scenario === 'reliability' || scenario === 'all') await reliabilityScenario();
+  if (scenario === 'storagefaults' || scenario === 'all') await storageFaultsScenario();
   const visible=await body();assert.ok(!/知识点 ID|资料 ID|knowledge-id|重置演示/.test(visible),'visible app has no prototype ID/reset workflow');
   await wd('POST','/window/rect',{width:1280,height:800}); await capture('09-layout-1280');
   await wd('POST','/window/rect',{width:1600,height:1000}); await capture('10-layout-1600');
