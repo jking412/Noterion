@@ -125,7 +125,8 @@ async function launch() {
   driver.stdout.pipe(createWriteStream(path.join(local,'driver-' + launches + '-stdout.txt')));
   driver.stderr.pipe(createWriteStream(path.join(local,'driver-' + launches + '-stderr.txt')));
   await until(async () => (await command('GET','/status')).ready, 'driver ready');
-  const created = await command('POST','/session',{ capabilities:{ alwaysMatch:{ browserName:'webview2', 'ms:edgeOptions':{ binary:exe, webviewOptions:{ userDataFolder:profile } } } } },60000);
+  const webviewOptions={userDataFolder:profile,...(offline?{additionalBrowserArguments:[`proxy-server=http://127.0.0.1:${proxyPort}`,'proxy-bypass-list=<-loopback>;tauri.localhost;ipc.localhost;127.0.0.1;[::1]']}: {})};
+  const created = await command('POST','/session',{ capabilities:{ alwaysMatch:{ browserName:'webview2', 'ms:edgeOptions':{ binary:exe, webviewOptions } } } },60000);
   session = created.sessionId;
   assert.ok(session);
   await write('session-' + launches + '.json',created);
