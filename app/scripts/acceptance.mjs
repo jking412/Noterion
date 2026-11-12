@@ -128,7 +128,7 @@ async function launch() {
   session = created.sessionId;
   assert.ok(session);
   await write('session-' + launches + '.json',created);
-  const environment = await observe('return {url:location.href,userAgent:navigator.userAgent,visibility:document.visibilityState,invoke:typeof window.__TAURI__?.core?.invoke};');
+  const environment=await until(async()=>{const current=await observe('return {url:location.href,userAgent:navigator.userAgent,visibility:document.visibilityState,invoke:typeof window.__TAURI__?.core?.invoke};');return current.url==='http://tauri.localhost/'&&current.visibility==='visible'&&current.invoke==='function'&&current;},'embedded visible Tauri page initializes',20000);
   assert.equal(environment.url, 'http://tauri.localhost/'); assert.equal(environment.visibility, 'visible'); assert.equal(environment.invoke, 'function');
   await until(async () => (await findAll('[data-testid="create-point"]')).length, 'knowledge entry is rendered');
   await until(async () => await wd('GET',`/element/${await find('[data-testid="create-point"]')}/enabled`) || (await findAll('[data-testid="storage-error"]')).length>0,'storage loads or reports an explicit error');
