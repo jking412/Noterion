@@ -37,6 +37,7 @@ export function useNoterion() {
   async function run(command: string, args?: Record<string, unknown>, message?: string) {
     if (busy.value) return false
     busy.value = true
+    error.value = ''
     try { accept(await invoke<Snapshot>(command, args)); if (message) notify(message); return true }
     catch (e) { error.value = errorText(e); return false }
     finally { busy.value = false }
@@ -62,6 +63,7 @@ export function useNoterion() {
   async function requestDelete(id: string) {
     if (!graphReady.value || busy.value) return
     busy.value = true
+    error.value = ''
     try { deleteImpact.value = await invoke<DeleteImpact>('delete_preview', { id }); deleteRevision.value = data.value.revision; deletingId.value = id }
     catch (e) { error.value = errorText(e) }
     finally { busy.value = false }
