@@ -21,7 +21,7 @@ const offline=options.offline==='true';
 const run = options.run;
 assert.match(run ?? '', /^issue-21-[a-z0-9-]+$/);
 const scenario = options.scenario ?? 'core';
-assert.ok(['create','core','pdf','webm','graphfailure','media','reliability','storagefaults','spacefault','all'].includes(scenario));
+assert.ok(['create','core','pdf','webm','graphinteraction','graphfailure','media','reliability','storagefaults','spacefault','all'].includes(scenario));
 const repo = options['fixtures-root'] ?? path.resolve(app, '..');
 const exe = path.resolve(options.exe ?? path.join(app, 'src-tauri/target/debug/noterion.exe'));
 const driverExe = path.resolve(options.driver ?? path.join(repo, '.scratch/personal-knowledge-graph/validation/windows-desktop/.tools/issue3-webdriver/msedgedriver.exe'));
@@ -349,6 +349,35 @@ async function graphFailureScenario() {
     assert.ok((await observe('return [...document.querySelectorAll(".graph-node")].map(n=>n.getAttribute("aria-label"));')).some(value=>value.includes('图恢复前的新名称')));
   });await capture('17-graph-recovered');
 }
+async function pointerDrag(x,y,dx,dy) {
+  await wd('POST','/actions',{actions:[{type:'pointer',id:'mouse',parameters:{pointerType:'mouse'},actions:[{type:'pointerMove',duration:0,origin:'viewport',x:Math.round(x),y:Math.round(y)},{type:'pointerDown',button:0},{type:'pointerMove',duration:500,origin:'viewport',x:Math.round(x+dx),y:Math.round(y+dy)},{type:'pointerUp',button:0}]}]});await wd('DELETE','/actions');
+}
+async function graphInteractionScenario() {
+  await savePoint({name:'真实拖动点甲'});await savePoint({name:'真实拖动点乙'});await select('真实拖动点甲');await delay(600);
+  const selector='.graph-node[aria-label^="真实拖动点甲，"]';
+  const localTransform=async()=>wd('GET',`/element/${await find(selector)}/attribute/transform`);
+  const before=await localTransform();const hit=await find(selector+' .node-hit-area'),rect=await wd('GET',`/element/${hit}/rect`);
+  await pointerDrag(rect.x+rect.width/2,rect.y+rect.height/2,90,55);
+  await settled();await until(async()=>(await localTransform())!==before,'point local SVG position changes after pointer drag');
+  const moved=await localTransform();await capture('18-node-dragged');
+  await stop();await launch();
+  await check('actual pointer dragging persists the node local position across a real desktop restart',async()=>{
+    assert.notEqual(moved,before);assert.equal(await localTransform(),moved);return{before,moved,restarted:await localTransform()};
+  });
+  const camera=async()=>wd('GET',`/element/${await find('.graph-world')}/attribute/transform`);
+  const zoomBefore=await text('[data-testid="zoom-value"]');await click('[aria-label="放大图谱"]');
+  await until(async()=>parseInt(await text('[data-testid="zoom-value"]'))>parseInt(zoomBefore),'visible zoom button changes camera scale');await delay(350);
+  const cameraBefore=await camera();
+  const blank=await observe('const c=document.querySelector(".graph-canvas"),r=c.getBoundingClientRect();const xs=[Number(c.dataset.viewportLeft)+50,(Number(c.dataset.viewportLeft)+Number(c.dataset.viewportRight))/2,Number(c.dataset.viewportRight)-70],ys=[Number(c.dataset.viewportTop)+60,(Number(c.dataset.viewportTop)+Number(c.dataset.viewportBottom))/2,Number(c.dataset.viewportBottom)-90];for(const x of xs)for(const y of ys){const e=document.elementFromPoint(r.left+x,r.top+y);if(e?.closest(".graph-svg")&&!e.closest(".graph-node"))return{x:r.left+x,y:r.top+y};}return null;');
+  assert.ok(blank,'an unobscured SVG background exists for real panning');await pointerDrag(blank.x,blank.y,65,45);
+  await check('real zoom and background pointer pan change the rendered camera',async()=>{
+    await until(async()=>(await camera())!==cameraBefore,'background panning changes SVG camera transform');return{zoomBefore,zoomAfter:await text('[data-testid="zoom-value"]'),cameraBefore,cameraAfter:await camera()};
+  });
+  await select('真实拖动点乙');
+  await check('search result selection locates and highlights the requested graph node and complete detail',async()=>{
+    const node=await find('.graph-node[aria-label^="真实拖动点乙，"]');assert.equal(await wd('GET',`/element/${node}/attribute/aria-pressed`),'true');assert.ok((await wd('GET',`/element/${node}/attribute/class`)).includes('is-selected'));assert.equal(await text('[data-testid="knowledge-details"] h1'),'真实拖动点乙');
+  });await capture('19-graph-located');
+}
 async function mediaScenario() {
   const samples=path.join(repo,'.scratch/personal-knowledge-graph/validation/video-playback/.local/samples');
   const pdf=path.join(repo,'.scratch/personal-knowledge-graph/prototypes/core-ui/test-data/resources/resource-checklist.pdf');
@@ -623,6 +652,7 @@ try {
   if (scenario === 'webm' || scenario === 'media' || scenario === 'all') await webmScenario();
   if (scenario === 'graphfailure') await graphFailureScenario();
   if (scenario === 'core' || scenario === 'all') await coreScenario();
+  if (scenario === 'graphinteraction' || scenario === 'all') await graphInteractionScenario();
   if (scenario === 'media' || scenario === 'all') await mediaScenario();
   if (scenario === 'reliability' || scenario === 'all') await reliabilityScenario();
   if (scenario === 'storagefaults' || scenario === 'all') await storageFaultsScenario();
