@@ -143,8 +143,9 @@ async function launch() {
   await until(async()=>{assert.equal(sampler.exitCode,null,'resource sampler must remain alive');return(await fs.stat(path.join(directory,'resources-'+launches+'.jsonl'))).size>0;},'first actual Windows resource observation',15000);
 }
 async function stop({ crash = false } = {}) {
-  if(sampler){await fs.writeFile(path.join(sampleDirectory,'stop-sampler'),'stop');await Promise.race([new Promise(resolve=>sampler.once('exit',resolve)),delay(3000)]);if(sampler.exitCode===null)sampler.kill();sampler=undefined;}
+  // Inject the fault immediately while copying is observed, before sampler cleanup.
   if (crash && hostPid && alive(hostPid)) process.kill(hostPid, 'SIGKILL');
+  if(sampler){await fs.writeFile(path.join(sampleDirectory,'stop-sampler'),'stop');await Promise.race([new Promise(resolve=>sampler.once('exit',resolve)),delay(3000)]);if(sampler.exitCode===null)sampler.kill();sampler=undefined;}
   if (session) { try { await command('DELETE',`/session/${session}`); } catch (error) { if (!crash) throw error; } session = undefined; }
   if (driver) {
     driver.kill();
