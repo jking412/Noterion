@@ -15,7 +15,9 @@ const options = Object.fromEntries(process.argv.slice(2).map(argument => {
   assert.ok(separator > 2, 'Use --run=issue-21-name and --scenario=create|core|media|all');
   return [argument.slice(2, separator), argument.slice(separator + 1)];
 }));
-assert.ok(Object.keys(options).every(key => ['run','scenario','exe','driver','fixtures-root','output','port','expect-created'].includes(key)), 'Unknown option');
+assert.ok(Object.keys(options).every(key => ['run','scenario','exe','driver','fixtures-root','output','port','expect-created','offline'].includes(key)), 'Unknown option');
+assert.ok(options.offline===undefined||['true','false'].includes(options.offline),'--offline must be true or false');
+const offline=options.offline==='true';
 const run = options.run;
 assert.match(run ?? '', /^issue-21-[a-z0-9-]+$/);
 const scenario = options.scenario ?? 'core';
@@ -29,6 +31,9 @@ const config = path.join(local, 'config');
 const port = Number(options.port ?? 33221);
 assert.ok(Number.isInteger(port) && port > 1024 && port < 65536);
 const endpoint = `http://127.0.0.1:${port}`;
+let proxyPort;
+if(offline){proxyPort=await new Promise((resolve,reject)=>{const probe=net.createServer();probe.once('error',reject);probe.listen(0,'127.0.0.1',()=>{const selected=probe.address().port;probe.close(()=>resolve(selected));});});}
+const proxyArguments=offline?`--proxy-server=http://127.0.0.1:${proxyPort} --proxy-bypass-list="<-loopback>;tauri.localhost;ipc.localhost;127.0.0.1;[::1]"`:undefined;
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 const write = (name, value) => fs.writeFile(path.join(directory, name), JSON.stringify(value, null, 2) + '\n');
 const append = (name, value) => fs.appendFile(path.join(directory, name), JSON.stringify(value) + '\n');
@@ -115,7 +120,7 @@ async function launch() {
   const profile = path.join(local, 'profile-' + launches), temp = path.join(local,'temp-' + launches);
   await fs.mkdir(temp);
   driver = spawn(driverExe, [`--port=${port}`, '--allowed-ips=127.0.0.1', `--log-path=${path.join(local,'driver-' + launches + '.log')}`], {
-    windowsHide:true, stdio:['ignore','pipe','pipe'], env:{ ...process.env, ...(scenario==='graphfailure'?{NOTERION_GRAPH_FAIL_ONCE:'1'}:{}), NOTERION_CONFIG_DIR:config, NOTERION_WEBVIEW_DIR:profile, NOTERION_MEDIA_AUDIT:path.join(directory,'rust-events.jsonl'), TAURI_WEBVIEW_AUTOMATION:'true', TEMP:temp, TMP:temp }
+    windowsHide:true, stdio:['ignore','pipe','pipe'], env:{ ...process.env, ...(offline?{WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS:proxyArguments}:{}), ...(scenario==='graphfailure'?{NOTERION_GRAPH_FAIL_ONCE:'1'}:{}), NOTERION_CONFIG_DIR:config, NOTERION_WEBVIEW_DIR:profile, NOTERION_MEDIA_AUDIT:path.join(directory,'rust-events.jsonl'), TAURI_WEBVIEW_AUTOMATION:'true', TEMP:temp, TMP:temp }
   });
   driver.stdout.pipe(createWriteStream(path.join(local,'driver-' + launches + '-stdout.txt')));
   driver.stderr.pipe(createWriteStream(path.join(local,'driver-' + launches + '-stderr.txt')));
@@ -142,6 +147,24 @@ async function launch() {
   sampler=spawn('powershell.exe',['-NoProfile','-ExecutionPolicy','Bypass','-File',path.join(app,'validation/sample-resources.ps1'),'-RootPid',String(driver.pid),'-ClientPid',String(process.pid),'-RunDirectory',sampleDirectory,'-OutputFile',path.join(directory,'resources-'+launches+'.jsonl')],{windowsHide:true,stdio:['ignore','pipe','pipe']});
   sampler.stdout.pipe(createWriteStream(path.join(sampleDirectory,'stdout.txt')));sampler.stderr.pipe(createWriteStream(path.join(sampleDirectory,'stderr.txt')));
   await until(async()=>{assert.equal(sampler.exitCode,null,'resource sampler must remain alive');return(await fs.stat(path.join(directory,'resources-'+launches+'.jsonl'))).size>0;},'first actual Windows resource observation',15000);
+  if(offline)await offlineProbe();
+}
+async function offlineProbe() {
+  const probes=[];
+  for(const url of ['http://example.com/','https://example.com/']){
+    let navigationError;
+    try{await wd('POST','/url',{url},20000);}catch(error){navigationError=error.message;}
+    const rendered=await body();
+    assert.ok((navigationError??'').includes('ERR_PROXY_CONNECTION_FAILED')||rendered.includes('ERR_PROXY_CONNECTION_FAILED'),'blocked remote navigation must specifically prove proxy failure');
+    probes.push({url,navigationError,rendered});await capture('offline-'+launches+'-'+(url.startsWith('https')?'https':'http'));
+  }
+  const observed=spawnSync('powershell.exe',['-NoProfile','-Command',`$all=@(Get-CimInstance Win32_Process);$ids=[Collections.Generic.HashSet[int]]::new();[void]$ids.Add(${Number(hostPid)});do{$changed=$false;foreach($p in $all){if($ids.Contains([int]$p.ParentProcessId)-and $ids.Add([int]$p.ProcessId)){$changed=$true}}}while($changed);$all|Where-Object{$ids.Contains([int]$_.ProcessId)-and $_.Name -eq 'msedgewebview2.exe'}|Select-Object ProcessId,ParentProcessId,CommandLine|ConvertTo-Json -Compress`],{windowsHide:true,encoding:'utf8'});
+  assert.equal(observed.status,0,observed.stderr);const processes=JSON.parse(observed.stdout.trim()||'[]'),items=Array.isArray(processes)?processes:[processes];
+  assert.ok(items.some(item=>item.CommandLine?.includes(`--proxy-server=http://127.0.0.1:${proxyPort}`)),'actual WebView2 process received proxy flag');
+  await fs.writeFile(path.join(local,'offline-processes-'+launches+'.json'),JSON.stringify(items,null,2));
+  await write('offline-'+launches+'.json',{mode:'WebView2 HTTP/HTTPS proxy isolation',verifiedUnusedProxyPort:proxyPort,arguments:proxyArguments,probes,limits:'Does not disable OS networking, native Rust sockets, UDP or externally opened applications.'});
+  await wd('POST','/url',{url:'http://tauri.localhost/'},20000);
+  await until(async()=>(await findAll('[data-testid="create-point"]')).length&&await wd('GET',`/element/${await find('[data-testid="create-point"]')}/enabled`)||(await findAll('[data-testid="storage-error"]')).length>0,'embedded app recovers after blocked remote probe');
 }
 async function stop({ crash = false } = {}) {
   // Inject the fault immediately while copying is observed, before sampler cleanup.
@@ -587,6 +610,6 @@ try {
   try{await stop();}catch(error){passed=false;process.exitCode=1;await write('cleanup-error.json',{message:error.message});}
   const hostsExited=[...ownedPids].every(pid=>!alive(pid));
   if(!hostsExited){passed=false;process.exitCode=1;}
-  await write('result.json',{verdict:passed?'PASS':'FAIL',run,scenario,assertions:assertions.length,exe,exeSha256,driverVersion,driverSha256,hostsExited,launches,at:new Date().toISOString(),limits:scenario==='media'||scenario==='all'?['PDF screenshot requires explicit visual inspection','full/cancel actual server byte and process resource audit still required']:[]});
+  await write('result.json',{verdict:passed?'PASS':'FAIL',run,scenario,offline,assertions:assertions.length,exe,exeSha256,driverVersion,driverSha256,hostsExited,launches,at:new Date().toISOString(),limits:[...(scenario==='media'||scenario==='all'||scenario==='pdf'?['PDF screenshot requires explicit visual inspection']:[]),...(offline?['HTTP/HTTPS proxy isolation applies to WebView2; OS/native/external-app networking is unchanged']:[])]});
   console.log(`${passed?'PASS':'FAIL'} ${run}: ${assertions.length} assertions, ${launches} real desktop launches`);
 }
