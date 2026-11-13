@@ -290,8 +290,8 @@ impl Assembled {
             if self.content.len() > MAX_CONTENT {
                 return Err(invalid("DeepSeek 生成内容过长，请缩短输入。"));
             }
-            // This is uncommitted progress. Only validated business results become ready.
-            task.delta(content).map_err(|message| Failure {
+            // Structured output stays internal until the complete result is validated.
+            task.check().map_err(|message| Failure {
                 message,
                 retry: false,
             })?;

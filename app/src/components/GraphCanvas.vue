@@ -647,6 +647,10 @@ defineExpose({ fitAll, focusNode })
     </div>
 
     <div class="graph-controls" aria-label="图谱视图操作" @pointerdown.stop>
+      <button class="graph-control fit-control" type="button" :disabled="busy" @click="emit('restore')">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 7v5h-5M20 12a8 8 0 1 0-2 6" /></svg>
+        重新读取图谱
+      </button>
       <div class="zoom-group">
         <button class="graph-control icon-control" type="button" aria-label="缩小图谱" title="缩小" :disabled="!ready || !points.length" @click="changeZoom(1 / 1.2)">
           <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5 10h10" /></svg>
