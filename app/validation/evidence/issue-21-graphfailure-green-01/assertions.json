@@ -1,0 +1,17 @@
+[
+  {
+    "label": "real graph setup exception is contained while saving, searching and details remain usable",
+    "verdict": "PASS",
+    "at": "2026-11-12T12:23:55.068Z"
+  },
+  {
+    "label": "knowledge resources remain readable while the real graph subtree has failed",
+    "verdict": "PASS",
+    "at": "2026-11-12T12:23:57.104Z"
+  },
+  {
+    "label": "graph recovery rereads current facts rather than reviving a stale name or description",
+    "verdict": "PASS",
+    "at": "2026-11-12T12:23:58.291Z"
+  }
+]

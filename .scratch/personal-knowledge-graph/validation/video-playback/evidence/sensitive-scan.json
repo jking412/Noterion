@@ -1,0 +1,16 @@
+{
+  "verdict": "PASS",
+  "filesScanned": 262,
+  "violatingPaths": [],
+  "checks": [
+    "actual local trial credential values",
+    "complete presigned signature URLs",
+    "session media capability tokens"
+  ],
+  "excluded": [
+    ".local",
+    "__pycache__",
+    "gen",
+    "target"
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "phase": "multipart",
+  "process_id": 29132,
+  "checks": [
+    {
+      "name": "multipart-created-is-not-readable",
+      "passed": true,
+      "detail": "HEAD/GET 404; state receiving"
+    },
+    {
+      "name": "all-parts-are-not-a-ready-object",
+      "passed": true,
+      "detail": "3 parts: 8 MiB + 8 MiB + 1048699 bytes; HEAD/GET still 404"
+    },
+    {
+      "name": "multipart-complete-head-stream-get",
+      "passed": true,
+      "detail": "17825915 bytes; SHA256/type/operation metadata verified"
+    },
+    {
+      "name": "wrong-file-offset-object-rejected",
+      "passed": true,
+      "detail": "real multipart with each part offset=0 must fail full streamed SHA256; never ready"
+    }
+  ]
+}

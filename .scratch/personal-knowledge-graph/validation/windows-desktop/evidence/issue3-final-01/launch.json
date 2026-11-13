@@ -1,0 +1,9 @@
+{
+  "runId": "issue3-final-01",
+  "pid": 43452,
+  "launchedAt": "2026-11-07T21:55:00.8008929+08:00",
+  "executable": "D:\\person\\application\\knowledgeGraph\\.scratch\\personal-knowledge-graph\\validation\\windows-desktop\\target\\debug\\issue3-windows-smoke.exe",
+  "sha256": "DD029C5E9FF382EAB6179972A942FD363AE48D870193B1CFC3431C3E39E91311",
+  "evidenceDir": "D:\\person\\application\\knowledgeGraph\\.scratch\\personal-knowledge-graph\\validation\\windows-desktop\\evidence\\issue3-final-01",
+  "webviewData": "D:\\person\\application\\knowledgeGraph\\.scratch\\personal-knowledge-graph\\validation\\windows-desktop\\evidence\\issue3-final-01\\webview-data"
+}

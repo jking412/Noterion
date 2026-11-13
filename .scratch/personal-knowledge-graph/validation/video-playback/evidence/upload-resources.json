@@ -1,0 +1,22 @@
+{
+  "boundary": "real Rust --upload process, during H264 object verification",
+  "command": "Get-Process -Name issue-13-video | Select-Object Id,CPU,WorkingSet64,PrivateMemorySize64,StartTime",
+  "captureTime": null,
+  "captureTimeNote": "Read once during the actual upload invocation; wall-clock sample time was not included in the command output. StartTime and accumulated CPU are the actual observed values.",
+  "process": {
+    "pid": 22576,
+    "startTimeLocal": "2026-11-10T17:37:54+08:00",
+    "cpuSeconds": 83.265625,
+    "workingSetBytes": 23506944,
+    "privateBytes": 6647808
+  },
+  "ownedObjectService": {
+    "container": "issue-13-rustfs",
+    "cpuPercent": 8.45,
+    "memoryUsageDisplay": "965.1MiB / 7.614GiB",
+    "networkInDisplay": "1.28GB",
+    "networkOutDisplay": "822MB",
+    "blockIoDisplay": "124MB / 1.28GB"
+  },
+  "limitations": "One instantaneous process sample, not a peak or complete upload resource profile. It does not measure WebView playback."
+}

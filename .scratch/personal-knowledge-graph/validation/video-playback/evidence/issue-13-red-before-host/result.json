@@ -1,0 +1,8 @@
+{
+  "verdict": "FAIL",
+  "runId": "issue-13-red-before-host",
+  "scenario": "start",
+  "sessionClosed": false,
+  "assertions": 0,
+  "at": "2026-11-10T09:30:23.619Z"
+}

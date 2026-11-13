@@ -1,0 +1,3 @@
+{"atMs":1794304322885,"bufferBytes":65536,"event":"process-started","exe":"D:\\person\\application\\knowledgeGraph\\.scratch\\personal-knowledge-graph\\validation\\video-playback\\target\\debug\\issue-13-video.exe","maxConcurrent":4,"pid":12700,"runId":"issue-13-negative-visible"}
+{"atMs":1794304325781,"event":"media-open","mode":"range","sample":"h264","size":1277422426}
+{"atMs":1794304325798,"bytesRead":7485087,"bytesWritten":7452319,"contentRange":"bytes 0-1277422425/1277422426","declaredLength":1277422426,"disconnected":true,"elapsedMs":255,"endMs":1794304326054,"event":"media-request","method":"GET","mode":"range","origin":"http://tauri.localhost","range":"bytes=0-","readFailed":false,"sample":"h264","status":206,"upstreamRange":"bytes=0-","upstreamStatus":206}

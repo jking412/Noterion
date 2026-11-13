@@ -1,0 +1,6 @@
+{
+  "verdict": "FAIL",
+  "message": "Visible result must match the independent expected literal\n+ actual - expected\n\n+ 'Rust OK | ISSUE3-桌面-001 | chars=13 | call=1 | pid=51440'\n- 'INTENTIONALLY_WRONG_VISIBLE_RESULT'\n",
+  "stack": "AssertionError [ERR_ASSERTION]: Visible result must match the independent expected literal\n+ actual - expected\n\n+ 'Rust OK | ISSUE3-桌面-001 | chars=13 | call=1 | pid=51440'\n- 'INTENTIONALLY_WRONG_VISIBLE_RESULT'\n\n    at submitAndAssert (file:///D:/person/application/knowledgeGraph/.scratch/personal-knowledge-graph/validation/windows-desktop/webdriver-smoke.mjs:131:10)\n    at async file:///D:/person/application/knowledgeGraph/.scratch/personal-knowledge-graph/validation/windows-desktop/webdriver-smoke.mjs:165:3",
+  "at": "2026-11-07T15:28:18.677Z"
+}

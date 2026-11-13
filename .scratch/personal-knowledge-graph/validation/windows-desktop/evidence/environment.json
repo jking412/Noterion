@@ -1,0 +1,145 @@
+{
+  "capturedAtUtc": "2026-11-07T13:51:20.0352293+00:00",
+  "scope": "Read-only OS/toolchain evidence plus the named Tauri host process and its descendants only. No command lines, environment variables, host name, user name or unrelated process data retained.",
+  "operatingSystem": {
+    "caption": "Microsoft Windows 11 家庭版 中文版",
+    "version": "10.0.26200",
+    "buildNumber": "26200",
+    "architecture": "64 位"
+  },
+  "windowsSdk": {
+    "libraryPath": "D:\\Windows Kits\\10\\Lib\\10.0.22621.0",
+    "exists": true,
+    "kernel32LibraryExists": true,
+    "ucrtLibraryExists": true
+  },
+  "visualStudio": {
+    "installationPath": "D:\\VS",
+    "installationVersion": "17.13.35825.156",
+    "displayName": "Visual Studio Community 2022"
+  },
+  "buildCompiler": {
+    "path": "D:\\VS\\VC\\Tools\\MSVC\\14.43.34808\\bin\\Hostx64\\x64\\cl.exe",
+    "exists": true,
+    "fileVersion": "19.43.34808.0",
+    "productVersion": "14.43.34808.0"
+  },
+  "tools": {
+    "rustc": "rustc 1.93.1 (01f6ddf75 2026-02-11)\r\nbinary: rustc\r\ncommit-hash: 01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf\r\ncommit-date: 2026-02-11\r\nhost: x86_64-pc-windows-msvc\r\nrelease: 1.93.1\r\nLLVM version: 21.1.8",
+    "cargo": "cargo 1.93.1 (083ac5135 2025-12-15)",
+    "node": {
+      "version": "v24.14.0",
+      "executable": {
+        "path": "D:\\tools\\nodejs\\node.exe",
+        "exists": true,
+        "fileVersion": "24.14.0",
+        "productVersion": "24.14.0"
+      }
+    }
+  },
+  "desktopAutomation": {
+    "plugin": "computer-use",
+    "pluginBuild": "26.1103.32239",
+    "pluginBuildEvidence": "Installed skill path: computer-use/26.1103.32239/skills/computer-use/SKILL.md",
+    "skyPackageVersion": null,
+    "skyPackageVersionNote": "@oai/sky standalone package version was not obtained. No package.json was exposed under the installed computer-use plugin directory; the package is supplied by the separate Computer Use runtime. pluginBuild identifies the inspected skill bundle, not an independently verified npm package version."
+  },
+  "tauriHost": {
+    "requestedProcessId": 23144,
+    "observedRunning": true,
+    "relatedProcesses": [
+      {
+        "processId": 23144,
+        "parentProcessId": 43868,
+        "name": "issue3-windows-smoke.exe",
+        "executable": {
+          "path": "D:\\person\\application\\knowledgeGraph\\.scratch\\personal-knowledge-graph\\validation\\windows-desktop\\target\\debug\\issue3-windows-smoke.exe",
+          "exists": true,
+          "fileVersion": "0.1.0",
+          "productVersion": "0.1.0"
+        }
+      },
+      {
+        "processId": 36020,
+        "parentProcessId": 23144,
+        "name": "conhost.exe",
+        "executable": {
+          "path": "C:\\WINDOWS\\system32\\conhost.exe",
+          "exists": true,
+          "fileVersion": "10.0.26100.9949 (WinBuild.160101.0800)",
+          "productVersion": "10.0.26100.9949"
+        }
+      },
+      {
+        "processId": 40328,
+        "parentProcessId": 23144,
+        "name": "msedgewebview2.exe",
+        "executable": {
+          "path": "C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\136.0.3240.76\\msedgewebview2.exe",
+          "exists": true,
+          "fileVersion": "136.0.3240.76",
+          "productVersion": "136.0.3240.76"
+        }
+      },
+      {
+        "processId": 38224,
+        "parentProcessId": 40328,
+        "name": "msedgewebview2.exe",
+        "executable": {
+          "path": "C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\136.0.3240.76\\msedgewebview2.exe",
+          "exists": true,
+          "fileVersion": "136.0.3240.76",
+          "productVersion": "136.0.3240.76"
+        }
+      },
+      {
+        "processId": 40384,
+        "parentProcessId": 40328,
+        "name": "msedgewebview2.exe",
+        "executable": {
+          "path": "C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\136.0.3240.76\\msedgewebview2.exe",
+          "exists": true,
+          "fileVersion": "136.0.3240.76",
+          "productVersion": "136.0.3240.76"
+        }
+      },
+      {
+        "processId": 41692,
+        "parentProcessId": 40328,
+        "name": "msedgewebview2.exe",
+        "executable": {
+          "path": "C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\136.0.3240.76\\msedgewebview2.exe",
+          "exists": true,
+          "fileVersion": "136.0.3240.76",
+          "productVersion": "136.0.3240.76"
+        }
+      },
+      {
+        "processId": 43188,
+        "parentProcessId": 40328,
+        "name": "msedgewebview2.exe",
+        "executable": {
+          "path": "C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\136.0.3240.76\\msedgewebview2.exe",
+          "exists": true,
+          "fileVersion": "136.0.3240.76",
+          "productVersion": "136.0.3240.76"
+        }
+      },
+      {
+        "processId": 42816,
+        "parentProcessId": 40328,
+        "name": "msedgewebview2.exe",
+        "executable": {
+          "path": "C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\136.0.3240.76\\msedgewebview2.exe",
+          "exists": true,
+          "fileVersion": "136.0.3240.76",
+          "productVersion": "136.0.3240.76"
+        }
+      }
+    ]
+  },
+  "webView2": {
+    "evidenceKind": "actual-host-descendant-processes",
+    "note": "Only msedgewebview2.exe processes descending from the requested Tauri host can establish the runtime actually used by this host."
+  }
+}

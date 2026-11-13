@@ -1,0 +1,29 @@
+{
+  "currentTime": 7.497971,
+  "duration": 12.008,
+  "paused": false,
+  "readyState": 4,
+  "networkState": 1,
+  "videoWidth": 1280,
+  "videoHeight": 720,
+  "decodedFrames": 95,
+  "droppedFrames": 0,
+  "buffered": [
+    [
+      0,
+      12.008
+    ]
+  ],
+  "seekable": [
+    [
+      0,
+      12.008
+    ]
+  ],
+  "sourceScheme": "http",
+  "firstPlayingMs": 346,
+  "seekCompletedMs": 22,
+  "errorCode": null,
+  "jsHeapUsed": 6884141,
+  "jsHeapTotal": 12890525
+}

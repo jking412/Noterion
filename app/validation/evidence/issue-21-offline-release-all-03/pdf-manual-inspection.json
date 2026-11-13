@@ -1,0 +1,5 @@
+{
+  "status": "REQUIRES_VISUAL_INSPECTION",
+  "reason": "iframe load alone does not establish rendered PDF; inspect real screenshot and WebView viewer frame",
+  "screenshot": "05-pdf-inspect-required.png"
+}

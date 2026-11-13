@@ -1,0 +1,34 @@
+rust=rustc 1.93.1 (01f6ddf75 2026-02-11)
+command=cargo build --manifest-path D:\person\application\knowledgeGraph\.scratch\personal-knowledge-graph\validation\windows-desktop\Cargo.toml --offline
+CARGO_HOME=D:\person\application\knowledgeGraph\.scratch\personal-knowledge-graph\validation\windows-desktop\.cargo-home
+CARGO_TARGET_DIR=D:\person\application\knowledgeGraph\.scratch\personal-knowledge-graph\validation\windows-desktop\target
+VCToolsInstallDir=D:\VS\VC\Tools\MSVC\14.43.34808\
+WindowsSdkDir=D:\Windows Kits\10\
+WindowsSDKVersion=10.0.22621.0\
+warn: could not canonicalize path: 'D:\person\application\knowledgeGraph\.scratch\personal-knowledge-graph\validation\windows-desktop'
+warn: could not canonicalize path: 'D:\person\application\knowledgeGraph\.scratch\personal-knowledge-graph\validation'
+warn: could not canonicalize path: 'D:\person\application\knowledgeGraph\.scratch\personal-knowledge-graph'
+warn: could not canonicalize path: 'D:\person\application\knowledgeGraph\.scratch'
+warn: could not canonicalize path: 'D:\person\application\knowledgeGraph'
+warn: could not canonicalize path: 'D:\person\application'
+warn: could not canonicalize path: 'D:\person'
+warn: could not canonicalize path: 'D:\'
+     Locking 474 packages to latest compatible versions
+      Adding toml v0.8.2 (available: v0.8.23)
+      Adding toml_datetime v0.6.3 (available: v0.6.11)
+error: failed to download `adler2 v2.0.1`
+
+Caused by:
+  unable to get packages from source
+
+Caused by:
+  failed to download replaced source registry `crates-io`
+
+Caused by:
+  failed to unpack package `adler2 v2.0.1 (registry `rsproxy-sparse`)`
+
+Caused by:
+  failed to unpack entry at `adler2-2.0.1/.cargo_vcs_info.json`
+
+Caused by:
+  拒绝访问。 (os error 5) while canonicalizing D:\person\application\knowledgeGraph\.scratch\personal-knowledge-graph\validation\windows-desktop\.cargo-home\registry\src\rsproxy.cn-e3de039b2554c837\adler2-2.0.1

@@ -1,0 +1,9 @@
+{
+  "status": 200,
+  "requestRange": null,
+  "bytes": 1277422426,
+  "sha256": "4c93ae3aba536be8a84d0498a2460dfab67fc309803eb2120613e0abd8ff00a7",
+  "elapsedMs": 8057,
+  "peakClientRss": 121450496,
+  "peakClientHeap": 11899360
+}

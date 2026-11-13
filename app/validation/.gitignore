@@ -1,0 +1,6 @@
+evidence/*
+!evidence/issue-21-offline-release-all-03/
+!evidence/issue-21-ordinarydelete-release-01/
+!evidence/issue-21-graphfailure-green-01/
+!evidence/issue-21-create-red-01/
+evidence/*/local/

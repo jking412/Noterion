@@ -1,0 +1,11 @@
+{
+  "phase": "ready",
+  "process_id": 44904,
+  "checks": [
+    {
+      "name": "signed-s3-readiness",
+      "passed": true,
+      "detail": "signed HEAD bucket statuses [200]"
+    }
+  ]
+}

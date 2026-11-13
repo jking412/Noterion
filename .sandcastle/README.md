@@ -1,118 +1,109 @@
-# Sandcastle：本机 Codex CLI 的配置与使用
+# 启动 Noterion 的 GitHub 工单自动执行
 
-更新日期：2026-11-07（Asia/Shanghai）。
+当前接入：GitHub Issues（jking412/Noterion）→ 本机 Sandcastle 0.14.0 → 本机已登录的 Codex CLI。
+不要求编码 Agent 的 Docker 镜像或新增 Codex API Key。使用用户已明确同意的本机全权限执行方式。
 
-## 当前路线
+## 直接怎样启动
 
-用户已明确选择在当前 Windows 电脑上调用已登录的 Codex CLI，并接受全部执行权限。编码 Agent 不要求 Docker，也不要求另建 API Key。已通过 codex.cmd login status 只读确认当前会话可见 CLI 已登录 ChatGPT，尚未执行推理任务。
-
-one-task.example.mjs 已改为本机 noSandbox() 路线。0.14.0 内置 Codex provider 默认使用绕过审批与文件系统沙箱的启动参数，符合用户本次明确选择；这不是普通 Codex 的默认权限模式。
-
-数据库是否使用 Docker 继续按应用技术方案处理，此处只讨论编码 Agent。
-
-## 工作原理与地位
-
-    已确认的规格与本地 Markdown 工单
-              ↓
-    项目编排脚本：取哪张、何时并行、怎样审查和判定完成
-              ↓ 使用 Sandcastle API
-    Sandcastle：启动和等待 CLI、组织迭代、处理工作区和分支、收集结果
-              ↓
-    本机 Codex CLI：复用登录、与模型通信、修改文件和执行命令
-              ↓
-    项目文件、Git 提交与实际检查结果
-
-本机模式下，Codex provider 实际启动 codex exec --json 等命令，任务文本通过 stdin 输入。模型通信和具体编码由 CLI 处理。
-
-单次明确任务可以直接使用 Codex CLI。Sandcastle 为多次 CLI 调用、多个工作区和结果处理提供可组合 API。工单依赖、独立审查、三轮返修、四小时窗口、固定批次和完成门槛仍由项目脚本组织，安装库不会自动实现这些规则。
-
-## 安装位置
-
-- 版本：0.14.0。
-- 全局命令：D:\tools\nodejs\sandcastle.cmd。
-- 全局包：D:\tools\nodejs\node_modules\@ai-hero\sandcastle。
-- 项目配置：D:\person\application\knowledgeGraph\.sandcastle。
-- 项目未本地安装 Sandcastle，也没有根 package.json/node_modules。
-
-可用管理命令：
-
-~~~powershell
-sandcastle.cmd --version
-sandcastle.cmd --help
-~~~
-
-管理命令负责初始化等操作；运行任务则执行项目脚本。
-
-## 文件与格式
-
-| 文件 | 格式 | 当前用途 |
-| --- | --- | --- |
-| one-task.example.mjs | JavaScript ES 模块 | 本机单任务示例，默认仅检查，显式 --run 才执行 |
-| one-task.example.md | Markdown | 填写一个已确认任务与完成条件，当前仍为占位 |
-| main.mts | TypeScript 模块 | 官方整批规划/实施/审查/合并骨架，仍待适配 |
-| plan-prompt.md 等 | Markdown | 官方各角色提示，尚含未配置的工单命令 |
-| .env.example | KEY=value | 旧模板的可选 API Key 示例，当前本机路线不必填写 |
-| Dockerfile | Dockerfile | 旧模板的容器环境，当前本机示例不使用 |
-
-单任务示例顶部的配置：
-
-~~~javascript
-const config = {
-  model: "gpt-5.4",
-  taskFile: join(repoDir, ".sandcastle", "one-task.example.md"),
-  maxIterations: 1,
-};
-~~~
-
-model 沿用原模板值，仅展示格式，尚未核验该账户模型可用性。taskFile 指向任务文本；maxIterations 是一次 run 的迭代上限，不等于批次任务数或三轮审查返修。
-
-核心调用：
-
-~~~javascript
-await run({
-  cwd: repoDir,
-  agent: codex(config.model),
-  sandbox: noSandbox(),
-  branchStrategy: { type: "merge-to-head" },
-  promptFile: config.taskFile,
-  maxIterations: config.maxIterations,
-  name: "one-task-example",
-});
-~~~
-
-脚本通过 npm 全局包目录解析库，不需另装 tsx/zod。此分支策略在临时分支工作后尝试合回目标分支。示例没有独立审查和完整验收门槛，不能当作已完成的整批控制器。
-
-## 现在可以执行：检查配置
+在 PowerShell 中：
 
 ~~~powershell
 Set-Location -LiteralPath 'D:\person\application\knowledgeGraph'
-node .sandcastle/one-task.example.mjs --check
+
+# 只读检查配置、登录、工作区和当前工单；不调用模型，不更新工单。
+node .sandcastle/run.mjs --check
+
+# 真正开始当前这一批工单。
+node .sandcastle/run.mjs --run
 ~~~
 
-输出显示执行方式 local-codex-cli、全局库能否加载、任务是否待填写。省略参数也只检查，不调用模型、不读取真实凭据、不实施任务。
+第二条命令会调用模型、写代码、运行检查、合并到本地 main，并在 GitHub 记录结果及关闭通过验收的 Issue。
+启动前必须已提交配置和现有改动；运行器不会替你提交或清理其他聊天的工作。
 
-## 准备好之后：执行单个真实任务
-
-先填写 one-task.example.md，确认本机 Codex 登录和模型可用，项目已有 Git 提交基线。应用实施工单仍等独立技术聊天收尾。
+只看工单排队情况：
 
 ~~~powershell
-node .sandcastle/one-task.example.mjs --run
+node .sandcastle/run.mjs --plan
 ~~~
 
-这会在本机调用 Codex CLI，没有镜像构建步骤，也不要求新建 .env 填 API Key。占位任务未替换时会先拒绝启动。日志默认写入 .sandcastle/logs/，结束时输出提交和日志路径。
+## 配置改哪里
 
-## 官方整批骨架
+主要配置只有 config.json。角色要求在 roles/implement.md 和 roles/review.md。
 
-main.mts 仍是此前 Docker/Custom 模板，本地工单、普通包解析、tsx/zod 与约定运行规则尚未接好。官方命令 npx tsx .sandcastle/main.mts 当前不是可用的整批命令；后续正式流程应沿用用户选择的本机 CLI 路线。
+~~~json
+{
+  "repository": "jking412/Noterion",
+  "targetBranch": "main",
+  "issues": "all-open-at-start",
+  "model": null,
+  "maxParallel": 2,
+  "firstPassParallel": 1,
+  "maxRepairRounds": 3,
+  "runHours": 4,
+  "finishGraceMinutes": 10,
+  "autoMerge": true,
+  "closeCompletedIssues": true
+}
+~~~
 
-完整原则见 [采纳讨论](../.scratch/personal-knowledge-graph/sandcastle-adoption.md)。
+- repository：正式工单仓库。
+- issues：默认启动时固定当时全部 open Issue；也可以改为 [1, 3] 这样的编号数组。新发布工单留到下一批。
+- model：null 表示不覆盖本机 Codex 已配置的模型；填模型 ID 才显式覆盖。
+- firstPassParallel / maxParallel：首次闭环通过前同时做 1 张，成功后最多同时实施 2 张。
+- maxRepairRounds：初次实施之后最多再修复 3 轮。
+- runHours：到达 4 小时后停止领取新任务，正在执行的任务最多再收尾 10 分钟，然后取消并保留工作区。
+- autoMerge：通过整合验证后快进合并到本地 main。
+- closeCompletedIssues：验收和整合完成、证据评论写入成功后关闭 Issue。
 
-## 实际验证
+其余超时字段已有默认配置，通常不用改。此流程不会自动推送 Git 远端或创建 PR。
 
-- 全局版本和帮助正常，安装位置已确认。
-- main.mts 语法检查通过，全局库可以导入。
-- 单任务示例的语法和配置检查通过，执行方式已改为本机 CLI。
-- 登录状态只读检查返回 ChatGPT 登录，没有读取或输出凭据。
-- 未执行 --run、调用模型、创建容器或处理工单。
+## 启动后发生什么
 
-参考：[OpenAI 官方认证说明](https://learn.chatgpt.com/docs/auth)、[Sandcastle 官方快速开始](https://github.com/mattpocock/sandcastle/blob/main/docs/guide/getting-started.md)。
+1. **前检**：确认全局库版本、Git 提交基线、当前 main、干净工作区、Codex 登录和既有 GitHub 仓库权限。未通过就退出，不启动 Agent、不领取工单。
+2. **固定批次**：从 GitHub 实时读取当时工单编号。正文、讨论、标签和依赖仍以 GitHub 为准，不在本地重建工单真相源。
+3. **选任务**：只实施 open 且 ready-for-agent 的工单；同时核对原生依赖和正文 Blocked by，全部前置已关闭才可执行。ready-for-human 永不交给实施 Agent。
+4. **实施**：在 sandcastle/issue-N 分支和独立 worktree 中启动本机 codex exec。实现类 Issue 进入实施阶段，不需要另找一个叫 implement 的系统命令。
+5. **审查与检查**：实施者提交结果后，运行器串行执行真实 PowerShell 检查，再启动独立 Codex 审查。每项验收都须有证据，检查由运行器重跑并读取实际退出码。
+6. **返修与整合**：有问题最多返修 3 轮。对最新 main 形成候选结果并重新核验，通过后才快进合并；检查结果必须对应当前候选提交。
+7. **GitHub 回写**：记录本地提交、验收证据和实际命令退出码，然后关闭该 Issue。回写失败保留待同步状态，不把它当已关闭，也不在新批次盲目重做。
+8. **结束**：没有可执行工单、用户中断或时间窗口到达后，保存结果报告与未完成位置。
+
+GitHub 访问使用当前环境或既有 Git 凭据；凭据只在内存中使用，不写配置或日志。只读预检只能确认当前仓库角色，细粒度令牌的实际 Issues 写权限仍以真实写入结果为准。
+
+## 按当前这批工单，会先做什么
+
+2026-11-07 只读读取时已有 18 张 Issue。无前置的代理任务包括：
+
+- #1：核心桌面体验的可点击原型。
+- #3：真实 Windows 桌面验收路径验证。
+- #10：对象存储接口真实兼容性验证。
+
+首次先做 #1 验证闭环，之后 #3 和 #10 可并行。#2、#6 是用户决策工单，运行器会列为待你回答。#4 等实现工单必须等其实际前置完成，不会因为带 ready-for-agent 标签就越过依赖。
+
+## 结果在哪里，怎样继续
+
+每一批保存到 .sandcastle/runs/批次ID/：
+
+- report.md：已完成、受阻、未执行及续跑命令。
+- state.json：执行账本，记录分支、提交、验收证据和回写状态。
+- Agent 与检查日志：用于定位具体失败。
+
+运行期间的锁和跨批执行状态位于 .sandcastle/state/；这些是本机执行记录，不是 GitHub Issue 的副本。
+相关目录已忽略，不会因生成日志使主工作区变脏。
+
+暂停当前运行可按 Ctrl+C，等待它保存并收尾。读取报告后，用其中给出的 ID 续跑：
+
+~~~powershell
+node .sandcastle/run.mjs --resume 2026-11-07T12-00-00-000Z
+~~~
+
+实际使用报告中的真实 ID。续跑只处理原批次；会核对最新 Issue、讨论、分支和提交，不以旧提交的检查结果批准新改动。必须问用户的任务在没有新答复或要求变化时继续保持暂停。
+如果因进程崩溃残留 runner.lock，先核对其中 PID 对应进程确已退出，再处理锁；不要在旧任务仍运行时启动第二个运行器。
+
+## 验证范围
+
+已做纯调度、依赖、报告、续跑边界和真实 PowerShell 退出码测试，以及不调用模型的 GitHub 实时读取/权限前检。
+没有为了测试配置而启动任何应用实施工单，也没有实际关闭 Issue 或执行整合。
+第一次真实启动仍承担端到端闭环验证，因此默认首次只同时实施一张。
+
+main.mts 现在是兼容入口，转到 run.mjs。先前 Dockerfile、示例及旧提示保留为参考，不参与当前批处理入口。

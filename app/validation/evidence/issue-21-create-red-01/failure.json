@@ -1,0 +1,6 @@
+{
+  "verdict": "FAIL",
+  "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '进入容器终端'\n- 'INTENTIONALLY_WRONG'\n",
+  "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '进入容器终端'\n- 'INTENTIONALLY_WRONG'\n\n    at file:///D:/person/application/knowledgeGraph/app/scripts/acceptance.mjs:190:12\n    at async check (file:///D:/person/application/knowledgeGraph/app/scripts/acceptance.mjs:101:18)\n    at async createScenario (file:///D:/person/application/knowledgeGraph/app/scripts/acceptance.mjs:189:3)\n    at async file:///D:/person/application/knowledgeGraph/app/scripts/acceptance.mjs:336:29",
+  "at": "2026-11-12T12:14:08.137Z"
+}

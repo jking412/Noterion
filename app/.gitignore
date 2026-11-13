@@ -1,0 +1,6 @@
+dist-desktop/
+validation/runs/
+data/
+noterion-location.json
+*.partial
+src-tauri/gen/

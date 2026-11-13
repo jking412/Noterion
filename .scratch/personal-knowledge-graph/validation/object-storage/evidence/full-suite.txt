@@ -1,0 +1,71 @@
+Issue 10 RustFS started at http://127.0.0.1:19100; credentials remain in ignored .local/service.env
+   Compiling issue-10-object-storage-validation v0.1.0 (D:\person\application\knowledgeGraph\.scratch\personal-knowledge-graph\validation\object-storage)
+    Finished `dev` profile [unoptimized] target(s) in 1.67s
+     Running `target\debug\issue-10-object-storage-validation.exe ready`
+PASS signed-s3-readiness: signed HEAD bucket statuses [200]
+    Finished `dev` profile [unoptimized] target(s) in 0.19s
+     Running `target\debug\issue-10-object-storage-validation.exe probe`
+PASS file upload makes identical bytes retrievable
+    Finished `dev` profile [unoptimized] target(s) in 0.17s
+     Running `target\debug\issue-10-object-storage-validation.exe ranges`
+PASS file-stream-put-head-get: 131209 bytes; SHA256/type/operation metadata verified; Unicode key
+PASS range-middle-sdk-and-presigned: HTTP 206; bytes 1000-1511/131209; exact bytes verified
+PASS range-suffix-sdk-and-presigned: HTTP 206; bytes 131081-131208/131209; exact bytes verified
+PASS range-open-end-sdk-and-presigned: HTTP 206; bytes 131132-131208/131209; exact bytes verified
+PASS range-out-of-bounds: HTTP 416
+PASS presigned-get: HTTP 200; full SHA256 matches; URL intentionally omitted
+PASS anonymous-denied: HTTP 403
+PASS wrong-secret-denied: HTTP Some(403)
+PASS tampered-signature-denied: HTTP 403
+PASS expired-url-denied: HTTP 403
+PASS get-url-does-not-authorize-put: HTTP 403
+PASS denied-write-keeps-object-intact: HEAD + streamed SHA256 match after denied PUT
+PASS missing-object-is-distinct-from-denied: HTTP Some(404)
+    Finished `dev` profile [unoptimized] target(s) in 0.18s
+     Running `target\debug\issue-10-object-storage-validation.exe multipart`
+PASS multipart-created-is-not-readable: HEAD/GET 404; state receiving
+PASS all-parts-are-not-a-ready-object: 3 parts: 8 MiB + 8 MiB + 1048699 bytes; HEAD/GET still 404
+PASS multipart-complete-head-stream-get: 17825915 bytes; SHA256/type/operation metadata verified
+PASS wrong-file-offset-object-rejected: real multipart with each part offset=0 must fail full streamed SHA256; never ready
+    Finished `dev` profile [unoptimized] target(s) in 0.18s
+     Running `target\debug\issue-10-object-storage-validation.exe failures`
+PASS real-invalid-part-is-not-ready: HTTP Some(400); InvalidPart; HEAD/GET 404; state failed
+PASS abort-removes-unfinished-upload: NoSuchUpload; HEAD/GET 404; state cancelled
+PASS injected-http200-error-is-not-success: INJECTED HTTP Some(200); SDK InvalidPart; no ready object
+PASS unfinished-remains-receiving: one uploaded part; no completion; not ready; retained for restart check
+PASS put-response-lost-after-real-write: client transport error; real service HEAD finds bytes; durable state still unknown
+PASS complete-response-lost-after-real-completion: client transport error; real service has complete bytes; durable state still unknown
+PASS unknown-and-incomplete-never-ready: new cases persist 2 unknown + 1 receiving; none is verified
+    Finished `dev` profile [unoptimized] target(s) in 0.30s
+     Running `target\debug\issue-10-object-storage-validation.exe resume`
+PASS new-program-process: different OS process; references loaded only from durable journal
+PASS source-files-not-required: both upload source files removed before this process
+PASS restart-read-object-0: 131209 bytes; stable binding/key + HEAD metadata + streamed SHA256; prior state verified
+PASS restart-read-object-1: 17825915 bytes; stable binding/key + HEAD metadata + streamed SHA256; prior state verified
+PASS restart-rejected-content-2: object exists but content hash mismatches; failed-integrity remains nonready
+PASS restart-nonready-object-3: HEAD/GET 404; state failed retained
+PASS restart-nonready-object-4: HEAD/GET 404; state cancelled retained
+PASS restart-nonready-object-5: HEAD/GET 404; state failed retained
+PASS restart-nonready-object-6: HEAD/GET 404; state receiving retained
+PASS restart-read-object-7: 131209 bytes; stable binding/key + HEAD metadata + streamed SHA256; prior state unknown
+PASS restart-read-object-8: 17825915 bytes; stable binding/key + HEAD metadata + streamed SHA256; prior state unknown
+PASS unknown-recovered-only-after-verification: 2 ambiguous writes recovered by read-only validation; no re-upload
+PASS wrong-reference-metadata-rejected: a mismatched expected length cannot be accepted
+Issue 10 RustFS started at http://127.0.0.1:19100; credentials remain in ignored .local/service.env
+    Finished `dev` profile [unoptimized] target(s) in 0.19s
+     Running `target\debug\issue-10-object-storage-validation.exe ready`
+PASS signed-s3-readiness: signed HEAD bucket statuses [200]
+    Finished `dev` profile [unoptimized] target(s) in 0.21s
+     Running `target\debug\issue-10-object-storage-validation.exe verify`
+PASS new-program-process: different OS process; references loaded only from durable journal
+PASS source-files-not-required: both upload source files removed before this process
+PASS restart-read-object-0: 131209 bytes; stable binding/key + HEAD metadata + streamed SHA256; prior state verified
+PASS restart-read-object-1: 17825915 bytes; stable binding/key + HEAD metadata + streamed SHA256; prior state verified
+PASS restart-rejected-content-2: object exists but content hash mismatches; failed-integrity remains nonready
+PASS restart-nonready-object-3: HEAD/GET 404; state failed retained
+PASS restart-nonready-object-4: HEAD/GET 404; state cancelled retained
+PASS restart-nonready-object-5: HEAD/GET 404; state failed retained
+PASS restart-nonready-object-6: HEAD/GET 404; state receiving retained
+PASS restart-read-object-7: 131209 bytes; stable binding/key + HEAD metadata + streamed SHA256; prior state verified
+PASS restart-read-object-8: 17825915 bytes; stable binding/key + HEAD metadata + streamed SHA256; prior state verified
+PASS complete suite: 49 assertions, plus file-upload probe

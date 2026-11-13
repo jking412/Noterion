@@ -1,0 +1,10 @@
+{
+  "verdict": "PASS",
+  "runId": "issue-13-all-02",
+  "scenario": "all",
+  "hostPid": 43892,
+  "sessionClosed": true,
+  "hostExited": true,
+  "assertions": 13,
+  "at": "2026-11-10T09:50:12.350Z"
+}

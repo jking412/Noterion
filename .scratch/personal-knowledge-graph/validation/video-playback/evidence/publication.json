@@ -1,0 +1,12 @@
+{
+  "issue": "https://github.com/jking412/Noterion/issues/13",
+  "state": "closed",
+  "stateReason": "completed",
+  "acceptanceCriteriaChecked": 6,
+  "comment": "https://github.com/jking412/Noterion/issues/13#issuecomment-6764657564",
+  "approvedPayload": "github-comment-draft.md",
+  "explicitUserApprovalReceived": true,
+  "validatedCodeAndEvidenceCommit": "e1983bc7e9006a73dfb8ad414fc3a42b9eeb9958",
+  "gitPushPerformed": false,
+  "latestIssueSnapshotUtc": "2026-11-10T10:11:58Z"
+}

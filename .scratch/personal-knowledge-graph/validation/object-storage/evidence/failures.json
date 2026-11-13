@@ -1,0 +1,41 @@
+{
+  "phase": "failures",
+  "process_id": 40860,
+  "checks": [
+    {
+      "name": "real-invalid-part-is-not-ready",
+      "passed": true,
+      "detail": "HTTP Some(400); InvalidPart; HEAD/GET 404; state failed"
+    },
+    {
+      "name": "abort-removes-unfinished-upload",
+      "passed": true,
+      "detail": "NoSuchUpload; HEAD/GET 404; state cancelled"
+    },
+    {
+      "name": "injected-http200-error-is-not-success",
+      "passed": true,
+      "detail": "INJECTED HTTP Some(200); SDK InvalidPart; no ready object"
+    },
+    {
+      "name": "unfinished-remains-receiving",
+      "passed": true,
+      "detail": "one uploaded part; no completion; not ready; retained for restart check"
+    },
+    {
+      "name": "put-response-lost-after-real-write",
+      "passed": true,
+      "detail": "client transport error; real service HEAD finds bytes; durable state still unknown"
+    },
+    {
+      "name": "complete-response-lost-after-real-completion",
+      "passed": true,
+      "detail": "client transport error; real service has complete bytes; durable state still unknown"
+    },
+    {
+      "name": "unknown-and-incomplete-never-ready",
+      "passed": true,
+      "detail": "new cases persist 2 unknown + 1 receiving; none is verified"
+    }
+  ]
+}

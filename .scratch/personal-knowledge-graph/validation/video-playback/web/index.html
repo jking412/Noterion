@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Issue 13 · 视频读取验证</title><link rel="stylesheet" href="style.css"></head>
+<body><main><h1>Noterion · 真实视频读取验证</h1><p>从对象服务只读播放合成学习资料；拖动时间轴跳转。</p>
+<div class="controls"><label>样本 <select id="sample"><option value="h264">1.28 GB · MP4 / H.264 + AAC</option><option value="webm">WebM / VP9 + Opus</option><option value="ffv1">MKV / FFV1 + PCM</option></select></label><label>路径 <select id="mode"><option value="range">Rust 流式 / Range</option><option value="no-range">普通 GET / 忽略 Range</option><option value="direct">直接签名 / 5 秒有效</option></select></label><button id="open">打开资料</button></div>
+<p id="status" role="status">READY</p><video id="video" controls muted preload="metadata" crossorigin="anonymous"></video>
+<div class="controls"><button id="play">播放</button><button id="pause">暂停</button><button id="unload">关闭播放</button><button id="external">外部打开</button></div>
+<label class="timeline">拖动时间轴 <input id="seek" type="range" min="0" max="720" value="0" step="0.1" aria-label="播放位置"></label>
+<p id="external-status">尚未外部打开</p><details open><summary>可观察的媒体状态</summary><pre id="source-info">{}</pre><pre id="metrics">{"currentTime":0}</pre></details>
+<button id="signature">检查直接签名的 CORS、到期与刷新</button><pre id="signature-status">尚未检查</pre>
+</main><script src="app.js"></script></body></html>

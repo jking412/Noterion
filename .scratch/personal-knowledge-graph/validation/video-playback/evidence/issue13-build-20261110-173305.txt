@@ -1,0 +1,22 @@
+rust=rustc 1.93.1 (01f6ddf75 2026-02-11)
+command=cargo build --manifest-path D:\person\application\knowledgeGraph\.scratch\personal-knowledge-graph\validation\video-playback\Cargo.toml --offline
+
+warn: could not canonicalize path: 'D:\person\application\knowledgeGraph\.scratch\personal-knowledge-graph\validation\video-playback'
+warn: could not canonicalize path: 'D:\person\application\knowledgeGraph\.scratch\personal-knowledge-graph\validation'
+warn: could not canonicalize path: 'D:\person\application\knowledgeGraph\.scratch\personal-knowledge-graph'
+warn: could not canonicalize path: 'D:\person\application\knowledgeGraph\.scratch'
+warn: could not canonicalize path: 'D:\person\application\knowledgeGraph'
+warn: could not canonicalize path: 'D:\person\application'
+warn: could not canonicalize path: 'D:\person'
+warn: could not canonicalize path: 'D:\'
+error: failed to select a version for the requirement `typenum = "^1.20"`
+candidate versions found which didn't match: 1.19.0
+location searched: crates.io index
+required by package `hybrid-array v0.4.15`
+    ... which satisfies dependency `hybrid-array = "^0.4"` of package `block-buffer v0.12.0`
+    ... which satisfies dependency `block-buffer = "^0.12"` of package `digest v0.11.2`
+    ... which satisfies dependency `digest = "^0.11.2"` of package `hmac v0.13.0`
+    ... which satisfies dependency `hmac = "^0.13"` of package `aws-sigv4 v1.4.5`
+    ... which satisfies dependency `aws-sigv4 = "^1.3.8"` of package `aws-sdk-s3 v1.122.0`
+    ... which satisfies dependency `aws-sdk-s3 = "=1.122.0"` of package `issue13-video-playback v0.1.0 (D:\person\application\knowledgeGraph\.scratch\personal-knowledge-graph\validation\video-playback)`
+As a reminder, you're using offline mode (--offline) which can sometimes cause surprising resolution failures, if this error is too confusing you may wish to retry without `--offline`.

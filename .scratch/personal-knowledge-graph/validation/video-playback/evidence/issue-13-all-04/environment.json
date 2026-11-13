@@ -1,0 +1,10 @@
+{
+  "invoke": "function",
+  "url": "http://tauri.localhost/",
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0",
+  "visibility": "visible",
+  "driverVersion": "Microsoft Edge WebDriver 136.0.3240.76 (77e9ec69748f08de141572c1eec5e1ad497c7be6)",
+  "exeSha256": "f3b79759976cedc3117d98d59ce5208a68351acfe5199475ee152c3e63163b58",
+  "runId": "issue-13-all-04",
+  "scenario": "all"
+}

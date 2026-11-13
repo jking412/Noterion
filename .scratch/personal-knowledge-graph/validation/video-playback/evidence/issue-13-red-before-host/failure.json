@@ -1,0 +1,5 @@
+{
+  "verdict": "FAIL",
+  "message": "ENOENT: no such file or directory, access 'D:\\person\\application\\knowledgeGraph\\.scratch\\personal-knowledge-graph\\validation\\video-playback\\target\\debug\\issue-13-video.exe'",
+  "at": "2026-11-10T09:30:23.616Z"
+}

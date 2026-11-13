@@ -1,0 +1,14 @@
+{
+  "at": "2026-11-10T10:07:12.6783251Z",
+  "observedOwnedPidCount": 45,
+  "stillLiveMatchingIdentity": [],
+  "reusedPids": [
+    {
+      "pid": 5280,
+      "recordedName": "msedgewebview2",
+      "currentName": "node_repl"
+    }
+  ],
+  "allRecordedProcessesExited": true,
+  "note": "Read-only process identity audit. Different current executable name demonstrates PID reuse after the recorded process exited. No process terminated."
+}

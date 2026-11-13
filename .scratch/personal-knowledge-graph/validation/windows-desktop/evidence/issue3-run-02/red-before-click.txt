@@ -1,0 +1,1 @@
+Visible UI must contain exact Rust result: Rust OK | ISSUE3-桌面-001 | chars=13 | call=1 | pid=41252

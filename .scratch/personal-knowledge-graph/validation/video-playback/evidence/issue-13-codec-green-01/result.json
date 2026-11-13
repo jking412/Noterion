@@ -1,0 +1,10 @@
+{
+  "verdict": "PASS",
+  "runId": "issue-13-codec-green-01",
+  "scenario": "codec",
+  "hostPid": 41172,
+  "sessionClosed": true,
+  "hostExited": true,
+  "assertions": 7,
+  "at": "2026-11-10T09:48:34.097Z"
+}

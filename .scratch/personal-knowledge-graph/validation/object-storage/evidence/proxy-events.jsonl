@@ -1,0 +1,3 @@
+{"mode": "embedded-error", "method": "POST", "upstream_status": null}
+{"mode": "drop-put", "method": "PUT", "upstream_status": 200}
+{"mode": "drop-complete", "method": "POST", "upstream_status": 200}

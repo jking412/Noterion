@@ -1,0 +1,71 @@
+{
+  "phase": "ranges",
+  "process_id": 33444,
+  "checks": [
+    {
+      "name": "file-stream-put-head-get",
+      "passed": true,
+      "detail": "131209 bytes; SHA256/type/operation metadata verified; Unicode key"
+    },
+    {
+      "name": "range-middle-sdk-and-presigned",
+      "passed": true,
+      "detail": "HTTP 206; bytes 1000-1511/131209; exact bytes verified"
+    },
+    {
+      "name": "range-suffix-sdk-and-presigned",
+      "passed": true,
+      "detail": "HTTP 206; bytes 131081-131208/131209; exact bytes verified"
+    },
+    {
+      "name": "range-open-end-sdk-and-presigned",
+      "passed": true,
+      "detail": "HTTP 206; bytes 131132-131208/131209; exact bytes verified"
+    },
+    {
+      "name": "range-out-of-bounds",
+      "passed": true,
+      "detail": "HTTP 416"
+    },
+    {
+      "name": "presigned-get",
+      "passed": true,
+      "detail": "HTTP 200; full SHA256 matches; URL intentionally omitted"
+    },
+    {
+      "name": "anonymous-denied",
+      "passed": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "name": "wrong-secret-denied",
+      "passed": true,
+      "detail": "HTTP Some(403)"
+    },
+    {
+      "name": "tampered-signature-denied",
+      "passed": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "name": "expired-url-denied",
+      "passed": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "name": "get-url-does-not-authorize-put",
+      "passed": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "name": "denied-write-keeps-object-intact",
+      "passed": true,
+      "detail": "HEAD + streamed SHA256 match after denied PUT"
+    },
+    {
+      "name": "missing-object-is-distinct-from-denied",
+      "passed": true,
+      "detail": "HTTP Some(404)"
+    }
+  ]
+}

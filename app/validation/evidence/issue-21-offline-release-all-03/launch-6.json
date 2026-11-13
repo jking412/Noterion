@@ -1,0 +1,16 @@
+{
+  "environment": {
+    "invoke": "function",
+    "url": "http://tauri.localhost/",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0",
+    "visibility": "visible"
+  },
+  "hostPid": 23624,
+  "driverPid": 5148,
+  "driverVersion": "Microsoft Edge WebDriver 136.0.3240.76 (77e9ec69748f08de141572c1eec5e1ad497c7be6)",
+  "exe": "D:\\person\\application\\knowledgeGraph\\app\\dist-desktop\\noterion.exe",
+  "exeSha256": "0dd5e4697a38a1b23b7ea5dcace9545757d0195b5822b6c0e4e9e08de39d5207",
+  "driverSha256": "76f549b492a89dbacee027ac6a726836944f04645ecaa5fa9a2045c84303d6ed",
+  "config": "D:\\person\\application\\knowledgeGraph\\app\\validation\\evidence\\issue-21-offline-release-all-03\\local\\config",
+  "profile": "D:\\person\\application\\knowledgeGraph\\app\\validation\\evidence\\issue-21-offline-release-all-03\\local\\profile-6"
+}

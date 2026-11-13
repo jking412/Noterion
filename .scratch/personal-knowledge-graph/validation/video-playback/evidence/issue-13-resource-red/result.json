@@ -1,0 +1,10 @@
+{
+  "verdict": "PASS",
+  "runId": "issue-13-resource-red",
+  "scenario": "start",
+  "hostPid": 2900,
+  "sessionClosed": true,
+  "hostExited": true,
+  "assertions": 1,
+  "at": "2026-11-10T09:53:27.771Z"
+}

@@ -1,0 +1,12 @@
+[
+  {
+    "label": "explicit ordinary-point delete previews exactly one knowledge point and retains its resource",
+    "verdict": "PASS",
+    "at": "2026-11-12T12:38:45.528Z"
+  },
+  {
+    "label": "ordinary knowledge deletion remains committed after restart and its saved image stays readable",
+    "verdict": "PASS",
+    "at": "2026-11-12T12:39:00.142Z"
+  }
+]

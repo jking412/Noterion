@@ -1,0 +1,10 @@
+{
+  "verdict": "FAIL",
+  "runId": "issue-13-negative-visible",
+  "scenario": "playback",
+  "hostPid": 12700,
+  "sessionClosed": true,
+  "hostExited": true,
+  "assertions": 2,
+  "at": "2026-11-10T09:52:08.113Z"
+}

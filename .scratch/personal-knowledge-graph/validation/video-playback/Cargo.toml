@@ -1,0 +1,31 @@
+[package]
+name = "issue13-video-playback"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.93.1"
+publish = false
+
+[[bin]]
+name = "issue-13-video"
+path = "src/main.rs"
+
+[build-dependencies]
+tauri-build = { version = "=2.5.6", features = [] }
+
+[dependencies]
+anyhow = "1.0"
+tauri = { version = "=2.10.3", features = [] }
+serde = { version = "=1.0.228", features = ["derive"] }
+serde_json = "=1.0.149"
+aws-sdk-s3 = { version = "=1.122.0", default-features = false, features = ["rt-tokio", "http-1x"] }
+aws-smithy-http-client = { version = "=1.1.13", default-features = false, features = ["rustls-ring"] }
+tokio = { version = "1", features = ["full"] }
+sha2 = "0.10"
+
+[features]
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]
+
+[profile.dev]
+debug = 0
+incremental = false

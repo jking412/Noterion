@@ -1,0 +1,5 @@
+{
+  "verdict": "FAIL",
+  "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'PLAYING'\n- 'INTENTIONAL_MISMATCH'\n",
+  "at": "2026-11-10T09:52:07.423Z"
+}

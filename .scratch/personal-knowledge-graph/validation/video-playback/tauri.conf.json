@@ -1,0 +1,15 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Issue13 Video Playback",
+  "version": "0.1.0",
+  "identifier": "org.noterion.issue13.video-playback",
+  "build": { "frontendDist": "web" },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [],
+    "security": {
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self'; connect-src ipc: http://ipc.localhost http://127.0.0.1:19310 http://127.0.0.1:19300; media-src http://127.0.0.1:19310 http://127.0.0.1:19300"
+    }
+  },
+  "bundle": { "active": false, "icon": ["icons/icon.ico"] }
+}

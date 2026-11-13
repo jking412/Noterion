@@ -1,0 +1,3 @@
+{"bufferBytes":65536,"event":"process-started","exe":"D:\\person\\application\\knowledgeGraph\\app\\dist-desktop\\noterion.exe","pid":26388,"port":53288}
+{"bufferBytes":131072,"error":null,"event":"file-copy","size":5154,"success":true}
+{"bufferBytes":65536,"bytesRead":5154,"bytesWritten":5154,"cancelled":false,"complete":true,"disconnected":false,"end":5153,"error":null,"event":"file-read","method":"GET","range":null,"revoked":false,"size":5154,"start":0}
