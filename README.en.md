@@ -9,7 +9,7 @@
 
 <p align="center">
   <a href="README.md">简体中文</a> · English<br />
-  <a href="https://github.com/jking412/Noterion/releases/tag/main-b41614abef9a3011929b286e5158d4ed73a6bd38"><strong>Download the Windows x64 prerelease</strong></a> ·
+  <a href="https://github.com/jking412/Noterion/releases/tag/main-6f44e447be776ac92ec6bc00c90eb19e956e13a1"><strong>Verified download · Windows x64 prerelease</strong></a> ·
   <a href="#quick-start">Quick start</a> ·
   <a href="https://github.com/jking412/Noterion/releases">All releases</a> ·
   <a href="https://github.com/jking412/Noterion/issues">Feedback</a>
@@ -19,7 +19,7 @@ Noterion connects knowledge points, your own explanations, and learning material
 
 ![The real Noterion Windows client, organizing learning through topics and connected knowledge](docs/images/knowledge-graph.png)
 
-*Captured directly from the workspace of a real client built from this repository, using demonstration data. The current public download does not yet include the AI search and Q&A entry shown here; see the version comparison below.*
+*Captured directly from the workspace of a real Windows client, using demonstration data. The verified download includes the AI search and Q&A entry shown in the screenshot and uses this page's new app icon.*
 
 ## From a note to something you can use again
 
@@ -29,27 +29,27 @@ Noterion connects knowledge points, your own explanations, and learning material
 | Give your knowledge structure | Organize points under topics. A topic is itself a knowledge point; one point can belong to several topics while keeping a single shared copy of its content. |
 | Find something from a partial memory | Search names and descriptions, combine keywords, and select a result to locate it in the graph, read its details, and open its sources. |
 | Keep the material you learned from | Files are copied into your local data directory, so moving the original does not affect the saved copy. View PDFs, images, and supported video formats in the app. |
-| Get help organizing and understanding | The current source implements DeepSeek text extraction, natural-language retrieval, and source-based Q&A. Review candidates before adopting them, and follow answer citations back to knowledge and materials. |
+| Get help organizing and understanding | Use DeepSeek to extract knowledge from learning text, retrieve it with natural-language questions, and answer from sources. Review candidates before adopting them, and follow answer citations back to knowledge and materials. |
 
 **Noterion = Note + Orion.** Scattered knowledge resembles stars; your understanding and their connections form a structure you can trace back through. It is designed for personal learning: preserve the conclusion, how you understood it, and where it came from.
 
-## Choose a version
+## Versions and downloads
 
-The project currently offers a **portable Windows x64 prerelease**. The public download and repository source differ as follows, verified on 2026-11-13:
+The project currently offers a **portable Windows x64 prerelease**. The download above points to a release verified through public download, client operation, and real AI workflows, checked on 2026-11-13.
 
 | Version | Included capabilities |
 | --- | --- |
-| [Public prerelease `0.1.0-main.b41614abef9a`](https://github.com/jking412/Noterion/releases/tag/main-b41614abef9a3011929b286e5158d4ed73a6bd38) | Local knowledge editing, topics and graph navigation, text-fragment search, and file/link materials. Does not yet include DeepSeek AI or this branding update. |
-| Current repository source | The local capabilities above, plus DeepSeek extraction, retrieval, source-based Q&A verified with the real model and desktop client, and the new icon. [Build from source](app/README.md#开发与构建) to use these features, or wait for a subsequent Release that includes them. |
+| [Verified prerelease `0.1.0-main.6f44e447be77`](https://github.com/jking412/Noterion/releases/tag/main-6f44e447be776ac92ec6bc00c90eb19e956e13a1) | Local knowledge editing, topics and graph navigation, fragment search, file/link materials, DeepSeek extraction, natural-language retrieval, source-based Q&A, and the new icon. Download and extract the ZIP to run the client; no source build is needed. |
+| Historical local-only release `0.1.0-main.b41614abef9a` | Retained for historical reference; includes local knowledge features but not DeepSeek AI or the new icon. |
 
-Check the [Release notes](https://github.com/jking412/Noterion/releases) for the contents of each download. The [AI acceptance record](app/validation/ai-acceptance.md) documents the source implementation's validation. The client interface is currently in Chinese; this README translates the introduction, with actual Chinese control labels retained below. macOS, Linux, and Windows ARM are outside the delivered support scope.
+The [All releases](https://github.com/jking412/Noterion/releases) page lists other builds; check each release's notes for its contents. The [public-package acceptance record](.scratch/product-launch/public-release-validation.md) records downloading the verified package without authentication, icon checks, save/restart checks, and official DeepSeek workflows. The [earlier AI acceptance record](app/validation/ai-acceptance.md) preserves validation of the original implementation. The client interface is currently in Chinese; this README translates the introduction, with actual Chinese control labels retained below. macOS, Linux, and Windows ARM are outside the delivered support scope.
 
 ## Quick start
 
 ### Download and launch
 
 1. Use a **Windows x64** computer with [Microsoft Edge WebView2 Runtime](https://developer.microsoft.com/microsoft-edge/webview2/) installed. Desktop acceptance was completed on Windows 11 x64.
-2. Open the [prerelease download page](https://github.com/jking412/Noterion/releases/tag/main-b41614abef9a3011929b286e5158d4ed73a6bd38) and download the portable Windows x64 ZIP under **Assets**. The `Source code` archives do not contain a ready-to-run client. You can verify the download against `SHA256SUMS` on the same page.
+2. Open the [verified prerelease download page](https://github.com/jking412/Noterion/releases/tag/main-6f44e447be776ac92ec6bc00c90eb19e956e13a1) and download the portable Windows x64 ZIP under **Assets**. The `Source code` archives do not contain a ready-to-run client. You can verify the download against `SHA256SUMS` on the same page.
 3. **Extract the entire ZIP into a writable local directory**, then run `noterion.exe`. No database server, Docker, Node.js, or separate background service is needed. The executable is currently unsigned, so Windows may show a trust prompt; verify the download source and checksum first.
 4. Check the current data path near the top of the window. To change it, open **数据目录** (Data directory): choose an empty directory for new data, or your original directory for existing knowledge. Selecting a directory does not move or merge its contents.
 
@@ -58,13 +58,13 @@ Check the [Release notes](https://github.com/jking412/Noterion/releases) for the
 1. Click **新建知识点** (New knowledge point), enter `Docker`, select **可作为主题组织其他知识点** (Use as a topic), and create it.
 2. Create another point named `进入容器终端` (Enter a container shell). Select `Docker` under **所属主题** (Topics), record `docker exec -it demo /bin/sh` in its description, add your explanation, and save.
 3. Open **资料库 → 添加资料** (Materials → Add material). Save a tutorial link or local file and associate it with the point. A file is saved as a local copy; an external link is handed to your system browser only when you explicitly open it.
-4. Return to **知识图谱** (Knowledge graph), search for `容器终端`, and select the result. The graph locates the point so you can read your explanation and open its material. In the current source, local search is labeled **片段搜索** (Fragment search).
+4. Return to **知识图谱** (Knowledge graph), search for `容器终端` in **片段搜索** (Fragment search), and select the result. The graph locates the point so you can read your explanation and open its material.
 
 You can then create a `Linux 运维` (Linux operations) topic and place the same point under both topics. Keep one copy of the content and find it from either direction.
 
-### Use DeepSeek (current source)
+### Use DeepSeek
 
-In a source build containing AI, click **DeepSeek** in the top bar, enter your API key, save, and select **检查连接** (Check connection). The default endpoint is the official DeepSeek service. Calls require an internet connection and available API credit.
+Click **DeepSeek** in the top bar, enter your API key, save, and select **检查连接** (Check connection). The default endpoint is the official DeepSeek service. Calls require an internet connection and available API credit.
 
 - **知识导入** (Knowledge import): paste ordinary learning notes or read UTF-8 Markdown/TXT. Review the original-text evidence, points, topics, and material associations before adopting the batch.
 - **AI 查找与问答 → 查找知识** (AI retrieval and Q&A → Find knowledge): ask from a partial memory, such as “What was that command I learned for entering a container?”, to retrieve your saved knowledge.

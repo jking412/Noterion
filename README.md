@@ -9,7 +9,7 @@
 
 <p align="center">
   简体中文 · <a href="README.en.md">English</a><br />
-  <a href="https://github.com/jking412/Noterion/releases/tag/main-b41614abef9a3011929b286e5158d4ed73a6bd38"><strong>下载 Windows x64 预发布版</strong></a> ·
+  <a href="https://github.com/jking412/Noterion/releases/tag/main-6f44e447be776ac92ec6bc00c90eb19e956e13a1"><strong>已验证下载 · Windows x64 预发布</strong></a> ·
   <a href="#快速开始">快速开始</a> ·
   <a href="https://github.com/jking412/Noterion/releases">所有版本</a> ·
   <a href="https://github.com/jking412/Noterion/issues">反馈</a>
@@ -19,7 +19,7 @@ Noterion 把知识点、自己的理解和学习资料连接成个人知识图�
 
 ![Noterion 真实 Windows 客户端：以主题和关联知识组织学习积累](docs/images/knowledge-graph.png)
 
-*截图直接捕获自本仓库源码构建的真实客户端工作区，使用演示数据。当前公开下载包尚不包含截图中的 AI 查找与问答入口，版本区别见下表。*
+*截图直接捕获自真实 Windows 客户端工作区，使用演示数据。推荐下载版已包含图中的 AI 查找与问答入口，并使用本页的新图标。*
 
 ## 从记录到再次使用
 
@@ -29,27 +29,27 @@ Noterion 把知识点、自己的理解和学习资料连接成个人知识图�
 | 给知识建立结构 | 用主题组织知识；主题本身也是知识点。同一个知识点可以属于多个主题，共用同一份内容。 |
 | 想起一点线索就能找回 | 按名称或描述片段搜索，组合多个关键词；点击结果定位图谱，阅读详情并打开相关资料。 |
 | 留住原来的学习材料 | 文件复制到本机数据目录，源文件后来移动也不影响已保存副本；PDF、图片和支持编码的视频可在应用内查看。 |
-| 让 AI 帮忙整理和理解 | 当前源码已实现 DeepSeek 文本解析、自然语言查找及来源问答。候选经你核对后采用，问答可沿来源回到知识与资料。 |
+| 让 AI 帮忙整理和理解 | DeepSeek 帮助解析学习文本、用自然问题查找知识，并根据来源回答。候选经你核对后采用，问答可沿来源回到知识与资料。 |
 
 **Noterion = Note + Orion（猎户座）。** 分散知识如同星点，理解与联系组成可以循线找回的结构。它为个人学习积累而设计：既留下结论，也留下你当时如何理解、从哪里学到。
 
-## 选择合适的版本
+## 版本与下载
 
-项目目前提供 **Windows x64 便携预发布版**。公开下载包与仓库源码存在以下区别（核对日期：2026-11-13）：
+项目目前提供 **Windows x64 便携预发布版**。上方入口固定指向已完成公开下载、客户端运行和真实 AI 流程验收的版本（核对日期：2026-11-13）。
 
 | 版本 | 已包含的能力 |
 | --- | --- |
-| [公开预发布 `0.1.0-main.b41614abef9a`](https://github.com/jking412/Noterion/releases/tag/main-b41614abef9a3011929b286e5158d4ed73a6bd38) | 本地知识编辑、主题与图谱、片段搜索、文件及链接资料。尚不包含 DeepSeek AI 和本次品牌更新。 |
-| 本仓库当前源码 | 上述本地能力，以及已完成真实模型与客户端验收的 DeepSeek 解析、检索、来源问答和新图标。使用这些功能需[从源码构建](app/README.md#开发与构建)，或等待包含它们的后续 Release。 |
+| [推荐已验证预发布 `0.1.0-main.6f44e447be77`](https://github.com/jking412/Noterion/releases/tag/main-6f44e447be776ac92ec6bc00c90eb19e956e13a1) | 本地知识编辑、主题与图谱、片段搜索、文件及链接资料，以及 DeepSeek 解析、自然语言查找、来源问答和新图标。下载 ZIP 解压即可运行，无需从源码构建。 |
+| 历史本地版 `0.1.0-main.b41614abef9a` | 仅作历史版本说明：具备本地知识能力，不含 DeepSeek AI 和新图标。 |
 
-[Release 说明](https://github.com/jking412/Noterion/releases)是每个下载包实际内容的依据；[AI 验收记录](app/validation/ai-acceptance.md)记录源码能力的验证结果。当前客户端界面为中文，macOS、Linux 和 Windows ARM 不在已交付支持范围内。
+[所有版本](https://github.com/jking412/Noterion/releases)提供其他构建，每个下载包的具体内容以其 Release 说明为准。[公开包验收记录](.scratch/product-launch/public-release-validation.md)记录推荐版的匿名下载、图标、保存重启及官方 DeepSeek 流程验证；[既有 AI 验收记录](app/validation/ai-acceptance.md)保留早期实现的验证依据。当前客户端界面为中文，macOS、Linux 和 Windows ARM 不在已交付支持范围内。
 
 ## 快速开始
 
 ### 下载并启动
 
 1. 使用 **Windows x64** 电脑，确认已安装 [Microsoft Edge WebView2 Runtime](https://developer.microsoft.com/microsoft-edge/webview2/)。客户端在 Windows 11 x64 上完成验收。
-2. 打开[预发布下载页](https://github.com/jking412/Noterion/releases/tag/main-b41614abef9a3011929b286e5158d4ed73a6bd38)，从 **Assets** 下载 Windows x64 的便携 ZIP；`Source code` 压缩包不含可直接运行的程序。可使用同页 `SHA256SUMS` 核对文件。
+2. 打开[已验证预发布下载页](https://github.com/jking412/Noterion/releases/tag/main-6f44e447be776ac92ec6bc00c90eb19e956e13a1)，从 **Assets** 下载 Windows x64 的便携 ZIP；`Source code` 压缩包不含可直接运行的程序。可使用同页 `SHA256SUMS` 核对文件。
 3. 将 ZIP **完整解压到本机可写目录**，双击 `noterion.exe`。程序无需安装数据库、Docker、Node.js 或独立后台服务。当前程序未签名，Windows 可能显示信任提示；请先核对下载来源与校验值。
 4. 查看窗口顶部显示的当前数据路径。需要更换时，打开 **数据目录**：新建请选择空目录，已有知识请选择原数据目录。切换目录不会自动搬迁或合并数据。
 
@@ -58,13 +58,13 @@ Noterion 把知识点、自己的理解和学习资料连接成个人知识图�
 1. 点击 **新建知识点**，名称填写 `Docker`，勾选 **可作为主题组织其他知识点**，创建知识点。
 2. 再建一个知识点 `进入容器终端`，在 **所属主题** 中选择 `Docker`，在描述中记录 `docker exec -it demo /bin/sh`，补上自己的解释并保存。
 3. 在 **资料库 → 添加资料** 中保存教程链接或本机文件，关联到这个知识点。文件将保存为本机副本；外部链接在你明确打开时交给系统浏览器。
-4. 回到 **知识图谱**，搜索 `容器终端`，点击结果。图谱会定位该知识点，你可以读回说明并打开关联资料。当前源码中，本地搜索入口名为 **片段搜索**。
+4. 回到 **知识图谱**，在 **片段搜索** 中搜索 `容器终端`，点击结果。图谱会定位该知识点，你可以读回说明并打开关联资料。
 
 之后可新建 `Linux 运维` 主题，把同一个 `进入容器终端` 同时归入两个主题。无需复制内容，下次从任一主题都能找到它。
 
-### 使用 DeepSeek（当前源码）
+### 使用 DeepSeek
 
-在包含 AI 的源码构建中，点击顶部 **DeepSeek**，填写自己的 API key，保存并 **检查连接**。默认接入官方 DeepSeek，调用需要联网和可用的 API 额度。
+点击顶部 **DeepSeek**，填写自己的 API key，保存并 **检查连接**。默认接入官方 DeepSeek，调用需要联网和可用的 API 额度。
 
 - **知识导入**：粘贴普通学习笔记或读取 UTF-8 Markdown/TXT，解析后核对原文依据、知识点、所属主题和资料关联，再整批采用。
 - **AI 查找与问答 → 查找知识**：输入“之前学过怎么进入容器，命令是什么？”这类模糊记忆，让 AI 检索本机已有知识。
