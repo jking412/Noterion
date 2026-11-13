@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "product": "Noterion",
+  "sourceVersion": "0.1.0",
+  "version": "0.1.0-main.b41614abef9a",
+  "tag": "main-b41614abef9a3011929b286e5158d4ed73a6bd38",
+  "prerelease": true,
+  "commit": "b41614abef9a3011929b286e5158d4ed73a6bd38",
+  "ref": "refs/heads/main",
+  "runUrl": "https://github.com/jking412/Noterion/actions/runs/43356740425",
+  "target": "x86_64-pc-windows-msvc",
+  "profile": "release",
+  "executable": {
+    "name": "noterion.exe",
+    "size": 10531328,
+    "sha256": "ad03bc9edb903360eb9427236c7ab13815c843d3f60c8d124e9b75e2861f4b51"
+  },
+  "zip": "Noterion-0.1.0-main.b41614abef9a-windows-x64.zip"
+}
