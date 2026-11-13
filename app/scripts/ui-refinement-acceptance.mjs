@@ -15,7 +15,8 @@ const options = Object.fromEntries(process.argv.slice(2).map(argument => {
   assert.ok(at > 2, 'Use --name=value arguments');
   return [argument.slice(2, at), argument.slice(at + 1)];
 }));
-assert.ok(Object.keys(options).every(key => ['run', 'phase', 'exe', 'driver', 'port'].includes(key)), 'Unknown option');
+assert.ok(Object.keys(options).every(key => ['run', 'phase', 'exe', 'driver', 'port', 'scenario'].includes(key)), 'Unknown option');
+assert.ok(!options.scenario || ['zoom', 'task-navigation', 'final'].includes(options.scenario), '--scenario=zoom|task-navigation|final');
 assert.match(options.run ?? '', /^issue-26-[a-z0-9-]+$/);
 assert.ok(['before', 'after'].includes(options.phase), '--phase=before|after is required');
 const after = options.phase === 'after';
@@ -66,8 +67,11 @@ async function all(selector, using = 'css selector') { return wd('POST', '/eleme
 async function find(selector, using = 'css selector') { return (await wd('POST', '/element', { using, value: selector }))[elementKey]; }
 async function click(selector, using = 'css selector') {
   const id = await until(async () => {
-    const candidate = await find(selector, using);
-    return await wd('GET', `/element/${candidate}/displayed`) && await wd('GET', `/element/${candidate}/enabled`) && candidate;
+    for (const element of await all(selector, using)) {
+      const candidate = element[elementKey];
+      if (await wd('GET', `/element/${candidate}/displayed`) && await wd('GET', `/element/${candidate}/enabled`)) return candidate;
+    }
+    return false;
   }, `visible enabled action ${selector}`);
   await wd('POST', `/element/${id}/click`, {});
 }
@@ -189,7 +193,7 @@ async function retainedAnswer(question) {
 }
 async function nativeZoom(steps) {
   await click('.wordmark');
-  for (let i = 0; i < Math.abs(steps); i++) {
+  for (let i = 0; i < (steps > 0 ? steps : 1); i++) {
     await wd('POST', '/actions', { actions: [{ type: 'key', id: 'keyboard', actions: [
       { type: 'keyDown', value: '\uE009' }, { type: 'keyDown', value: steps > 0 ? '+' : '0' },
       { type: 'keyUp', value: steps > 0 ? '+' : '0' }, { type: 'keyUp', value: '\uE009' },
@@ -335,6 +339,9 @@ async function afterChecks() {
     await settings('good'); await begin(action, input + ' 再次提交'); await taskResult(action);
     await check(`${action}: corrected configuration permits successful retry`, async () => assert.equal((await all(taskError(action))).length, 0));
   }
+  await layoutChecks();
+}
+async function layoutChecks() {
   await check('long content and native window sizes keep page navigation and actions reachable', async () => {
     await clickText('知识图谱'); await click('[data-testid="create-point"]');
     const longName = '容器网络与部署时的配置检查和排错方法：包含中文、英文 Docker Compose 以及较长的学习主题名称';
@@ -354,6 +361,8 @@ async function afterChecks() {
     await nativeZoom(2);
     const zoomed = await observe('return {width:innerWidth,dpr:devicePixelRatio};');
     assert.ok(zoomed.width < initial.width && zoomed.dpr > initial.dpr, 'Native zoom really changed the WebView');
+    assert.ok(Math.abs(middle.dpr / initial.dpr - 1.5) < .05, 'Observed middle zoom is 150%');
+    assert.ok(Math.abs(zoomed.dpr / initial.dpr - 2) < .05, 'Observed final zoom is 200%');
     await capture('17c-layout-native-zoom');
     await click('[aria-label="数据目录设置"]'); await capture('18-directory-native-zoom'); await click('[aria-label="关闭弹窗"]');
     await nativeZoom(-1);
@@ -361,10 +370,61 @@ async function afterChecks() {
   });
 }
 
+async function taskNavigation() {
+  await settings('good'); await begin('extract', learningText); await taskResult('extract');
+  await click('[data-testid="ai-adopt"]'); await expectText('[data-testid="ai-adopted"]', '保存');
+  await settings('slow'); const first = fixture.requests.length;
+  await begin('answer', '容器终端任务导航验收');
+  await until(() => fixture.requests.length > first, 'Native answer request is pending');
+  await clickText('片段搜索'); await clickText('知识导入');
+  await click('[data-testid="ai-view-task"]');
+  await inspectTaskNavigation('19-task-navigation', first);
+}
+async function inspectTaskNavigation(name, first, expectDetailsClosed = false) {
+  const actual = await observe(`return {
+    hash:location.hash,
+    questionVisible:!!document.querySelector('[data-testid="ai-question"]')?.getClientRects().length,
+    cancelVisible:!!document.querySelector('[data-testid="ai-cancel"]')?.getClientRects().length,
+    detailsVisible:!!document.querySelector('.details-floating')?.getClientRects().length,
+    panelText:document.querySelector('.search-panel')?.innerText
+  };`);
+  await write(name + '-observation.json', actual);
+  await capture(name);
+  await check(`${name}: view task returns to the active AI mode and exposes actual cancellation`, async () => {
+    assert.equal(actual.questionVisible, true, 'View task must reveal the active AI question panel after switching to local search');
+    assert.equal(actual.cancelVisible, true, 'View task must expose the pending answer cancellation');
+    if (expectDetailsClosed) assert.equal(actual.detailsVisible, false, 'Task navigation releases the detail overlay at high zoom');
+    await click('[data-testid="ai-cancel"]');
+    await until(() => fixture.requests.slice(first).some(r => r.aborted), 'Task navigation cancellation aborts native HTTP');
+  });
+}
+async function zoomedTaskNavigation() {
+  await settings('slow'); const first = fixture.requests.length;
+  await begin('answer', '选中知识与高缩放时的任务导航验收');
+  await until(() => fixture.requests.length > first, 'Native answer request is pending');
+  await clickText('片段搜索');
+  await fill('[data-testid="search-input"]', '进入容器终端');
+  await click("//ul[contains(@class,'result-list')]//button[.//*[contains(@class,'result-name') and normalize-space(.)='进入容器终端']]", 'xpath');
+  await nativeZoom(5);
+  await clickText('知识导入'); await click('[data-testid="ai-view-task"]');
+  await inspectTaskNavigation('20-task-navigation-zoomed', first, true);
+  await nativeZoom(-1);
+}
+
 try {
   fixture = await startAiFixture();
-  await launch(); await coreScreens();
-  if (after) await afterChecks();
+  await launch();
+  if (options.scenario === 'task-navigation') {
+    await taskNavigation();
+  } else if (options.scenario === 'final') {
+    await taskNavigation(); await layoutChecks(); await zoomedTaskNavigation();
+  } else if (options.scenario === 'zoom') {
+    await clickText('知识导入'); await fill('[data-testid="ai-source"]', learningText);
+    await layoutChecks();
+  } else {
+    await coreScreens();
+    if (after) await afterChecks();
+  }
   passed = true;
 } catch (error) {
   await write('failure.json', { message: error.message });
@@ -381,6 +441,6 @@ try {
   }
   try { await stop(); } catch {}
   if (fixture) { await write('provider-metadata.json', fixture.requests); await fixture.close(); }
-  await write('result.json', { run: options.run, phase: options.phase, passed, assertions: checks.length, screenshots: snapshots.map(s=>s.name), exe, boundary: 'Real debug Windows Tauri/WebView2 UI and native Rust store/HTTP; deterministic local provider, not official DeepSeek.' });
+  await write('result.json', { run: options.run, phase: options.phase, scenario: options.scenario ?? 'full', passed, assertions: checks.length, screenshots: snapshots.map(s=>s.name), exe, boundary: 'Real debug Windows Tauri/WebView2 UI and native Rust store/HTTP; deterministic local provider, not official DeepSeek.' });
   process.exitCode = passed ? 0 : 1;
 }

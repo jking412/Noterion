@@ -49,7 +49,7 @@ AssertionError: expected '上一任务的取消通道已关闭' to be ''
 - 自动查找：“正在查找知识”。
 - 自动回答：“正在生成回答”。
 
-界面不再消费内部 detail/delta。Rust `Task` 删除接收字符计数与每 160 字的 receiving 事件；SSE 继续真实接收、累积结构化输出并在解析完成后校验，读取时仍检查取消。未新增流式回答、伪造推理文本、百分比或计时进度。
+界面不再消费内部 detail/delta，composable 同时移除已无消费者的 detail/partial 状态及返回字段。Rust `Task` 删除接收字符计数与每 160 字的 receiving 事件；SSE 继续真实接收、累积结构化输出并在解析完成后校验，读取时仍检查取消。未新增流式回答、伪造推理文本、百分比或计时进度。
 
 ## 最终检查
 
@@ -64,6 +64,6 @@ AssertionError: expected '上一任务的取消通道已关闭' to be ''
 
 `npm.cmd run typecheck` 与 `git diff --check` 通过。单元测试未连接官方模型；真实供应商响应、网络/鉴权/限流、慢响应和请求中止由桌面验收覆盖并单独声明边界。
 
-`cargo fmt --manifest-path app/src-tauri/Cargo.toml --check` 在此代理的受限进程内因 cwd canonicalize“拒绝访问”未执行完成；交由主实施代理在其构建环境运行最终 Rust 检查，不能将此项记为通过。
+`cargo fmt --manifest-path app/src-tauri/Cargo.toml --check` 最初在本代理的受限进程内因 cwd canonicalize“拒绝访问”未完成，主实施代理已在构建环境补跑通过。
 
 知识助手保留原有结果历史语义：再次提交时，上一结果及其原问题移入可展开的会话历史。取消/失败后仍可查阅；当前结果区域清空，避免将旧答案显示为新问题的回答。另一处解析任务运行时，知识助手显示单独的“查看任务”入口并冻结本次 AI 操作，取消入口只出现在实际任务所属的界面。输入使用 readonly，可继续选择和复制。

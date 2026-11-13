@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import Icon from './Icon.vue'
-import { ref } from 'vue'
 import { getTopicTags } from '../domain/logic'
 import type { KnowledgePoint, MatchMode } from '../domain/types'
 defineProps<{ query: string; keywords: string[]; mode: MatchMode; results: KnowledgePoint[]; points: KnowledgePoint[]; selectedId: string | null; hasQuery: boolean }>()
 const emit = defineEmits<{ 'update:query': [value: string]; 'update:mode': [value: MatchMode]; add: []; remove: [index: number]; clear: []; select: [id: string] }>()
-const aiMode = ref(false)
+const aiMode = defineModel<boolean>('aiMode', { default: false })
 </script>
 <template>
   <aside class="search-panel glass-panel" aria-label="知识搜索">

@@ -7,8 +7,6 @@ export function useAiTasks() {
   const busy = ref(false)
   const error = ref('')
   const phase = ref('')
-  const detail = ref('')
-  const partial = ref('')
   const result = ref<AiResult | null>(null)
   const taskId = ref('')
   const sessionId = ref('')
@@ -21,7 +19,7 @@ export function useAiTasks() {
   async function start(value: AiRequest) {
     if (busy.value) return
     const epoch = ++generation
-    busy.value = true; error.value = ''; partial.value = ''; result.value = null; phase.value = 'queued'; detail.value = ''; taskId.value = ''; request.value = { ...value, resourceIds: [...value.resourceIds] }
+    busy.value = true; error.value = ''; result.value = null; phase.value = 'queued'; taskId.value = ''; request.value = { ...value, resourceIds: [...value.resourceIds] }
     try {
       const onEvent = channel<AiEvent>((event) => {
         if (generation !== epoch || !busy.value) return
@@ -29,7 +27,7 @@ export function useAiTasks() {
         taskId.value = event.taskId
         phase.value = event.phase
         if (event.error && event.phase !== 'cancelled') { error.value = event.error; busy.value = false; phase.value = 'failed' }
-        if (event.result) { result.value = event.result; busy.value = false; phase.value = 'completed'; partial.value = ''; if (event.result.kind === 'answer') sessionId.value = event.result.sessionId }
+        if (event.result) { result.value = event.result; busy.value = false; phase.value = 'completed'; if (event.result.kind === 'answer') sessionId.value = event.result.sessionId }
         if (['cancelled', 'failed', 'completed', 'complete'].includes(event.phase)) busy.value = false
       })
       const id = await invoke<string>('ai_start', { request: value, onEvent })
@@ -41,11 +39,11 @@ export function useAiTasks() {
     if (!busy.value) return
     const id = taskId.value
     const epoch = ++generation
-    busy.value = false; phase.value = 'cancelled'; detail.value = ''; partial.value = ''
+    busy.value = false; phase.value = 'cancelled'
     if (id) { try { await invoke('ai_cancel', { taskId: id }) } catch (e) { if (generation === epoch) { error.value = errorText(e); phase.value = 'failed' } } }
   }
-  function reset() { void cancel(); generation++; result.value = null; error.value = ''; phase.value = ''; partial.value = ''; sessionId.value = ''; request.value = null }
+  function reset() { void cancel(); generation++; result.value = null; error.value = ''; phase.value = ''; sessionId.value = ''; request.value = null }
   function retry() { if (request.value) void start(request.value) }
   onBeforeUnmount(() => { void cancel(); generation++ })
-  return { settings, busy, error, phase, phaseLabel, detail, partial, result, taskId, sessionId, request, refreshSettings, start, cancel, reset, retry }
+  return { settings, busy, error, phase, phaseLabel, result, taskId, sessionId, request, refreshSettings, start, cancel, reset, retry }
 }
