@@ -10,11 +10,15 @@ use std::{
 };
 use uuid::Uuid;
 
+#[path = "store_ai.rs"]
+mod ai_support;
+pub use ai_support::{AiAdoptResult, AiBatch, AiChoice, AiRecord};
+
 pub type SharedStore = Arc<Mutex<Store>>;
 const DATABASE: &str = "noterion.sqlite3";
 const APPLICATION_ID: i32 = 1_313_821_765;
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Point {
     pub id: String,
@@ -29,7 +33,7 @@ pub struct Point {
     pub color: String,
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Resource {
     pub id: String,
@@ -96,6 +100,7 @@ pub struct Store {
     config_dir: PathBuf,
     connection: Option<Connection>,
     error: Option<String>,
+    epoch: u64,
 }
 
 fn disk_error(action: &str, error: impl std::fmt::Display) -> String {
@@ -142,6 +147,7 @@ impl Store {
             config_dir,
             connection: None,
             error: None,
+            epoch: 0,
         };
         if let Err(error) = store.initialize(true) {
             store.error = Some(error);
@@ -182,6 +188,7 @@ impl Store {
             Err(error) => return Err(disk_error("数据目录配置无法读取", error)),
         }
         self.snapshot()?;
+        self.epoch = self.epoch.wrapping_add(1);
         Ok(())
     }
 
@@ -219,6 +226,14 @@ impl Store {
         self.ensure_available()?;
         let (facts, revision) = read_facts(self.connection.as_ref().unwrap())?;
         Ok(make_snapshot(&self.root, facts, revision))
+    }
+
+    pub fn config_dir(&self) -> &Path {
+        &self.config_dir
+    }
+
+    pub fn epoch(&self) -> u64 {
+        self.epoch
     }
 
     fn mutate(
@@ -263,6 +278,7 @@ impl Store {
         self.root = root;
         self.connection = Some(connection);
         self.error = None;
+        self.epoch = self.epoch.wrapping_add(1);
         Ok(make_snapshot(&self.root, facts, revision))
     }
 
@@ -437,11 +453,14 @@ fn validate_facts(facts: &Facts) -> Result<(), String> {
             return Err("知识点不能属于自己。".into());
         }
         for topic_id in &point.topic_ids {
-            if !by_id
+            let topic = by_id
                 .get(topic_id.as_str())
-                .is_some_and(|topic| topic.is_theme)
-            {
-                return Err("请选择有效的所属主题。".into());
+                .ok_or_else(|| format!("“{}”引用的所属主题已不存在，请重新选择。", point.name))?;
+            if !topic.is_theme {
+                return Err(format!(
+                    "“{}”被“{}”用作所属主题，但尚未设置为可作为主题。请启用其主题角色或修正该归属。",
+                    topic.name, point.name
+                ));
             }
             children.entry(topic_id).or_default().push(&point.id);
         }
@@ -612,7 +631,7 @@ fn open_store(path: &Path, create: bool) -> Result<(PathBuf, Connection), String
         let transaction = connection
             .transaction()
             .map_err(|e| disk_error("无法初始化正式存储", e))?;
-        transaction.execute_batch(&format!("PRAGMA application_id={APPLICATION_ID}; PRAGMA user_version=1; CREATE TABLE noterion_state(singleton INTEGER PRIMARY KEY CHECK(singleton=1), revision INTEGER NOT NULL CHECK(revision>=0), facts TEXT NOT NULL);"))
+        transaction.execute_batch(&format!("PRAGMA application_id={APPLICATION_ID}; PRAGMA user_version=2; CREATE TABLE noterion_state(singleton INTEGER PRIMARY KEY CHECK(singleton=1), revision INTEGER NOT NULL CHECK(revision>=0), facts TEXT NOT NULL); {}", ai_support::AI_SCHEMA))
             .map_err(|e| disk_error("无法初始化正式存储", e))?;
         transaction
             .execute(
@@ -630,7 +649,7 @@ fn open_store(path: &Path, create: bool) -> Result<(PathBuf, Connection), String
     let version: i32 = connection
         .query_row("PRAGMA user_version", [], |row| row.get(0))
         .map_err(|e| disk_error("无法读取存储版本", e))?;
-    if application_id != APPLICATION_ID || version != 1 {
+    if application_id != APPLICATION_ID || ![1, 2].contains(&version) {
         return Err("此数据库不属于当前版本的 Noterion，未修改内容。".into());
     }
     let files = root.join("files");
@@ -638,10 +657,13 @@ fn open_store(path: &Path, create: bool) -> Result<(PathBuf, Connection), String
     {
         return Err("资料目录已被重定向，无法打开。".into());
     }
+    // Validate the old authoritative content and file directory before any migration
+    // or journal-mode change. An unrelated or corrupt database is never upgraded.
+    read_facts(&connection)?;
+    ai_support::prepare_schema(&mut connection)?;
     connection
         .execute_batch("PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL; PRAGMA foreign_keys=ON;")
         .map_err(|e| disk_error("数据目录不可写或不能可靠提交，请选择可写位置", e))?;
-    read_facts(&connection)?;
     Ok((root, connection))
 }
 
@@ -709,6 +731,11 @@ pub fn app_load(state: tauri::State<'_, SharedStore>) -> Result<Snapshot, String
         }
     }
     store.snapshot()
+}
+
+#[tauri::command]
+pub fn ai_records(state: tauri::State<'_, SharedStore>) -> Result<Vec<AiRecord>, String> {
+    lock_store(&state)?.ai_records()
 }
 #[tauri::command]
 pub fn directory_select(

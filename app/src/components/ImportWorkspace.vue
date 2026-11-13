@@ -1,166 +1,101 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
+import type { AiAdoptInput, AiCandidate, AiChoice, AiDraft, AiImportRecord, AiRequest, AiResult } from '../domain/ai'
+import type { KnowledgePoint, ResourceItem } from '../domain/types'
+import { errorText, invoke } from '../desktop'
 import Icon from './Icon.vue'
-import { buildImportPlan, csvTemplate, markdownTemplate, parseImport, type ImportDraft, type ImportRow } from '../domain/import'
-import type { DemoData, ResourceItem } from '../domain/types'
-import type { ImportRecord, ImportSubmission } from '../domain/importHistory'
-import { mergePreviewDefaults, type ImportWorkspaceRequest } from '../domain/importSource'
-
-const props = defineProps<{ data: DemoData; request?: ImportWorkspaceRequest | null; result: ImportRecord | null; sourceResource?: ResourceItem | null; returnLabel?: string; checkDuplicate: (source: string, format: 'markdown' | 'csv', defaults: string[]) => boolean }>()
-const emit = defineEmits<{ submit: [value: ImportSubmission]; invalid: [value: ImportSubmission]; draftChange: [value: ImportSubmission]; dirtyChange: [dirty: boolean]; cancel: []; records: []; locate: [id: string]; preview: [resource: ResourceItem] }>()
-const step = ref<1 | 2 | 3>(1)
-const source = ref('')
-const format = ref<'markdown' | 'csv'>('markdown')
-const filename = ref('粘贴的 Markdown')
-const draft = ref<ImportDraft>(parseImport('', 'markdown'))
-const defaultIds = ref<string[]>([])
-const selectedIndex = ref(0)
-const fileInput = ref<HTMLInputElement | null>(null)
-const sourcePane = ref<HTMLDivElement | null>(null)
-const inputError = ref('')
-const reading = ref(false)
-const dragging = ref(false)
-const showDefaults = ref(false)
-const showTopics = ref(false)
-const showResources = ref(false)
-const lastPreviewSource = ref<string | null>(null)
-const lastPreviewFormat = ref<'markdown' | 'csv'>('markdown')
-const parsedBaseline = ref('')
-let previousDeclaredDefaults: string[] = []
-const hasCorrections = computed(() => Boolean(parsedBaseline.value) && parsedBaseline.value !== JSON.stringify(draft.value))
-const plan = computed(() => buildImportPlan(draft.value, props.data, defaultIds.value))
-const duplicateInput = computed(() => props.checkDuplicate(source.value, format.value, defaultIds.value))
-const selected = computed(() => draft.value.rows[selectedIndex.value])
-const topicText = ref('')
-const resourceText = ref('')
-const splitIds = (value: string) => [...new Set(value.split(';').map((id) => id.trim()).filter(Boolean))]
-watch(selected, (row) => { topicText.value = row?.topicIds.join('; ') || ''; resourceText.value = row?.resourceIds.join('; ') || '' }, { immediate: true })
-watch(() => selected.value?.topicIds.join(';'), (ids) => { if (splitIds(topicText.value).join(';') !== ids) topicText.value = selected.value?.topicIds.join('; ') || '' })
-watch(() => selected.value?.resourceIds.join(';'), (ids) => { if (splitIds(resourceText.value).join(';') !== ids) resourceText.value = selected.value?.resourceIds.join('; ') || '' })
-const existing = computed(() => props.data.points.find((p) => p.id === selected.value?.id))
+import MarkdownText from './MarkdownText.vue'
+const props = defineProps<{ points: KnowledgePoint[]; resources: ResourceItem[]; sourceResource: ResourceItem | null; originalRecord: AiImportRecord | null; result: AiResult | null; busy: boolean; adopting: boolean; error: string; phase: string; detail: string; configured: boolean; adopted: AiImportRecord | null; duplicate: boolean; enabled: boolean }>()
+const emit = defineEmits<{ start: [request: AiRequest]; cancel: []; adopt: [input: AiAdoptInput]; settings: []; locate: [id: string]; records: []; clearAdoption: []; fresh: [] }>()
+const source = ref(''); const sourceName = ref('粘贴的学习笔记'); const sourceAtRequest = ref(''); const resourceIds = ref<string[]>([])
+const draft = ref<AiDraft | null>(null); const choices = ref<AiChoice[]>([]); const selectedIndex = ref(0); const localError = ref(''); const reading = ref(false); const fileInput = ref<HTMLInputElement | null>(null); const operationId = ref(crypto.randomUUID())
+const selected = computed(() => choices.value[selectedIndex.value])
+const candidate = computed<AiCandidate | undefined>(() => draft.value?.points[selectedIndex.value])
+const target = computed(() => props.points.find(p => p.id === selected.value?.targetId))
 const themes = computed(() => {
-  const byId = new Map(props.data.points.filter((p) => p.isTheme).map((p) => [p.id, { id: p.id, name: p.name }]))
-  draft.value.rows.filter((r) => r.isTheme).forEach((r) => byId.set(r.id, { id: r.id, name: r.name }))
-  return [...byId.values()].filter((p) => p.id !== selected.value?.id)
+  const all = new Map(props.points.filter(p => p.isTheme).map(p => [p.id, p]))
+  choices.value.filter(c => c.point.isTheme && c.action !== 'skip').forEach(c => all.set(c.point.id, c.point))
+  return [...all.values()].filter(p => p.id !== selected.value?.point.id)
 })
-const hasConflict = computed(() => existing.value && selected.value && (existing.value.name !== selected.value.name.trim() || existing.value.description !== selected.value.description))
-const rowErrors = computed(() => selected.value ? plan.value.issues.filter((i) => i.rowId === selected.value!.id || (!i.rowId && i.line >= selected.value!.line && i.line <= selected.value!.endLine)) : [])
-const sourceLines = computed(() => source.value.replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n').split('\n'))
-const summary = computed(() => duplicateInput.value ? { added: 0, existing: draft.value.rows.length, pending: 0 } : ({ added: draft.value.rows.filter((r) => !props.data.points.some((p) => p.id === r.id)).length, existing: draft.value.rows.filter((r) => props.data.points.some((p) => p.id === r.id)).length, pending: new Set(plan.value.issues.map((i) => i.rowId || 'line:' + i.line)).size }))
-const statusText: Record<string, string> = { new: '新增', updated: '补充', existing: '已存在', conflict: '待选择', error: '待修正' }
-const submission = (): ImportSubmission => ({ source: source.value, format: format.value, filename: filename.value, draft: JSON.parse(JSON.stringify(draft.value)), defaultResourceIds: [...defaultIds.value], sourceResourceId: props.sourceResource?.id })
-watch([draft, defaultIds], () => { if (step.value === 2) emit('draftChange', submission()) }, { deep: true })
-watch([source, draft, step, defaultIds], () => emit('dirtyChange', step.value !== 3 && Boolean(source.value.trim() || draft.value.rows.length)), { deep: true, immediate: true })
-watch(() => props.request, (value) => {
-  if (!value) return
-  source.value = value.source; format.value = value.format; filename.value = value.filename
-  draft.value = value.draft ? JSON.parse(JSON.stringify(value.draft)) : parseImport(value.source, value.format)
-  defaultIds.value = [...new Set([...value.defaultResourceIds, ...(props.sourceResource ? [props.sourceResource.id] : [])])]
-  previousDeclaredDefaults = value.draft ? [...draft.value.defaultResourceIds] : []
-  selectedIndex.value = 0; inputError.value = value.error || ''
-  if (value.preview) {
-    if (!value.draft) defaultIds.value = mergePreviewDefaults(defaultIds.value, [], draft.value.defaultResourceIds, props.sourceResource?.id)
-    previousDeclaredDefaults = [...draft.value.defaultResourceIds]
-    lastPreviewSource.value = source.value; lastPreviewFormat.value = format.value; parsedBaseline.value = JSON.stringify(draft.value)
-    step.value = 2
-    if (plan.value.issues.length && !duplicateInput.value) emit('invalid', submission())
-  } else step.value = 1
-}, { immediate: true })
-watch(() => props.result, (value) => { if (value) step.value = value.status === 'failed' ? 2 : 3 })
-watch(selectedIndex, async () => {
-  showTopics.value = false; showResources.value = false
-  await nextTick()
-  const pane = sourcePane.value
-  const line = pane?.querySelector('.is-source-selected')
-  if (pane && line) pane.scrollTo({ top: line.getBoundingClientRect().top - pane.getBoundingClientRect().top + pane.scrollTop - 16, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
+const adoptCount = computed(() => choices.value.filter(c => c.action !== 'skip').length)
+const counts = computed(() => ({ create: choices.value.filter(c => c.action === 'create').length, reuse: choices.value.filter(c => c.action === 'reuse').length, update: choices.value.filter(c => c.action === 'update').length }))
+const ready = computed(() => {
+  if (!draft.value || props.busy || source.value !== sourceAtRequest.value) return false
+  if (draft.value.duplicateRecordId) return true
+  return adoptCount.value > 0 && !choices.value.some(c => c.action !== 'skip' && (!c.point.name.trim() || (['reuse','update'].includes(c.action) && !c.targetId)))
 })
-function preview() {
-  if (!source.value.trim()) { inputError.value = '请选择文件或粘贴模板内容。'; return }
-  if (lastPreviewSource.value !== source.value || lastPreviewFormat.value !== format.value) {
-    draft.value = parseImport(source.value, format.value)
-    defaultIds.value = mergePreviewDefaults(defaultIds.value, previousDeclaredDefaults, draft.value.defaultResourceIds, props.sourceResource?.id)
-    previousDeclaredDefaults = [...draft.value.defaultResourceIds]
-    lastPreviewSource.value = source.value; lastPreviewFormat.value = format.value; parsedBaseline.value = JSON.stringify(draft.value)
+const textReady = computed(() => props.sourceResource && ['text', 'markdown'].includes(props.sourceResource.kind))
+watch(() => props.result, value => {
+  if (value?.kind !== 'extract') return
+  draft.value = value.draft; choices.value = value.draft.points.map(c => ({ candidateId: c.point.id, point: JSON.parse(JSON.stringify(c.point)), action: 'create' as const })); selectedIndex.value = 0; localError.value = ''; operationId.value = crypto.randomUUID()
+})
+watch(choices, () => {
+  for (const choice of choices.value) {
+    if (choice.action === 'create' || choice.action === 'skip') delete choice.targetId
   }
-  selectedIndex.value = 0; inputError.value = ''; step.value = 2
-  if (plan.value.issues.length && !duplicateInput.value) emit('invalid', submission())
-}
+  operationId.value = crypto.randomUUID(); emit('clearAdoption')
+}, { deep: true, flush: 'sync' })
+watch(() => props.sourceResource, resource => {
+  if (!resource) return
+  resourceIds.value = [resource.id]; sourceName.value = resource.filename || resource.title; source.value = ''; sourceAtRequest.value = ''; draft.value = null; choices.value = []; localError.value = ''; emit('clearAdoption')
+}, { immediate: true })
+watch(() => props.originalRecord, (record, previous) => {
+  if (!record && !previous) return
+  resourceIds.value = record ? record.sourceResourceIds.filter(id => props.resources.some(r => r.id === id)) : []
+  sourceName.value = record?.sourceName || '粘贴的学习笔记'
+  draft.value = null; choices.value = []; source.value = ''; sourceAtRequest.value = ''; localError.value = ''
+})
 async function readFile(file?: File) {
   if (!file) return
-  if (!/\.(md|markdown|csv)$/i.test(file.name)) { inputError.value = '请选择 .md、.markdown 或 .csv 模板文件。'; return }
-  if (file.size > 5 * 1024 * 1024) { inputError.value = '知识导入文件需小于 5 MB。'; return }
-  reading.value = true; inputError.value = ''
+  localError.value = ''; reading.value = true
   try {
-    source.value = new TextDecoder('utf-8', { fatal: true }).decode(await file.arrayBuffer())
-    format.value = /\.csv$/i.test(file.name) ? 'csv' : 'markdown'; filename.value = file.name
-  } catch { inputError.value = '无法读取文件，请保存为 UTF-8 后重试。' }
-  finally { reading.value = false; if (fileInput.value) fileInput.value.value = '' }
+    if (!/\.(txt|md|markdown)$/i.test(file.name)) throw new Error('请选择 Markdown 或 TXT 纯文本。PDF、图片和视频可作为关联资料，暂不转换正文。')
+    if (file.size > 256 * 1024) throw new Error('这份文本超过单次 256 KB 的范围，请拆为较小文本后整理。长文本会在本次范围内自动分段。')
+    source.value = new TextDecoder('utf-8', { fatal: true }).decode(await file.arrayBuffer()).replace(/^\uFEFF/, ''); sourceName.value = file.name; draft.value = null; choices.value = []; emit('clearAdoption')
+  } catch (e) { localError.value = errorText(e) } finally { reading.value = false; if (fileInput.value) fileInput.value.value = '' }
 }
-function drop(event: DragEvent) { dragging.value = false; void readFile(event.dataTransfer?.files[0]) }
-async function sample() {
-  reading.value = true; inputError.value = ''
-  try {
-    const response = await fetch('./test-data/00-empty-start.md')
-    if (!response.ok) throw new Error()
-    source.value = await response.text(); format.value = 'markdown'; filename.value = '00-empty-start.md'
-    preview()
-  } catch { inputError.value = '示例读取失败，请从测试数据包选择文件。' }
-  finally { reading.value = false }
+async function readResource() {
+  if (!props.sourceResource) return
+  reading.value = true; localError.value = ''
+  try { source.value = await invoke<string>('ai_read_text', { resourceId: props.sourceResource.id }); draft.value = null; choices.value = []; emit('clearAdoption') }
+  catch (e) { localError.value = errorText(e) } finally { reading.value = false }
 }
-function downloadTemplate(kind: 'markdown' | 'csv') {
-  const value = kind === 'csv' ? csvTemplate : markdownTemplate
-  const url = URL.createObjectURL(new Blob([value], { type: 'text/plain;charset=utf-8' }))
-  const a = document.createElement('a'); a.href = url; a.download = 'noterion-template.' + (kind === 'csv' ? 'csv' : 'md'); a.click()
-  setTimeout(() => URL.revokeObjectURL(url), 1000)
+function submit() {
+  if (!source.value.trim() || props.busy || reading.value || !props.enabled) return
+  if (new TextEncoder().encode(source.value).byteLength > 256 * 1024) { localError.value = '这份文本超过单次 256 KB 的范围，请拆为较小文本后整理。'; return }
+  sourceAtRequest.value = source.value; emit('clearAdoption'); draft.value = null; choices.value = []; localError.value = ''
+  emit('start', { action: 'extract', text: source.value, sourceName: sourceName.value, resourceIds: [...resourceIds.value], originalRecordId: props.originalRecord?.id, allowSupplement: false })
 }
-function setIds(row: ImportRow, field: 'topicIds' | 'resourceIds', event: Event) {
-  row[field] = splitIds((event.target as HTMLInputElement).value)
+function adopt() {
+  if (!ready.value || !draft.value) return
+  const submittedChoices: AiChoice[] = draft.value.duplicateRecordId ? [] : choices.value.map(choice => {
+    const copy: AiChoice = JSON.parse(JSON.stringify(choice))
+    if (copy.action === 'create' || copy.action === 'skip') delete copy.targetId
+    return copy
+  })
+  emit('adopt', { draftId: draft.value.id, operationId: operationId.value, choices: submittedChoices })
 }
-function rowAtLine(line: number) { return draft.value.rows.findIndex((r) => line >= r.line && line <= r.endLine) }
-function startAnother() { source.value = ''; draft.value = parseImport('', format.value); step.value = 1; defaultIds.value = props.sourceResource ? [props.sourceResource.id] : []; previousDeclaredDefaults = []; lastPreviewSource.value = null; parsedBaseline.value = ''; inputError.value = ''; showDefaults.value = false }
+function nameOf(id: string) { return choices.value.find(c=>c.point.id===id)?.point.name || props.points.find(p=>p.id===id)?.name || '已移除的主题' }
+function disambiguate(point: KnowledgePoint) { const topics = point.topicIds.map(id=>props.points.find(p=>p.id===id)?.name).filter(Boolean).join(' / '); return point.name + (topics ? '（' + topics + '）' : '') + (point.description ? ' — ' + point.description.replace(/\s+/g,' ').slice(0,60) : '') }
+function isSuggested(id: string) { return candidate.value?.matches.includes(id) }
+function newInput() { draft.value = null; choices.value = []; source.value = ''; sourceAtRequest.value = ''; emit('clearAdoption'); emit('fresh') }
 </script>
-
 <template>
-  <section class="import-workspace glass-panel">
-    <div class="workspace-heading"><div><span class="eyebrow">KNOWLEDGE IMPORT</span><h1>导入知识</h1></div><ol class="import-stepper" aria-label="导入步骤"><li v-for="(label, index) in ['选择内容', '预览修正', '导入结果']" :key="label" :class="{ active: step === index + 1, complete: step > index + 1 }"><span>{{ step > index + 1 ? '✓' : index + 1 }}</span>{{ label }}</li></ol></div>
-    <div v-if="sourceResource" class="import-source-context"><Icon name="book" :size="19" /><div><strong>{{ sourceResource.title }}</strong><p>从这份资料导入 · 自动关联本批知识点</p></div><button class="button" @click="emit('preview', sourceResource)">查看来源资料</button></div>
-
-    <div v-if="step === 1" class="import-input-layout">
-      <section class="input-card"><div class="section-heading"><h2>选择导入内容</h2><span class="muted">Markdown / CSV</span></div>
-        <div class="dropzone" :class="{ dragging }" @dragover.prevent="dragging = true" @dragleave.prevent="dragging = false" @drop.prevent="drop"><Icon name="file" :size="30" /><strong>{{ reading ? '正在读取文件…' : '将知识文件拖到这里' }}</strong><p>使用 UTF-8 编码的 Markdown 或 CSV 模板，最大 5 MB</p><button class="button" :disabled="reading" @click="fileInput?.click()">选择文件</button><input ref="fileInput" class="sr-only" type="file" accept=".md,.markdown,.csv" aria-label="选择知识导入文件" @change="readFile(($event.target as HTMLInputElement).files?.[0])" /></div>
-        <div class="source-input-heading"><label for="raw-import">或粘贴模板内容</label><select v-model="format" class="field format-select" aria-label="导入格式" @change="filename = format === 'csv' ? '粘贴的 CSV' : '粘贴的 Markdown'"><option value="markdown">Markdown</option><option value="csv">CSV</option></select></div>
-        <textarea id="raw-import" v-model="source" class="field source-input" spellcheck="false" placeholder="import_id: my-knowledge-v1&#10;default_resource_ids:&#10;&#10;## 我的知识点 {#my-point}&#10;is_theme: false&#10;topic_ids:&#10;resource_ids:&#10;&#10;在这里记录描述、命令与个人理解。" />
-        <p v-if="hasCorrections" class="source-edit-note">原文未改时会保留右侧修正；修改原文或格式后重新预览，将按新原文重新整理条目。</p>
-        <p v-if="sourceResource && !source" class="source-edit-note">当前资料已作为来源。请选择整理好的知识模板文件，或粘贴知识内容；普通文档不会自动拆分为知识点。</p>
-        <p v-if="inputError" class="inline-error" role="alert"><Icon name="alert" :size="15" />{{ inputError }}</p>
-      </section>
-      <aside class="import-guide"><Icon name="layers" :size="26" /><h2>从整理好的知识开始</h2><p>每条知识使用独立 ID，可以引用多个主题和多份资料。描述保留为完整的 Markdown 原文。</p><div class="guide-downloads"><button class="button" @click="downloadTemplate('markdown')"><Icon name="file" />Markdown 模板<Icon name="arrow" :size="14" class="download-arrow" /></button><button class="button" @click="downloadTemplate('csv')"><Icon name="file" />CSV 模板<Icon name="arrow" :size="14" class="download-arrow" /></button></div><div class="guide-divider" /><h3>先体验一次完整导入</h3><p>示例可从空白图谱直接导入，包含 2 个主题和 3 个知识点。</p><button class="button" :disabled="reading" @click="sample">载入示例<Icon name="arrow" :size="14" class="forward-arrow" /></button><a class="guide-link" href="./test-data/README.md" target="_blank" rel="noopener">测试数据与使用说明 ↗</a><a class="guide-link" href="./test-data/noterion-test-data.zip" download>下载完整测试数据包 ↓</a><div class="guide-note"><Icon name="file" :size="18" /><p>PDF、Word、图片等学习文档请从「资料库」添加，再关联知识点。</p></div></aside>
+  <section class="ai-import-workspace glass-panel" aria-label="AI 知识整理">
+    <header class="ai-workspace-heading"><div><h1>从学习笔记整理知识</h1><p>普通文字即可。先核对原文和知识点，再保存到本机图谱。</p></div><button class="button" @click="emit('records')"><Icon name="clock" :size="16" />导入记录</button></header>
+    <p v-if="originalRecord" class="ai-context-banner">正在更新“{{originalRecord.sourceName}}”的原记录。请重新提供修改后的文本；省略内容不会删除已有知识。</p>
+    <div v-if="sourceResource" class="ai-context-banner"><Icon name="book" :size="17" /><span>来源资料：{{sourceResource.title}}</span><button v-if="textReady" class="button compact-button" :disabled="reading || busy || adopting" @click="readResource">{{reading?'正在读取…':'读取这份文本'}}</button><p v-else>这份资料仅作为关联来源。请粘贴或选择已取得的纯文本，当前不提供 PDF、图片或视频转文字。</p></div>
+    <div v-if="!enabled" class="ai-error" role="alert">请先打开本机数据目录，才能整理并采用知识。</div>
+    <div v-if="localError || error" class="ai-error" role="alert" data-testid="ai-import-error">{{localError || error}}</div>
+    <div v-if="busy" class="ai-task-status" role="status"><span class="spinner small" />{{phase}}<span>{{detail}}</span><button class="button compact-button" data-testid="ai-import-cancel" @click="emit('cancel')">取消解析</button></div>
+    <p v-else-if="phase==='已取消'" class="ai-help" role="status">解析已取消，输入已保留。你可以修改后重试。</p>
+    <div v-if="adopted" class="ai-adopted" role="status" data-testid="ai-adopted"><Icon name="check" :size="23" /><div><h2>{{duplicate?'这份输入已经采用':'知识已保存到本机'}}</h2><p>{{duplicate?'本次没有重复写入，也不会恢复已删除的知识。':`新增 ${adopted.added} 个、更新 ${adopted.updated} 个、复用 ${adopted.reused} 个知识点。`}}</p><div class="ai-adopted-links"><button v-for="id in adopted.pointIds.filter(id=>points.some(p=>p.id===id))" :key="id" class="tag tag-button" @click="emit('locate',id)">{{points.find(p=>p.id===id)?.name}}</button></div><button class="button" @click="emit('records')">查看导入记录</button><button class="text-button" @click="newInput">整理新的文本</button></div></div>
+    <div class="ai-import-input" :class="{'has-draft':draft}">
+      <section class="ai-input-section"><div class="ai-section-heading"><h2>{{draft?'本次原文':'学习文本'}}</h2><button class="button compact-button" :disabled="busy || reading || adopting" @click="fileInput?.click()">选择 TXT / Markdown</button><input ref="fileInput" class="sr-only" type="file" accept=".txt,.md,.markdown" aria-label="选择学习文本" @change="readFile(($event.target as HTMLInputElement).files?.[0])" /></div><textarea v-model="source" class="field ai-source-input" :disabled="busy || adopting" aria-label="学习文本" data-testid="ai-source" placeholder="粘贴你的学习笔记，不需要标题模板或固定字段。" /><div class="ai-source-controls"><p>{{sourceName}} · {{source.length.toLocaleString()}} 字符</p><button v-if="!configured" class="button" @click="emit('settings')">配置 DeepSeek</button><button class="button button-primary" :disabled="busy || adopting || reading || !source.trim() || !enabled" data-testid="ai-extract" @click="submit">{{draft?'重新解析原文':'AI 整理知识'}}</button></div><p class="ai-help">本次发送：上方全文、选中资料的信息及必要的已有知识候选。按独立可复用知识整理，步骤放入描述；额外主题建议会标识为结构推断。</p><details class="ai-source-picker"><summary>本批关联来源（{{resourceIds.length}}）</summary><label v-for="resource in resources" :key="resource.id"><input v-model="resourceIds" type="checkbox" :value="resource.id" :disabled="busy || adopting || !!draft" />{{resource.title}}</label><p v-if="!resources.length" class="ai-help">暂无资料，可不关联来源。</p></details></section>
+      <section v-if="draft" class="ai-review-section" aria-label="AI 候选预览"><div class="ai-section-heading"><h2>{{draft.duplicateRecordId?'已有采用记录':'核对候选知识'}} <span v-if="!draft.duplicateRecordId">{{choices.length}}</span></h2><span v-if="!draft.duplicateRecordId">{{counts.create}} 新建 · {{counts.reuse}} 复用 · {{counts.update}} 更新</span></div><p v-if="source !== sourceAtRequest" class="ai-error" role="alert">原文已修改，请重新解析后再采用，避免保存与当前文本不一致的候选。</p><p v-if="draft.duplicateRecordId" class="ai-context-banner" data-testid="ai-duplicate">这份输入已经处理过。本机已有采用记录，本次未请求模型；查看结果时会核对已有记录，不重复写入。</p><p v-for="(warning,index) in draft.warnings" :key="index" class="ai-help">{{warning}}</p><div v-if="choices.length" class="ai-candidate-layout"><nav class="ai-candidate-list" aria-label="候选知识点"><button v-for="(choice,index) in choices" :key="choice.candidateId" :class="{selected:index===selectedIndex}" :aria-pressed="index===selectedIndex" @click="selectedIndex=index"><Icon :name="choice.point.isTheme?'layers':'file'" :size="15" /><span>{{choice.point.name || '未命名知识点'}}<small>{{{create:'新建',reuse:'复用已有',update:'更新已有',skip:'跳过'}[choice.action]}}</small></span></button></nav><div v-if="selected" class="ai-candidate-editor"><label class="ai-field-label">名称<input v-model="selected.point.name" class="field" aria-label="候选知识点名称" :disabled="adopting" /></label><label class="ai-check"><input v-model="selected.point.isTheme" type="checkbox" :disabled="adopting" />可作为主题</label><label class="ai-field-label">描述<textarea v-model="selected.point.description" class="field ai-candidate-description" aria-label="候选知识点描述" :disabled="adopting" /></label><details><summary class="ai-help">查看描述效果</summary><MarkdownText :text="selected.point.description" /></details><fieldset class="ai-candidate-topics"><legend>所属主题</legend><label v-for="theme in themes" :key="theme.id" class="ai-check"><input v-model="selected.point.topicIds" type="checkbox" :value="theme.id" :disabled="adopting" />{{theme.name}}</label><p v-if="!selected.point.topicIds.length" class="ai-help">独立知识点</p><label v-for="id in selected.point.topicIds.filter(id=>!themes.some(t=>t.id===id))" :key="id" class="ai-check"><input v-model="selected.point.topicIds" type="checkbox" :value="id" :disabled="adopting" />已移除或已跳过的主题（取消关联）</label></fieldset><fieldset class="ai-candidate-topics"><legend>关联资料</legend><p class="ai-help">采用时在本机关联，不会因此发送资料正文。</p><label v-for="resource in resources" :key="resource.id" class="ai-check"><input v-model="selected.point.resourceIds" type="checkbox" :value="resource.id" :disabled="adopting" />{{resource.title}}</label><label v-for="id in selected.point.resourceIds.filter(id=>!resources.some(r=>r.id===id))" :key="id" class="ai-check"><input v-model="selected.point.resourceIds" type="checkbox" :value="id" :disabled="adopting" />资料已移除（取消关联）</label><p v-if="!resources.length" class="ai-help">暂无资料。</p></fieldset><section class="ai-evidence"><h3>原文依据</h3><p v-if="!candidate?.evidence.length" class="ai-help">未提供可核对的原文片段，请检查后决定是否采用。</p><blockquote v-for="(evidence,index) in candidate?.evidence" :key="index"><span>{{evidence.inferred?'结构推断，需核对':'来自原文'}}</span><p>{{evidence.quote || sourceAtRequest.slice(evidence.start,evidence.end)}}</p></blockquote></section><label class="ai-field-label">采用方式<select v-model="selected.action" class="field" aria-label="候选采用方式" :disabled="adopting"><option value="create">新建独立知识点</option><option value="reuse">复用已有知识点，保留名称与描述</option><option value="update">明确更新已有知识点</option><option value="skip">跳过这个候选</option></select></label><template v-if="selected.action==='reuse' || selected.action==='update'"><label class="ai-field-label">选择已有知识点<select v-model="selected.targetId" class="field" aria-label="选择已有知识点" :disabled="adopting"><option :value="undefined">请选择要复用或更新的知识点</option><option v-for="point in [...points].sort((a,b)=>Number(isSuggested(b.id))-Number(isSuggested(a.id)))" :key="point.id" :value="point.id">{{isSuggested(point.id)?'建议核对：':''}}{{disambiguate(point)}}</option></select></label><div v-if="target" class="ai-difference"><h3>已有内容</h3><strong>{{target.name}}</strong><p>{{target.description || '暂无描述'}}</p><p>已有主题：{{target.topicIds.map(nameOf).join('、') || '无'}}</p><h3>{{selected.action==='update'?'将更新为':'复用后保留'}}</h3><strong>{{selected.action==='update'?selected.point.name:target.name}}</strong><p>{{selected.action==='update'?selected.point.description:target.description}}</p><small>所属主题与资料只会补充，不因缺项移除。修改共享知识点会同时影响所有所属主题中的同一节点。</small></div></template><p v-else-if="candidate?.matches.length && selected.action==='create'" class="ai-help">已有可能相关的知识点。本次新建会保留独立身份，不会按名称自动合并。</p></div></div><div v-else-if="draft.duplicateRecordId" class="ai-help">可查看之前保存的成果与导入记录。已删除的知识不会恢复。</div><div v-else class="ai-help">没有提取到可采用的知识点，请补充学习文本后重试。</div><footer class="ai-adopt-actions"><p>{{draft.duplicateRecordId?'核对已有采用记录，知识与资料保持当前状态。':'核对后整批保存；任一引用或关系校验失败，整批不写入。'}}</p><button class="button button-primary" :disabled="!ready || busy || adopting || !!adopted" data-testid="ai-adopt" @click="adopt">{{adopting?(draft.duplicateRecordId?'正在核对本机记录…':'正在保存到本机…'):draft.duplicateRecordId?'查看已有采用结果':`采用 ${adoptCount} 个候选`}}</button></footer></section>
     </div>
-
-    <template v-else-if="step === 2">
-      <div class="import-summary"><div class="source-file"><Icon name="file" :size="21" /><div><strong :title="filename">{{ filename }}</strong><small>{{ draft.importId || '批次 ID 待修正' }}</small></div><button class="text-button" @click="step = 1">更换 / 修改原文</button></div><div class="default-source-picker"><button class="default-source-button" :aria-expanded="showDefaults" @click="showDefaults = !showDefaults"><Icon name="book" :size="16" /><span>默认来源</span><strong>{{ defaultIds.length ? defaultIds.map((id) => data.resources.find((r) => r.id === id)?.title || id).join('、') : '未选择' }}</strong><Icon name="chevron" :size="13" /></button><div v-if="showDefaults" class="picker-dropdown"><h3>应用于本批所有知识点</h3><p v-if="!data.resources.length" class="muted">暂无资料，可先不关联来源完成导入。</p><label v-for="resource in data.resources" :key="resource.id"><input v-model="defaultIds" type="checkbox" :value="resource.id" :disabled="resource.id === sourceResource?.id" /><span>{{ resource.title }}<small>{{ resource.id === sourceResource?.id ? '本次来源 · 自动关联' : resource.id }}</small></span></label><label v-for="id in defaultIds.filter((id) => !data.resources.some((r) => r.id === id))" :key="id"><input v-model="defaultIds" type="checkbox" :value="id" /><span>无效来源：{{ id }}（取消选择以修正）</span></label><button class="button compact-button" @click="showDefaults = false">完成</button></div></div><div class="summary-counts"><strong>{{ draft.rows.length }}<small>知识点</small></strong><strong>{{ summary.added }}<small>新增</small></strong><strong>{{ summary.existing }}<small>已有</small></strong><strong :class="{ 'pending-count': summary.pending }">{{ summary.pending }}<small>待处理</small></strong></div></div>
-      <div class="compare-layout">
-        <section class="source-panel inner-panel"><div class="section-heading"><h2>原文</h2><span>{{ format === 'csv' ? 'CSV' : 'Markdown' }} · {{ sourceLines.length }} 行</span></div><div ref="sourcePane" class="source-code" tabindex="0" aria-label="输入原文"><div v-for="(line, index) in sourceLines" :key="index" class="source-line" :class="{ 'is-source-selected': selected && index + 1 >= selected.line && index + 1 <= selected.endLine }" @click="rowAtLine(index + 1) >= 0 && (selectedIndex = rowAtLine(index + 1))"><span class="line-number">{{ index + 1 }}</span><code>{{ line || ' ' }}</code></div></div></section>
-        <section class="result-panel inner-panel"><div class="section-heading"><h2>整理结果</h2><span>选择条目，检查并修正</span></div><div class="result-body">
-          <div v-if="duplicateInput" class="import-alert"><Icon name="copy" :size="16" /><div><strong>这个批次和输入已处理</strong><p>确认后记录为重复输入；不会覆盖后续编辑或恢复已删除的知识点。</p></div></div><div v-else-if="plan.issues.length" class="import-alert" role="status"><Icon name="alert" :size="16" /><div><strong>还有 {{ plan.issues.length }} 项需要处理</strong><p v-for="(issue, index) in plan.issues" :key="index"><button @click="issue.rowId && (selectedIndex = Math.max(0, draft.rows.findIndex((r) => r.id === issue.rowId)))">第 {{ issue.line }} 行 · {{ issue.message }}</button></p></div></div>
-          <div v-if="draft.rows.length" class="structure-overview"><div class="outline-list" aria-label="知识条目"><button v-for="(row, index) in draft.rows" :key="index" :class="{ selected: selectedIndex === index }" @click="selectedIndex = index"><Icon :name="row.isTheme ? 'layers' : 'file'" :size="14" /><span>{{ row.name || '未命名知识点' }}</span><small>{{ duplicateInput ? '已处理' : statusText[plan.rows[index]?.status || 'new'] }}</small></button></div><div class="point-preview"><span class="eyebrow">所属主题预览</span><strong>{{ selected?.name || '未命名知识点' }}</strong><div class="topic-preview-tags"><span v-for="id in [...new Set([...(existing?.topicIds || []), ...(selected?.topicIds || [])])]" :key="id" class="tag">{{ themes.find((t) => t.id === id)?.name || id }}</span><span v-if="!existing?.topicIds.length && !selected?.topicIds.length" class="muted">独立知识点</span></div><small>{{ selected?.isTheme ? '主题知识点' : '知识点' }} · {{ selected?.id }}</small></div></div>
-          <div v-if="selected" class="inline-point-editor"><div class="section-heading"><h3>修正所选知识点</h3><span>原文第 {{ selected.line }}–{{ selected.endLine }} 行</span></div>
-            <div class="editor-two-fields"><label>名称<input v-model="selected.name" class="field" aria-label="导入知识点名称" /></label><label>ID<input v-model="selected.id" class="field mono" aria-label="导入知识点 ID" /></label></div><label class="inline-check"><input v-model="selected.isTheme" type="checkbox" />可作为主题</label>
-            <label class="import-description-label">描述 <small>Markdown 原文</small><textarea v-model="selected.description" class="field import-description" spellcheck="false" aria-label="导入知识点描述" /></label>
-            <div v-if="hasConflict" class="conflict-box"><strong><Icon name="alert" :size="14" />与已有名称或描述不同</strong><p class="existing-content"><b>已有：{{ existing?.name }}</b>{{ existing?.description }}</p><label><input v-model="selected.resolution" type="radio" value="keep" :name="'resolve-' + selectedIndex" />保留已有名称和描述</label><label><input v-model="selected.resolution" type="radio" value="adopt" :name="'resolve-' + selectedIndex" />采用本次导入的名称和描述</label><small>所属主题与资料关联会合并保留。</small></div>
-            <div class="association-editor"><div><label>所属主题 ID<input class="field mono" v-model="topicText" placeholder="可空；多个 ID 用 ; 分隔" aria-label="所属主题 ID" @input="setIds(selected, 'topicIds', $event)" /></label><button class="text-button" :aria-expanded="showTopics" @click="showTopics = !showTopics">{{ showTopics ? '收起主题' : '从主题中选择' }}</button><div v-if="showTopics" class="inline-options"><label v-for="theme in themes" :key="theme.id"><input v-model="selected.topicIds" type="checkbox" :value="theme.id" /><span>{{ theme.name }}<small>{{ theme.id }}</small></span></label></div></div><div><label>资料 ID<input class="field mono" v-model="resourceText" placeholder="可空；多个 ID 用 ; 分隔" aria-label="资料 ID" @input="setIds(selected, 'resourceIds', $event)" /></label><button class="text-button" :aria-expanded="showResources" @click="showResources = !showResources">{{ showResources ? '收起资料' : '从资料库选择' }}</button><div v-if="showResources" class="inline-options"><label v-for="resource in data.resources" :key="resource.id"><input v-model="selected.resourceIds" type="checkbox" :value="resource.id" /><span>{{ resource.title }}<small>{{ resource.id }}</small></span></label></div></div></div>
-            <p v-for="issue in rowErrors" :key="issue.message" class="inline-error"><Icon name="alert" :size="14" />{{ issue.message }}</p>
-          </div><div v-else class="empty-workspace"><Icon name="file" :size="30" /><h3>尚未找到知识条目</h3><p>返回上一步，按模板修正原文后重新预览。</p><button class="button" @click="step = 1">修改原文</button></div>
-        </div></section>
-      </div>
-    </template>
-
-    <div v-else class="import-complete"><span class="complete-icon"><Icon name="circleCheck" :size="40" /></span><span class="eyebrow">{{ result?.status === 'duplicate' ? 'ALREADY PROCESSED' : 'IMPORT COMPLETE' }}</span><h2>{{ result?.status === 'duplicate' ? '这个输入已处理' : '知识已导入' }}</h2><p>{{ result?.status === 'duplicate' ? '未重复写入，也不会覆盖后续编辑或恢复已删除的知识点。' : '内容已保存在当前页面，可以回到图谱检索和查看。' }}</p><div class="result-stat-cards"><div><strong>{{ result?.counts.added || 0 }}</strong><span>新增知识点</span></div><div><strong>{{ result?.counts.updated || 0 }}</strong><span>补充知识点</span></div><div><strong>{{ result?.counts.topicLinks || 0 }}</strong><span>新增主题关系</span></div><div><strong>{{ result?.counts.resourceLinks || 0 }}</strong><span>新增资料关联</span></div></div><div class="result-contributions"><button v-for="id in result?.pointIds || []" :key="id" @click="emit('locate', id)"><Icon name="file" :size="15" />{{ data.points.find((p) => p.id === id)?.name || id }}<Icon name="external" :size="12" /></button></div><div class="complete-actions"><button class="button" @click="startAnother">继续导入</button><button class="button" @click="emit('records')">查看导入记录</button><button class="button button-primary" @click="emit('cancel')">{{ returnLabel || '返回图谱' }}</button></div></div>
-
-    <footer v-if="step !== 3" class="workspace-footer"><button class="button" @click="emit('cancel')">{{ returnLabel || '返回图谱' }}</button><button v-if="step === 2" class="button" @click="step = 1">上一步</button><button v-if="step === 1" class="button button-primary" :disabled="reading || !source.trim()" @click="preview">预览并修正<Icon name="arrow" :size="15" class="forward-arrow" /></button><button v-else class="button button-primary" :disabled="!duplicateInput && (!plan.data || plan.issues.length > 0)" @click="emit('submit', submission())">{{ duplicateInput ? '跳过重复并查看结果' : plan.issues.length ? '处理 ' + plan.issues.length + ' 项后导入' : '确认导入 ' + draft.rows.length + ' 条知识' }}</button></footer>
   </section>
 </template>
-
-
-
-
+<style scoped>
+.ai-import-workspace{margin:8px 16px 16px;min-height:0;flex:1;display:flex;flex-direction:column;overflow:auto;padding:26px 30px}.ai-workspace-heading{display:flex;align-items:center;justify-content:space-between;gap:24px;padding-bottom:22px;border-bottom:1px solid #d9d9d9}.ai-workspace-heading h1{font-size:25px;font-weight:600}.ai-workspace-heading p{font-size:13px;line-height:1.8;color:#646464;margin-top:9px}.ai-import-input{display:grid;grid-template-columns:minmax(0,1fr);gap:24px;min-height:0;padding-top:22px}.ai-import-input.has-draft{grid-template-columns:minmax(300px,.85fr) minmax(420px,1.4fr)}.ai-input-section,.ai-review-section{min-width:0}.ai-section-heading{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:14px}.ai-section-heading h2{font-size:16px;font-weight:600}.ai-section-heading span{font-size:12px;color:#646464}.ai-source-input{min-height:280px;height:36vh;resize:vertical;font:13px/1.85 Consolas,'Microsoft YaHei',monospace;background:#fff9;padding:15px}.has-draft .ai-source-input{height:50vh}.ai-source-controls{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin:13px 0}.ai-source-controls p{flex:1;font-size:12px;color:#646464;overflow-wrap:anywhere}.ai-source-picker{font-size:13px;margin-top:18px}.ai-source-picker summary{cursor:pointer}.ai-source-picker label{display:flex;gap:8px;align-items:center;padding:8px 0}.ai-candidate-layout{display:grid;grid-template-columns:minmax(145px,.5fr) minmax(0,1fr);border:1px solid #d4d4d4;border-radius:10px;overflow:hidden;background:#fff7}.ai-candidate-list{padding:8px;border-right:1px solid #d9d9d9;min-width:0}.ai-candidate-list button{display:flex;align-items:flex-start;text-align:left;gap:8px;width:100%;padding:11px 8px;border-radius:7px;font-size:13px;line-height:1.7;overflow-wrap:anywhere}.ai-candidate-list button.selected{background:#e4e4e4;box-shadow:inset 0 0 0 1px #aaa}.ai-candidate-list small{display:block;font-size:11px;color:#646464}.ai-candidate-editor{padding:17px;min-width:0}.ai-field-label{display:block;font-size:13px;font-weight:500;margin:0 0 16px}.ai-field-label>.field{display:block;margin-top:8px}.ai-candidate-description{min-height:170px;line-height:1.8;resize:vertical;font-family:Consolas,'Microsoft YaHei',monospace}.ai-check{display:flex;align-items:flex-start;gap:8px;font-size:13px;line-height:1.7;margin:8px 0 14px}.ai-check input{flex-shrink:0;margin-top:3px}.ai-candidate-topics{border:0;margin:20px 0;padding:0}.ai-candidate-topics legend{font-size:14px;font-weight:600;margin-bottom:6px}.ai-evidence{border-top:1px solid #d9d9d9;padding-top:18px;margin-top:18px;margin-bottom:20px}.ai-evidence h3,.ai-difference h3{font-size:13px;margin-bottom:10px;font-weight:600}.ai-evidence blockquote{margin:8px 0;padding:10px 12px;background:#eee;border-radius:7px;font-size:13px;line-height:1.8;white-space:pre-wrap;overflow-wrap:anywhere}.ai-evidence blockquote span{display:block;font-size:11px;color:#646464;margin-bottom:5px}.ai-difference{padding:14px;background:#eee;border-radius:8px;font-size:13px;line-height:1.8;overflow-wrap:anywhere;white-space:pre-wrap}.ai-difference h3{margin-top:14px}.ai-difference h3:first-child{margin-top:0}.ai-difference p{margin:7px 0}.ai-difference small{display:block;color:#646464;margin-top:14px;font-size:12px}.ai-adopt-actions{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-top:18px;padding-top:16px;border-top:1px solid #d4d4d4}.ai-adopt-actions p{font-size:12px;line-height:1.8;color:#646464}.ai-adopted{display:flex;align-items:flex-start;gap:15px;padding:20px;background:#efefef;border:1px solid #b8b8b8;border-radius:10px;margin:20px 0}.ai-adopted h2{font-size:18px;margin-bottom:7px}.ai-adopted p{font-size:13px;line-height:1.8}.ai-adopted-links{display:flex;flex-wrap:wrap;gap:7px;margin:15px 0}.ai-adopted .text-button{margin-left:15px}.ai-context-banner{display:flex;align-items:center;flex-wrap:wrap;gap:10px}.ai-context-banner span{flex:1}.ai-context-banner p{flex-basis:100%}.ai-task-status{margin-top:16px}@media(max-width:1250px){.ai-import-input.has-draft{grid-template-columns:minmax(250px,.75fr) minmax(400px,1.4fr)}.ai-candidate-layout{grid-template-columns:1fr}.ai-candidate-list{display:flex;overflow:auto;border-right:0;border-bottom:1px solid #d9d9d9}.ai-candidate-list button{min-width:140px}}@media(max-width:950px){.ai-import-input.has-draft{grid-template-columns:1fr}.has-draft .ai-source-input{height:220px;min-height:160px}.ai-import-workspace{padding:22px}.ai-workspace-heading{align-items:flex-start}.ai-adopt-actions{flex-wrap:wrap}}
+</style>

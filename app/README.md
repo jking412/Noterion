@@ -1,6 +1,6 @@
 # Noterion Windows 本地客户端
 
-正式任务：[GitHub Issue #21](https://github.com/jking412/Noterion/issues/21)。本目录是正式 Tauri + Rust + Vue 客户端源码。历史原型位于 `.scratch/personal-knowledge-graph/prototypes/core-ui/l2`，不再作为正式保存入口。
+正式任务：[GitHub Issue #21 本地客户端](https://github.com/jking412/Noterion/issues/21)、[GitHub Issue #22 DeepSeek AI Native](https://github.com/jking412/Noterion/issues/22)。本目录是正式 Tauri + Rust + Vue 客户端源码。历史原型位于 `.scratch/personal-knowledge-graph/prototypes/core-ui/l2`，不再作为正式保存入口。
 
 ## 运行
 
@@ -18,7 +18,7 @@
 - 在资料库选择本机文件或填写完整路径，也可保存网页链接。文件会复制进当前数据目录；只有完整副本和记录都提交后才显示就绪。复制过程中可以取消。源文件后来移动或删除不会影响已保存副本。资料可关联多个知识点，解除关联仍保留资料。
 - PDF、图片和支持编码的视频在应用内只读查看。视频支持播放、暂停及时间轴定位；格式支持由本机 WebView2 决定，不自动转码。读取或解码失败时使用“系统应用打开”访问本机副本。链接仅在用户明确打开时交给系统浏览器。
 - 从图节点或详情操作菜单发起删除，先检查“将删除 / 将保留”和存活主题。仍属于其他主题的共享点保留；本次影响范围内失去全部主题的下属逐层删除；原有独立点和全部学习资料保留。没有回收站，确认后不可撤销。
-- “知识导入”和“导入记录”保留已认可的导航位置。AI 纯文本提取尚待 [#20](https://github.com/jking412/Noterion/issues/20) 确定，当前不接云模型，也不发送本机资料。可用手工知识点录入完成其余本地流程。
+- 顶部“DeepSeek”配置密钥和模型后，可以用“知识导入”从普通 Markdown/TXT 整理候选知识，核对原文、修正并整批采用；“导入记录”保存贡献及更新入口。图谱左侧的“AI 查找与问答”可自动检索本机知识、生成带来源的回答并追问。三项能力统一由 Rust 调用 DeepSeek，沿用当前 Point／KnowledgePoint；固定模板、CSV 与手写 ID 路线已移除。密钥保存在 Windows 凭据中；调用只发送本次任务需要的文本和上下文，不默认读取原始 PDF、图片或视频。完整操作和限制见 [AI.md](AI.md)。
 
 ## 开发与构建
 
@@ -34,13 +34,13 @@ cd ..
 ./app/build.ps1
 ```
 
-`build.ps1` 自动加载 VS 编译环境，构建并嵌入前端资源，输出 `app/dist-desktop/noterion.exe`。首次需要联网下载开发依赖，安装后的本地核心功能无需联网。缓存已就绪时可加 `-Offline`；优化版必须加 `-Release`。脚本使用正常 Cargo home，默认 target 为 `app/src-tauri/target`，也尊重调用方的 `CARGO_HOME` 和 `CARGO_TARGET_DIR`。发布与维护命令见 [发布说明](../docs/releasing.md)。
+`build.ps1` 自动加载 VS 编译环境，构建并嵌入前端资源，输出 `app/dist-desktop/noterion.exe`。首次需要联网下载开发依赖；已保存知识及本机资料可离线访问，AI 功能需要 DeepSeek 配置及联网。缓存已就绪时可加 `-Offline`；优化版必须加 `-Release`。脚本使用正常 Cargo home，默认 target 为 `app/src-tauri/target`，也尊重调用方的 `CARGO_HOME` 和 `CARGO_TARGET_DIR`。发布与维护命令见 [发布说明](../docs/releasing.md)。
 
 日常前端开发可用 `npm.cmd run dev` 查看布局，但普通浏览器没有本地核心，不会模拟成功保存。正式开发/验收必须构建真实 exe；仅启动网页不构成客户端运行。
 
 ## 数据和实现
 
-唯一正式数据源为数据根目录中的 `noterion.sqlite3`，包含知识点、所属主题、资料记录及关联、节点位置和事务版本号。SQLite 使用 WAL 和 FULL 同步；退出时应连同整个数据目录保留。不要只复制正在运行的单个数据库文件。文件副本位于 `files/`，以应用生成的身份和安全扩展名存储，原文件名另作元数据。知识删除不清理这些文件。
+唯一正式数据源为数据根目录中的 `noterion.sqlite3`，包含知识点、所属主题、资料记录及关联、节点位置、事务版本号，以及 AI 导入记录和幂等采用回执。旧 v1 数据通过事务升级到 v2，保留现有知识和文件。SQLite 使用 WAL 和 FULL 同步；退出时应连同整个数据目录保留。不要只复制正在运行的单个数据库文件。文件副本位于 `files/`，以应用生成的身份和安全扩展名存储，原文件名另作元数据。知识删除不清理这些文件。
 
 Rust 负责完整关系校验、事务提交、目录与文件操作。文件复制使用 128 KiB 缓冲，复制未完成或失败不创建就绪资料。意外退出可能留下未登记的临时或孤立副本，它们不会出现在资料库，也不会被误认为已保存记录。当前不提供自动整库迁移、备份恢复或文件去重。
 

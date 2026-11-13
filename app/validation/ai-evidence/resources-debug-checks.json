@@ -1,0 +1,59 @@
+[
+  {
+    "name": "AI configuration is available in the real desktop client",
+    "verdict": "PASS"
+  },
+  {
+    "name": "a Markdown resource is copied through the UI and remains readable after the original is removed",
+    "verdict": "PASS",
+    "detail": {
+      "sourceRemoved": true,
+      "managedCopyReadable": true,
+      "sourceName": "resource-learning-source.md"
+    }
+  },
+  {
+    "name": "resource-originated AI extraction exposes evidence and preserves the default source on adopted knowledge",
+    "verdict": "PASS",
+    "detail": {
+      "candidates": 3,
+      "evidenceVisible": true,
+      "defaultSourceOpenable": true
+    }
+  },
+  {
+    "name": "grounded UI answering allows selected text context and exposes a valid knowledge citation",
+    "verdict": "PASS",
+    "detail": {
+      "selectedTextContext": true,
+      "groundedAnswer": true,
+      "citationNavigable": true
+    }
+  },
+  {
+    "name": "deleting adopted knowledge keeps its saved resource readable",
+    "verdict": "PASS",
+    "detail": {
+      "knowledgeDeleted": true,
+      "resourceRetained": true
+    }
+  },
+  {
+    "name": "repeating the same resource text reports prior adoption without reviving deleted knowledge or exposing IDs",
+    "verdict": "PASS",
+    "detail": {
+      "exactRepeat": true,
+      "deletedKnowledgeRemainsAbsent": true,
+      "removedContributionLabel": true
+    }
+  },
+  {
+    "name": "a link resource enters AI import as an association without pretending to convert its content",
+    "verdict": "PASS",
+    "detail": {
+      "linkWasNotOpened": true,
+      "bodyWasNotFetched": true,
+      "pureTextBoundaryVisible": true
+    }
+  }
+]

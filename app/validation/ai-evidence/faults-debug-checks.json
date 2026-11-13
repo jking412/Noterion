@@ -1,0 +1,118 @@
+[
+  {
+    "name": "AI configuration is available in the real desktop client",
+    "verdict": "PASS"
+  },
+  {
+    "name": "missing configuration reports unavailable AI and preserves the ordinary text",
+    "verdict": "PASS"
+  },
+  {
+    "name": "blank fails honestly and preserves input without creating a partial batch",
+    "verdict": "PASS"
+  },
+  {
+    "name": "truncated fails honestly and preserves input without creating a partial batch",
+    "verdict": "PASS"
+  },
+  {
+    "name": "bad-color fails honestly and preserves input without creating a partial batch",
+    "verdict": "PASS"
+  },
+  {
+    "name": "bad-theme fails honestly and preserves input without creating a partial batch",
+    "verdict": "PASS"
+  },
+  {
+    "name": "extra-field fails honestly and preserves input without creating a partial batch",
+    "verdict": "PASS"
+  },
+  {
+    "name": "bad-quote fails honestly and preserves input without creating a partial batch",
+    "verdict": "PASS"
+  },
+  {
+    "name": "duplicate-id fails honestly and preserves input without creating a partial batch",
+    "verdict": "PASS"
+  },
+  {
+    "name": "self-reference fails honestly and preserves input without creating a partial batch",
+    "verdict": "PASS"
+  },
+  {
+    "name": "unknown-reference fails honestly and preserves input without creating a partial batch",
+    "verdict": "PASS"
+  },
+  {
+    "name": "cycle fails honestly and preserves input without creating a partial batch",
+    "verdict": "PASS"
+  },
+  {
+    "name": "empty fails honestly and preserves input without creating a partial batch",
+    "verdict": "PASS"
+  },
+  {
+    "name": "unauthorized fails honestly and preserves input without creating a partial batch",
+    "verdict": "PASS"
+  },
+  {
+    "name": "rate-limit fails honestly and preserves input without creating a partial batch",
+    "verdict": "PASS"
+  },
+  {
+    "name": "server-error fails honestly and preserves input without creating a partial batch",
+    "verdict": "PASS"
+  },
+  {
+    "name": "network-drop fails honestly and preserves input without creating a partial batch",
+    "verdict": "PASS"
+  },
+  {
+    "name": "one bounded correction can repair invalid topic types before candidate adoption",
+    "verdict": "PASS"
+  },
+  {
+    "name": "pending native AI request leaves local browsing and saving available; cancel preserves input",
+    "verdict": "PASS"
+  },
+  {
+    "name": "failed configuration replacement restores the original system credential",
+    "verdict": "PASS"
+  },
+  {
+    "name": "invalid edited cycle rejects the whole batch and permits correction",
+    "verdict": "PASS"
+  },
+  {
+    "name": "legal candidate batch supports shared topics and commits once",
+    "verdict": "PASS"
+  },
+  {
+    "name": "explicit original-record update preserves identity and updates the same record",
+    "verdict": "PASS"
+  },
+  {
+    "name": "starting new text after an update draft cannot silently update the old record",
+    "verdict": "PASS"
+  },
+  {
+    "name": "same-name knowledge stays separate until an explicit reuse decision",
+    "verdict": "PASS"
+  },
+  {
+    "name": "controlled tool retrieval and grounded answer navigate back to formal knowledge",
+    "verdict": "PASS"
+  },
+  {
+    "name": "bad-citation cannot be displayed as a completed grounded answer",
+    "verdict": "PASS"
+  },
+  {
+    "name": "bad-tool cannot be displayed as a completed grounded answer",
+    "verdict": "PASS"
+  },
+  {
+    "name": "long text is processed in multiple parts without partial persistence",
+    "verdict": "PASS"
+  }
+]

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import Icon from './Icon.vue'
+import MarkdownText from './MarkdownText.vue'
 import { getTopicTags, parseDescription } from '../domain/logic'
 import type { KnowledgePoint, ResourceItem } from '../domain/types'
 const props = defineProps<{ point: KnowledgePoint | null; points: KnowledgePoint[]; resources: ResourceItem[]; deleteDisabled: boolean }>()
@@ -66,7 +67,7 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
       </header>
       <div class="details-scroll" :key="point.id">
         <section class="detail-section description-column">
-          <h2>描述</h2><p class="prose-text">{{ sections.description || '还没有描述，编辑后写下你的理解。' }}</p>
+          <h2>描述</h2><div class="prose-text"><MarkdownText :text="sections.description || '还没有描述，编辑后写下你的理解。'" /></div>
         </section>
         <section class="detail-section command-column">
           <div class="column-heading"><h2>命令与步骤</h2><button v-if="sections.command" class="button compact-button" @click="copyCommand"><Icon :name="copied ? 'check' : 'copy'" :size="15" />{{ copied ? '已复制' : '复制' }}</button></div>

@@ -1,88 +1,14 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import type { AiImportRecord } from '../domain/ai'
+import type { KnowledgePoint, ResourceItem } from '../domain/types'
 import Icon from './Icon.vue'
-import type { ImportRecord } from '../domain/importHistory'
-import type { KnowledgePoint } from '../domain/types'
-
-const props = defineProps<{ records: ImportRecord[]; points: KnowledgePoint[] }>()
-const emit = defineEmits<{ retry: [record: ImportRecord]; locate: [id: string]; create: [] }>()
-const filter = ref('all')
-const selectedId = ref<string | null>(null)
-const filtered = computed(() => props.records.filter((record) => filter.value === 'all' || record.status === filter.value))
-const selected = computed(() => filtered.value.find((record) => record.recordId === selectedId.value) || filtered.value[0])
-const resolution = computed(() => props.records.find((record) => record.recordId === selected.value?.resolvedByRecordId))
-const labels = { success: '导入完成', failed: '待修正', duplicate: '重复输入 · 已跳过', resolved: '问题已修正' }
-const filters = [
-  { id: 'all', title: '全部记录' },
-  { id: 'success', title: '已完成' },
-  { id: 'failed', title: '待修正' },
-  { id: 'resolved', title: '已解决' },
-  { id: 'duplicate', title: '已跳过' },
-]
-function clearFilter() { filter.value = 'all'; selectedId.value = null }
-function showResolution() {
-  if (!resolution.value) return
-  selectedId.value = resolution.value.recordId
-  filter.value = 'all'
-}
-function date(value: string) {
-  return new Intl.DateTimeFormat('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'Asia/Shanghai' }).format(new Date(value))
-}
+const props = defineProps<{ records: AiImportRecord[]; points: KnowledgePoint[]; resources: ResourceItem[]; loading: boolean; error: string }>()
+const emit = defineEmits<{ create: []; refresh: []; update: [record: AiImportRecord]; locate: [id: string] }>()
+const selectedId = ref('')
+const selected = computed(() => props.records.find(r => r.id === selectedId.value) || props.records[0])
+function date(value: string | number) { const timestamp = typeof value === 'number' ? value * 1000 : Number.isNaN(Number(value)) ? value : Number(value) * 1000; return new Intl.DateTimeFormat('zh-CN', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit', timeZone:'Asia/Shanghai'}).format(new Date(timestamp)) }
 </script>
-
-<template>
-  <section class="records-workspace glass-panel">
-    <div class="workspace-heading">
-      <h1>导入记录 <small>{{ records.length }}</small></h1>
-      <button class="button" @click="emit('create')"><Icon name="plus" />新建导入</button>
-    </div>
-    <div class="records-filter" aria-label="筛选导入记录">
-      <button v-for="option in filters" :key="option.id" class="button" :class="{ 'button-selected': filter === option.id }" :aria-pressed="filter === option.id" @click="filter = option.id; selectedId = null">{{ option.title }}</button>
-    </div>
-    <div v-if="!filtered.length" class="empty-workspace">
-      <Icon name="layers" :size="36" />
-      <h2>{{ records.length ? '没有这类记录' : '还没有导入记录' }}</h2>
-      <p>{{ records.length ? '当前筛选没有结果，可以查看全部记录。' : '从资料库中的资料发起知识导入，完成后在这里查看处理结果。' }}</p>
-      <button v-if="records.length" class="button" @click="clearFilter">查看全部记录</button>
-      <template v-else>
-        <button class="button" @click="emit('create')">导入知识文件</button>
-        <a class="guide-link" href="./test-data/noterion-test-data.zip" download>下载测试数据包 ↓</a>
-      </template>
-    </div>
-    <div v-else class="history-layout">
-      <div class="history-list">
-        <button v-for="record in filtered" :key="record.recordId" class="history-row" :class="{ selected: selected?.recordId === record.recordId }" :aria-pressed="selected?.recordId === record.recordId" @click="selectedId = record.recordId">
-          <Icon :name="record.status === 'failed' ? 'alert' : record.status === 'duplicate' ? 'copy' : 'circleCheck'" :size="21" />
-          <div><strong>{{ record.filename }}</strong><small>{{ date(record.createdAt) }} · {{ record.draft.importId || '批次 ID 缺失' }}</small><span>{{ labels[record.status] }}</span></div>
-          <Icon name="chevron" :size="15" class="history-chevron" />
-        </button>
-      </div>
-      <section v-if="selected" class="history-details inner-panel">
-        <div class="section-heading"><h2>{{ labels[selected.status] }}</h2><span>{{ date(selected.createdAt) }}</span></div>
-        <div class="history-details-content">
-          <h3>{{ selected.filename }}</h3>
-          <p class="mono muted">{{ selected.draft.importId }}</p>
-          <div class="result-stat-cards">
-            <div><strong>{{ selected.counts.added }}</strong><span>新增知识点</span></div>
-            <div><strong>{{ selected.counts.updated }}</strong><span>补充知识点</span></div>
-            <div><strong>{{ selected.counts.topicLinks }}</strong><span>新增主题关系</span></div>
-            <div><strong>{{ selected.counts.resourceLinks }}</strong><span>新增资料关联</span></div>
-          </div>
-          <p v-if="selected.status === 'success'" class="history-note">同一知识点沿用原有身份，未在输入中出现的内容与关联继续保留。</p>
-          <p v-if="selected.status === 'resolved'" class="history-note">这次尝试未写入知识，问题已在后续处理时解决。</p>
-          <div v-if="selected.messages.length" class="history-messages">
-            <h4 v-if="selected.status === 'resolved'">当时的校验提示</h4>
-            <p v-for="(message, index) in selected.messages" :key="index">{{ message }}</p>
-          </div>
-          <h4 v-if="selected.pointIds.length">本次知识点</h4>
-          <div class="result-contributions">
-            <button v-for="id in selected.pointIds" :key="id" :disabled="!points.some((point) => point.id === id)" @click="emit('locate', id)"><Icon name="file" :size="15" />{{ points.find((point) => point.id === id)?.name || id + '（已移除）' }}<Icon name="external" :size="12" /></button>
-          </div>
-          <button v-if="selected.status === 'failed'" class="button button-primary" @click="emit('retry', selected)">返回修正并重试<Icon name="arrow" class="forward-arrow" :size="15" /></button>
-          <button v-if="selected.status === 'resolved' && resolution" class="button" @click="showResolution">查看后续处理结果<Icon name="chevron" :size="15" /></button>
-          <p v-if="selected.status === 'duplicate'" class="history-note">该批输入此前已经成功处理；本次未修改任何内容。</p>
-        </div>
-      </section>
-    </div>
-  </section>
-</template>
+<template><section class="ai-records-workspace glass-panel" aria-label="导入记录"><header class="ai-records-heading"><div><h1>导入记录 <span>{{records.length}}</span></h1><p>查看已采用的知识、来源与后续更新。</p></div><div><button class="button" :disabled="loading" @click="emit('refresh')">重新读取</button><button class="button button-primary" @click="emit('create')"><Icon name="plus" :size="16" />整理新文本</button></div></header><p v-if="error" class="ai-error" role="alert">{{error}}</p><p v-if="loading" class="ai-task-status" role="status"><span class="spinner small" />正在读取导入记录</p><div v-else-if="!records.length" class="ai-records-empty"><Icon name="clock" :size="32" /><h2>还没有已采用的知识</h2><p>用普通学习文本整理知识，核对并采用后，会在这里留下记录。</p><button class="button" @click="emit('create')">整理学习文本</button></div><div v-else class="ai-records-layout"><nav class="ai-record-list" aria-label="已采用记录"><button v-for="record in records" :key="record.id" :class="{selected:record.id===selected?.id}" @click="selectedId=record.id"><Icon name="check" :size="17" /><span><strong>{{record.sourceName}}</strong><small>{{date(record.createdAt)}}</small><small>新增 {{record.added}} · 更新 {{record.updated}} · 复用 {{record.reused}}</small></span></button></nav><section v-if="selected" class="ai-record-details"><h2>{{selected.sourceName}}</h2><p class="ai-help">{{date(selected.createdAt)}} 保存到本机</p><dl><div><dt>新增知识点</dt><dd>{{selected.added}}</dd></div><div><dt>更新知识点</dt><dd>{{selected.updated}}</dd></div><div><dt>复用知识点</dt><dd>{{selected.reused}}</dd></div></dl><h3>本次关联知识</h3><div class="ai-record-contributions"><button v-for="id in selected.pointIds" :key="id" class="button" :disabled="!points.some(p=>p.id===id)" @click="emit('locate',id)"><Icon name="file" :size="15" />{{points.find(p=>p.id===id)?.name || '知识点已移除'}}</button><p v-if="!selected.pointIds.length" class="ai-help">没有关联知识点。</p></div><h3>来源资料</h3><p>{{selected.sourceResourceIds.map(id=>resources.find(r=>r.id===id)?.title || '资料已移除').join('、') || '未关联资料'}}</p><p class="ai-help">更新原记录只会新增或补充明确采用的内容；文本中省略的知识和关联仍保留。成功采用后不保留输入文件副本，更新时请重新提供文本。</p><button class="button button-primary" data-testid="ai-record-update" @click="emit('update',selected)">更新这次记录</button></section></div></section></template>
+<style scoped>.ai-records-workspace{margin:8px 16px 16px;flex:1;min-height:0;display:flex;flex-direction:column;padding:26px 30px;overflow:auto}.ai-records-heading{display:flex;align-items:center;justify-content:space-between;gap:20px;padding-bottom:22px;border-bottom:1px solid #d9d9d9}.ai-records-heading h1{font-size:25px;font-weight:600}.ai-records-heading h1 span{font-size:14px;font-weight:400;color:#646464;margin-left:9px}.ai-records-heading p{font-size:13px;color:#646464;margin-top:9px}.ai-records-heading>div:last-child{display:flex;gap:10px}.ai-records-empty{display:flex;flex-direction:column;align-items:center;text-align:center;gap:18px;padding:70px 20px;color:#646464}.ai-records-empty h2{font-size:18px;font-weight:500;color:#333}.ai-records-empty p{line-height:1.8}.ai-records-layout{display:grid;grid-template-columns:minmax(260px,.75fr) minmax(0,1.4fr);gap:30px;margin-top:24px}.ai-record-list{min-width:0}.ai-record-list button{display:flex;align-items:flex-start;gap:13px;text-align:left;width:100%;padding:17px 14px;border-radius:8px;border-bottom:1px solid #ddd}.ai-record-list button.selected{background:#e8e8e8}.ai-record-list strong{font-size:14px;font-weight:600;overflow-wrap:anywhere}.ai-record-list small{display:block;font-size:12px;color:#646464;margin-top:7px}.ai-record-details{min-width:0;line-height:1.8;padding:18px 22px;background:#ffffff7a;border:1px solid #d4d4d4;border-radius:10px}.ai-record-details h2{font-size:19px;overflow-wrap:anywhere}.ai-record-details h3{font-size:14px;font-weight:600;margin:25px 0 12px}.ai-record-details p{font-size:13px;overflow-wrap:anywhere}.ai-record-details dl{display:flex;gap:40px;margin:23px 0}.ai-record-details dt{font-size:12px;color:#646464}.ai-record-details dd{margin:4px 0 0;font-size:23px;font-variant-numeric:tabular-nums}.ai-record-contributions{display:flex;flex-wrap:wrap;gap:8px}.ai-record-details>.button{margin-top:12px}@media(max-width:850px){.ai-records-layout{grid-template-columns:1fr}.ai-records-heading{flex-wrap:wrap}.ai-records-workspace{padding:22px}}
+</style>
