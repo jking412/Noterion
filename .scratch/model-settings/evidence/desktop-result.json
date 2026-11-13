@@ -1,0 +1,18 @@
+{
+  "run": "issue-31-contracts-isolated",
+  "scenario": "contracts",
+  "passed": true,
+  "assertionCount": 33,
+  "executable": "app/src-tauri/target/x86_64-pc-windows-msvc/debug/noterion.exe",
+  "executableSha256": "34bdbb0f595012e2538fee81425ab03fa31041101f761564618514e043268e54",
+  "driverSha256": "76f549b492a89dbacee027ac6a726836944f04645ecaa5fa9a2045c84303d6ed",
+  "launches": 3,
+  "credentialCleanup": true,
+  "desktopCleanup": true,
+  "providerTesting": "Local deterministic HTTP/SSE fixtures through the actual Windows desktop; not live official API tests.",
+  "liveApiCoverage": {
+    "deepseek": false,
+    "openai": false,
+    "anthropic": false
+  }
+}

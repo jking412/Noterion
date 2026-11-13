@@ -1,0 +1,49 @@
+[
+  {
+    "name": "old DeepSeek config and actual Windows credential migrate without losing local knowledge or resources",
+    "verdict": "PASS",
+    "detail": {
+      "legacyJsonRetained": true,
+      "actualCredentialMigration": true,
+      "existingKnowledgeAndResourceReadable": true
+    }
+  },
+  {
+    "name": "release setting page contains exactly three types and rejects an insecure endpoint without saving it",
+    "verdict": "PASS"
+  },
+  {
+    "name": "model settings remains usable at the minimum desktop window size",
+    "verdict": "PASS",
+    "detail": {
+      "document": 1000,
+      "fields": [
+        {
+          "left": 261.66668701171875,
+          "right": 946.6666870117188,
+          "width": 685
+        },
+        {
+          "left": 261.66668701171875,
+          "right": 878.6666870117188,
+          "width": 617
+        },
+        {
+          "left": 261.66668701171875,
+          "right": 946.6666870117188,
+          "width": 685
+        }
+      ],
+      "navigation": 513.21875,
+      "viewport": 1000
+    }
+  },
+  {
+    "name": "release connection selection and credentials persist without paid network calls",
+    "verdict": "PASS"
+  },
+  {
+    "name": "pre-existing knowledge and managed resources remain available after all settings operations",
+    "verdict": "PASS"
+  }
+]

@@ -1,10 +1,31 @@
 import type { KnowledgePoint } from './types'
 
-export interface AiSettings {
+export type AiProvider = 'deepseek' | 'openai' | 'anthropic'
+
+export const providerLabels: Record<AiProvider, string> = {
+  deepseek: 'DeepSeek',
+  openai: 'OpenAI 兼容',
+  anthropic: 'Anthropic 兼容',
+}
+
+export interface AiConnection {
+  provider: AiProvider
   configured: boolean
   model: string
   baseUrl: string
   keyHint: string
+}
+
+export interface AiSettings {
+  activeProvider: AiProvider
+  connections: AiConnection[]
+}
+
+export interface AiConnectionInput {
+  provider: AiProvider
+  model: string
+  baseUrl: string
+  key?: string
 }
 
 export interface AiRequest {

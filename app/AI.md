@@ -1,4 +1,4 @@
-# DeepSeek AI 知识能力
+# 模型设置与 AI 知识能力
 
 Noterion 在现有 Windows Tauri 客户端中提供知识解析、自动查找与来源问答。三项能力共用 Rust AI 模块，并读取同一份本机正式知识；知识、资料记录和文件副本仍由本机 SQLite 与数据目录保存。
 
@@ -6,11 +6,15 @@ Noterion 在现有 Windows Tauri 客户端中提供知识解析、自动查找�
 
 ## 配置连接
 
-打开客户端顶部的 **DeepSeek**，输入自己的 API key，保存后使用“检查连接”验证模型和结构化输出可用。默认连接为 `https://api.deepseek.com`，默认模型为 `deepseek-flash`；模型名称和 HTTPS 接入地址可以配置。更改地址会改变文本及凭据的接收方，应使用自己信任的接入地址。
+从主导航进入 **模型设置**。选择 DeepSeek、OpenAI 兼容或 Anthropic 兼容，填写连接地址、API 密钥和完整模型 ID，然后保存或“保存并启用”。三个类型分别保留一份配置，当前启用连接统一用于解析、查找和问答。DeepSeek 预设为 `https://api.deepseek.com` 与 `deepseek-flash`；OpenAI 兼容预填 `https://api.openai.com/v1`，Anthropic 兼容预填 `https://api.anthropic.com/v1`，模型由用户填写。
 
-密钥由 Rust 写入 Windows Credential Manager，不保存到 Point、SQLite、普通配置文件、前端持久化或普通日志。输入框在保存或关闭后清空，界面只显示配置状态和脱敏提示。凭据按 **用户配置目录与接入地址** 隔离，因此独立验收配置不会覆盖日常使用的凭据；更换知识数据目录本身不会要求重新配置同一接入。非敏感模型和地址保存在用户配置目录的 `deepseek.json`。
+“检查连接”直接使用当前表单，即使尚未保存也可检查；检查包含结构化结果、工具调用及工具结果回送。修改地址、模型或密钥、切换类型会清除旧检查提示。检查通过后仍需在实际任务中核对候选与来源。保存不自动切换启用连接，只有“保存并启用”改变全局选择。进行中的任务继续使用启动时固定的地址、协议、模型与密钥。
 
-发布构建仅接受 HTTPS；调试构建额外允许本机 loopback HTTP，用于可复现的异常响应夹具。调试构建也支持通过进程环境提供专用测试凭据；真实桌面验收脚本可以通过不回显的终端输入取得凭据，无需把密钥写进命令参数或文件。
+密钥由 Rust 写入 Windows Credential Manager，不保存到 Point、SQLite、普通配置文件、前端持久化或普通日志。输入框在保存或关闭后清空，界面只显示保存状态，不返回密钥正文。凭据按 **用户配置目录、连接类型与完整 API 根地址** 隔离；改变目标不复制旧密钥，更换知识数据目录本身不会要求重新配置同一接入。非敏感配置与当前选择保存在用户配置目录的 `model-connections.json`。第一次打开设置时迁入旧 `deepseek.json` 的地址与模型，DeepSeek 沿用原 Windows 凭据目标；旧文件不删除，迁移失败会明确反馈并保留旧内容与知识数据。
+
+发布构建仅接受 HTTPS；调试构建额外允许本机 loopback HTTP，用于可复现的协议夹具。调试测试凭据只有同时绑定 `NOTERION_TEST_PROVIDER` 与 `NOTERION_TEST_BASE_URL` 时才会读取 `NOTERION_TEST_KEY`，通用 DeepSeek 环境密钥不再跟随任意编辑地址。
+
+OpenAI 兼容范围为 Chat Completions，Anthropic 兼容范围为 Messages（当前 API 版本 `2026-10-21`，使用 `x-api-key`）。地址填写 API 根地址，可含 `/v1`，不包含 `/chat/completions` 或 `/messages`。兼容服务与所选模型须支持文本生成及本地函数工具；未知服务采用提示约束 JSON 和 Rust 完整校验，不盲发 DeepSeek 专用参数。Anthropic 原生 system、tool_use/tool_result、thinking 签名块、流式事件与结束原因独立适配。不包含 Responses、网页订阅、Azure、Bedrock 或多媒体 API。
 
 ## 三条使用流程
 
@@ -27,7 +31,7 @@ Noterion 在现有 Windows Tauri 客户端中提供知识解析、自动查找�
 
 ### 用自然问题查找自己的知识
 
-在图谱左侧切换到“AI 查找与问答”，选择“查找知识”，直接输入问题或模糊记忆。DeepSeek 会规划、调整查询，Rust 实际执行名称／描述检索和主题关系读取，再将真实知识点返回供模型排序。点击结果沿用图谱定位、高亮、描述和资料入口。
+在图谱左侧切换到“AI 查找与问答”，选择“查找知识”，直接输入问题或模糊记忆。当前启用模型会规划、调整查询，Rust 实际执行名称／描述检索和主题关系读取，再将真实知识点返回供模型排序。点击结果沿用图谱定位、高亮、描述和资料入口。
 
 “片段搜索”继续提供原有名称／描述匹配和 all／any 选择。AI 服务失败与本机未命中分别提示，不用普通搜索结果假称 AI 已成功。
 
@@ -44,10 +48,10 @@ Noterion 在现有 Windows Tauri 客户端中提供知识解析、自动查找�
 | 模块 | 职责 |
 | --- | --- |
 | `src-tauri/src/ai/mod.rs` | 注册配置、任务启动／取消和候选采用命令；管理任务、会话、数据目录状态及最终结果。 |
-| `src-tauri/src/ai/deepseek.rs` | HTTPS、SSE 流式组装、响应大小限制、完成原因、超时和有限重试。原始 JSON 中的内部句柄不直接作为界面正文。 |
+| `src-tauri/src/ai/provider.rs` | Chat Completions / Messages 请求转换、HTTPS、SSE、响应大小限制、完成原因、超时和有限重试。原始 JSON 中的内部句柄不直接作为界面正文。 |
 | `src-tauri/src/ai/extract.rs`、`draft.rs` | 普通文本分段、严格 Point 解码、逐字依据核验、统一身份分配及 Rust 持有的候选草案。 |
 | `src-tauri/src/ai/retrieve.rs` | 受控只读工具循环、真实证据集合、搜索排序和回答引用校验。 |
-| `src-tauri/src/ai/credentials.rs` | 非敏感连接配置和 Windows 系统凭据；配置保存失败时反馈实际结果。 |
+| `src-tauri/src/ai/credentials.rs` | 三类连接、旧配置迁移和隔离的 Windows 系统凭据；配置保存失败回滚凭据。 |
 | `src-tauri/src/store_ai.rs` | 存储升级、整批采用、基线冲突校验、导入记录和幂等回执。 |
 | `src/composables/useAiTasks.ts` | 前端共用任务状态和 Channel；AI 网络状态独立于本地保存状态。 |
 
@@ -93,15 +97,20 @@ cargo fetch --locked --manifest-path app/src-tauri/Cargo.toml
 
 构建脚本嵌入前端资源，并将可执行文件放到 `app/dist-desktop/noterion.exe`。发布构建使用 `./app/build.ps1 -Release`；依赖已缓存时也可同时传 `-Offline`。前端检查入口为 `npm run typecheck --prefix app` 和 `npm test --prefix app`。
 
-真实桌面验证使用匹配本机 WebView2 的 Edge WebDriver，默认位置沿用 `.scratch/personal-knowledge-graph/validation/windows-desktop/.tools/issue3-webdriver/msedgedriver.exe`。脚本从可见界面输入、点击和采用；每次使用唯一 `issue-22-...` 名称，在 `app/validation/runs/<run>/` 保存隔离配置、数据、WebView profile、截图和结果，不覆盖以前的运行记录。
+真实桌面验证使用匹配本机 WebView2 的 Edge WebDriver。模型设置与两协议验收入口为 `model-settings-acceptance.mjs`；所有数据与配置写入唯一 `.scratch/model-settings/runs/issue-31-.../`，不会覆盖日常配置。脚本通过可见控件操作实际 Windows 客户端，夹具只提供模型响应，本地知识工具、候选采用和凭据保存由真实 Rust 执行。
 
 ```powershell
-node app/scripts/ai-acceptance.mjs --run=issue-22-smoke-your-run --scenario=smoke
-node app/scripts/ai-acceptance.mjs --run=issue-22-faults-your-run --scenario=faults
-node app/scripts/ai-acceptance.mjs --run=issue-22-migration-your-run --scenario=migration --legacy-exe=D:/Noterion-baseline/noterion.exe
-node app/scripts/ai-acceptance.mjs --run=issue-22-live-your-run --scenario=live --stdin=true
+# 调试构建：三类连接、迁移、全部 AI 业务、故障恢复与任务切换。
+./app/build.ps1 -Offline
+node app/scripts/model-settings-acceptance.mjs --run=issue-31-contracts-your-run --exe=app/src-tauri/target/x86_64-pc-windows-msvc/debug/noterion.exe --driver=你的/msedgedriver.exe
+
+# 正式构建：HTTPS 策略、迁移、设置与重启，不发送外部模型请求。
+./app/build.ps1 -Offline -Release
+node app/scripts/model-settings-acceptance.mjs --run=issue-31-release-your-run --scenario=release-smoke --exe=app/dist-desktop/noterion.exe --driver=你的/msedgedriver.exe
+
+cargo test --locked --target x86_64-pc-windows-msvc --manifest-path app/src-tauri/Cargo.toml
 ```
 
-`migration` 的 `--legacy-exe` 替换为实际保留的 v1 客户端路径。它先用旧客户端创建隔离数据，再用新客户端打开。`faults` 使用本机供应商响应夹具，必须针对调试构建运行，因为发布构建拒绝 HTTP 夹具。可用 `--exe=实际可执行文件路径` 指定待验收程序。
+标准 Windows CI 运行两协议的 Rust HTTP/SSE 契约测试和调试客户端桌面场景，不需要付费密钥；发布候选仍由正式构建打包。结果 JSON、夹具协议统计和截图分别记录在运行目录。测试只创建并清理本轮专用合成 Windows 凭据，不枚举其他用户配置或密钥。
 
-`live --stdin=true` 要求交互终端，等待输入专用测试密钥并按回车，输入不会回显；不要把密钥追加到命令行。该场景会真实调用 DeepSeek。模拟故障通过不能替代真实模型、实际客户端、保存重启及来源跳转的完整验收。具体通过／失败项和实际样例应查看对应运行结果。
+`app/scripts/ai-acceptance.mjs` 与此前 `app/validation/ai-acceptance.md` 属于 Issue #22 历史客户端入口和记录，其 DeepSeek 模态框选择器不适用于当前设置页。当前研究、验收和审查记录位于 `.scratch/model-settings/`；本机夹具通过与官方实网验证分别记录，不能相互冒充。

@@ -78,6 +78,12 @@ jobs:
       - name: Prepare matching WebView2 driver
         shell: pwsh
         run: ./app/scripts/setup-webdriver.ps1 -Destination "$env:RUNNER_TEMP/webdriver"
+      - name: Build local protocol fixture client
+        working-directory: app/src-tauri
+        run: cargo build --locked --target x86_64-pc-windows-msvc
+      - name: Test model settings and native protocols on the desktop
+        shell: pwsh
+        run: node app/scripts/model-settings-acceptance.mjs --run=issue-31-ci-${{ github.run_id }}-${{ github.run_attempt }} --exe=app/src-tauri/target/x86_64-pc-windows-msvc/debug/noterion.exe --driver="$env:RUNNER_TEMP/webdriver/msedgedriver.exe"
       - name: Package release candidate
         env:
           SOURCE_SHA: ${{ github.sha }}
@@ -99,6 +105,11 @@ jobs:
           path: |
             ${{ runner.temp }}/desktop-smoke
             ${{ runner.temp }}/webdriver/provenance.json
+            .scratch/model-settings/runs/issue-31-ci-${{ github.run_id }}-${{ github.run_attempt }}/checks.json
+            .scratch/model-settings/runs/issue-31-ci-${{ github.run_id }}-${{ github.run_attempt }}/result.json
+            .scratch/model-settings/runs/issue-31-ci-${{ github.run_id }}-${{ github.run_attempt }}/failure.json
+            .scratch/model-settings/runs/issue-31-ci-${{ github.run_id }}-${{ github.run_attempt }}/fixture-requests.json
+            .scratch/model-settings/runs/issue-31-ci-${{ github.run_id }}-${{ github.run_attempt }}/*.png
           if-no-files-found: warn
           retention-days: 14
       - name: Preserve checked release candidate

@@ -29,7 +29,7 @@ Noterion connects knowledge points, your own explanations, and learning material
 | Give your knowledge structure | Organize points under topics. A topic is itself a knowledge point; one point can belong to several topics while keeping a single shared copy of its content. |
 | Find something from a partial memory | Search names and descriptions, combine keywords, and select a result to locate it in the graph, read its details, and open its sources. |
 | Keep the material you learned from | Files are copied into your local data directory, so moving the original does not affect the saved copy. View PDFs, images, and supported video formats in the app. |
-| Get help organizing and understanding | Use DeepSeek to extract knowledge from learning text, retrieve it with natural-language questions, and answer from sources. Review candidates before adopting them, and follow answer citations back to knowledge and materials. |
+| Get help organizing and understanding | Use your configured model to extract knowledge from learning text, retrieve it with natural-language questions, and answer from sources. Review candidates before adopting them, and follow answer citations back to knowledge and materials. |
 
 **Noterion = Note + Orion.** Scattered knowledge resembles stars; your understanding and their connections form a structure you can trace back through. It is designed for personal learning: preserve the conclusion, how you understood it, and where it came from.
 
@@ -62,9 +62,9 @@ The [All releases](https://github.com/jking412/Noterion/releases) page lists oth
 
 You can then create a `Linux 运维` (Linux operations) topic and place the same point under both topics. Keep one copy of the content and find it from either direction.
 
-### Use DeepSeek
+### Configure a model and use AI
 
-Click **DeepSeek** in the top bar, enter your API key, save, and select **检查连接** (Check connection). The default endpoint is the official DeepSeek service. Calls require an internet connection and available API credit.
+Open **模型设置** (Model settings) in the main navigation, choose DeepSeek, OpenAI compatible, or Anthropic compatible, then enter a trusted API root, API key, and full model ID. Save, select **检查连接** (Check connection), and **保存并启用** (Save and activate). All three AI features share the active connection. DeepSeek includes an official preset. Calls require internet access and API credit. The historical prerelease linked above retains its top-bar DeepSeek entry; the three connection types require a build containing Issue #31.
 
 - **知识导入** (Knowledge import): paste ordinary learning notes or read UTF-8 Markdown/TXT. Review the original-text evidence, points, topics, and material associations before adopting the batch.
 - **AI 查找与问答 → 查找知识** (AI retrieval and Q&A → Find knowledge): ask from a partial memory, such as “What was that command I learned for entering a container?”, to retrieve your saved knowledge.
@@ -79,7 +79,7 @@ Your **local SQLite database and file directory** hold your knowledge and materi
 | Operation | Data and network boundary |
 | --- | --- |
 | Manual editing, graph navigation, fragment search, and saved local materials | Work offline, without a database server or cloud account. In-app video playback depends on the codecs supported by your local WebView2; use a system application if playback fails. |
-| AI extraction, retrieval, and Q&A | Require internet access. Rust sends the necessary input text, retrieved knowledge context, material metadata, and explicitly selected text contents to the configured DeepSeek endpoint. It does not upload the whole library by default. |
+| AI extraction, retrieval, and Q&A | Require internet access. Rust sends the necessary input text, retrieved knowledge context, material metadata, and explicitly selected text contents to the active model endpoint. It does not upload the whole library by default. |
 | API key and connection settings | The key is stored in Windows Credential Manager; model and endpoint settings stay in local configuration. A custom endpoint changes who receives your text and credentials. |
 | Original PDFs, images, audio, and video | Can be saved and accessed as materials. OCR, transcription, and automatic extraction of their original contents are not currently provided. |
 

@@ -1,0 +1,214 @@
+[
+  {
+    "name": "old DeepSeek config and actual Windows credential migrate without losing local knowledge or resources",
+    "verdict": "PASS",
+    "detail": {
+      "legacyJsonRetained": true,
+      "actualCredentialMigration": true,
+      "existingKnowledgeAndResourceReadable": true
+    }
+  },
+  {
+    "name": "deepseek: current form is checked, editing invalidates success, and the independent connection saves and activates",
+    "verdict": "PASS",
+    "detail": {
+      "checkedUnsavedModel": "deepseek/fixture:v31",
+      "savedModel": "deepseek/fixture:v31-edited",
+      "nativeToolRoundTrip": true
+    }
+  },
+  {
+    "name": "openai: current form is checked, editing invalidates success, and the independent connection saves and activates",
+    "verdict": "PASS",
+    "detail": {
+      "checkedUnsavedModel": "openai/fixture:v31",
+      "savedModel": "openai/fixture:v31-edited",
+      "nativeToolRoundTrip": true
+    }
+  },
+  {
+    "name": "anthropic: current form is checked, editing invalidates success, and the independent connection saves and activates",
+    "verdict": "PASS",
+    "detail": {
+      "checkedUnsavedModel": "anthropic/fixture:v31",
+      "savedModel": "anthropic/fixture:v31-edited",
+      "nativeToolRoundTrip": true
+    }
+  },
+  {
+    "name": "three independent connections and active choice survive desktop restart",
+    "verdict": "PASS",
+    "detail": {
+      "savedProviders": [
+        "deepseek",
+        "openai",
+        "anthropic"
+      ],
+      "activeProvider": "anthropic",
+      "restarted": true
+    }
+  },
+  {
+    "name": "editing target does not reuse the saved credential, while a newly supplied credential can check that unsaved target",
+    "verdict": "PASS",
+    "detail": {
+      "oldKeyNotSent": true,
+      "newTargetCheckedWithExplicitInput": true
+    }
+  },
+  {
+    "name": "replacing and removing a Windows credential reports accurate state and restores independent usability",
+    "verdict": "PASS",
+    "detail": {
+      "removedFromCredentialManager": true,
+      "replacementUsable": true
+    }
+  },
+  {
+    "name": "an edited form ignores an older in-flight connection check result",
+    "verdict": "PASS",
+    "detail": {
+      "oldResponseIgnored": true,
+      "editedModelRetained": true
+    }
+  },
+  {
+    "name": "failed atomic configuration replacement preserves the previous JSON and Windows credential",
+    "verdict": "PASS",
+    "detail": {
+      "atomicSaveFailedHonestly": true,
+      "originalJsonRetained": true,
+      "originalCredentialUsable": true
+    }
+  },
+  {
+    "name": "deepseek: extraction preview can be edited and formally adopted",
+    "verdict": "PASS",
+    "detail": {
+      "candidates": 3,
+      "edited": true,
+      "adopted": true
+    }
+  },
+  {
+    "name": "deepseek: local retrieval tools, answer sources, and follow-up remain connected",
+    "verdict": "PASS",
+    "detail": {
+      "realLocalTools": true,
+      "citationNavigable": true,
+      "followUp": true
+    }
+  },
+  {
+    "name": "openai: extraction preview can be edited and formally adopted",
+    "verdict": "PASS",
+    "detail": {
+      "candidates": 3,
+      "edited": true,
+      "adopted": true
+    }
+  },
+  {
+    "name": "openai: local retrieval tools, answer sources, and follow-up remain connected",
+    "verdict": "PASS",
+    "detail": {
+      "realLocalTools": true,
+      "citationNavigable": true,
+      "followUp": true
+    }
+  },
+  {
+    "name": "anthropic: extraction preview can be edited and formally adopted",
+    "verdict": "PASS",
+    "detail": {
+      "candidates": 3,
+      "edited": true,
+      "adopted": true
+    }
+  },
+  {
+    "name": "anthropic: local retrieval tools, answer sources, and follow-up remain connected",
+    "verdict": "PASS",
+    "detail": {
+      "realLocalTools": true,
+      "citationNavigable": true,
+      "followUp": true
+    }
+  },
+  {
+    "name": "openai: unauthorized is recoverable and preserves the extraction input",
+    "verdict": "PASS"
+  },
+  {
+    "name": "openai: rate-limit is recoverable and preserves the extraction input",
+    "verdict": "PASS"
+  },
+  {
+    "name": "openai: model-missing is recoverable and preserves the extraction input",
+    "verdict": "PASS"
+  },
+  {
+    "name": "openai: blank is recoverable and preserves the extraction input",
+    "verdict": "PASS"
+  },
+  {
+    "name": "openai: truncated is recoverable and preserves the extraction input",
+    "verdict": "PASS"
+  },
+  {
+    "name": "openai: interrupt is recoverable and preserves the extraction input",
+    "verdict": "PASS"
+  },
+  {
+    "name": "openai: cancelling an in-flight HTTP stream preserves the input and aborts the native request",
+    "verdict": "PASS"
+  },
+  {
+    "name": "openai: a normal task succeeds after errors and cancellation",
+    "verdict": "PASS"
+  },
+  {
+    "name": "anthropic: unauthorized is recoverable and preserves the extraction input",
+    "verdict": "PASS"
+  },
+  {
+    "name": "anthropic: rate-limit is recoverable and preserves the extraction input",
+    "verdict": "PASS"
+  },
+  {
+    "name": "anthropic: model-missing is recoverable and preserves the extraction input",
+    "verdict": "PASS"
+  },
+  {
+    "name": "anthropic: blank is recoverable and preserves the extraction input",
+    "verdict": "PASS"
+  },
+  {
+    "name": "anthropic: truncated is recoverable and preserves the extraction input",
+    "verdict": "PASS"
+  },
+  {
+    "name": "anthropic: interrupt is recoverable and preserves the extraction input",
+    "verdict": "PASS"
+  },
+  {
+    "name": "anthropic: cancelling an in-flight HTTP stream preserves the input and aborts the native request",
+    "verdict": "PASS"
+  },
+  {
+    "name": "anthropic: a normal task succeeds after errors and cancellation",
+    "verdict": "PASS"
+  },
+  {
+    "name": "switching the active connection during a tool task keeps that task on its original protocol and credential",
+    "verdict": "PASS",
+    "detail": {
+      "oldTaskPinned": true,
+      "newTaskUsesCurrentConnection": true
+    }
+  },
+  {
+    "name": "pre-existing knowledge and managed resources remain available after all settings operations",
+    "verdict": "PASS"
+  }
+]

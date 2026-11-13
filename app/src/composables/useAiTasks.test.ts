@@ -51,6 +51,24 @@ afterEach(() => {
 })
 
 describe('AI task interaction state', () => {
+  it('keeps the running task service label when another connection is enabled', async () => {
+    const native = nativeBoundary()
+    const tasks = mountTasks()
+    tasks.settings.value = {
+      activeProvider: 'deepseek',
+      connections: [
+        { provider: 'deepseek', model: 'deepseek-flash', baseUrl: 'https://api.deepseek.com', configured: true, keyHint: '已保存' },
+        { provider: 'anthropic', model: 'messages-model', baseUrl: 'https://api.anthropic.com/v1', configured: true, keyHint: '已保存' },
+      ],
+    }
+    await tasks.start(question)
+    tasks.settings.value.activeProvider = 'anthropic'
+    expect(tasks.serviceLabel.value).toBe('DeepSeek · deepseek-flash')
+    const request = native.requests[0]!
+    request.channel.onmessage({ taskId: request.id, phase: 'complete', result: { kind: 'search', hits: [], note: '', sources: [] } })
+    expect(tasks.serviceLabel.value).toBe('Anthropic 兼容 · messages-model')
+  })
+
   it.each(['extract', 'search', 'answer'] as const)('keeps one waiting state for %s while internal events arrive', async action => {
     const native = nativeBoundary()
     const tasks = mountTasks()

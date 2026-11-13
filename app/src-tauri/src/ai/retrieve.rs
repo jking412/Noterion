@@ -1,6 +1,6 @@
 use super::{
-    deepseek::{DeepSeek, ToolCall},
     extract::clip,
+    provider::{Provider, ToolCall},
     AiRequest, Task,
 };
 use crate::store::Snapshot;
@@ -98,7 +98,7 @@ fn tools(first: bool) -> Value {
 }
 
 pub async fn run(
-    client: &DeepSeek,
+    client: &Provider,
     task: &Task,
     request: &AiRequest,
     snapshot: Snapshot,
@@ -191,7 +191,9 @@ pub async fn run(
     )?;
     messages.push(json!({"role":"user","content":format}));
     for attempt in 0..2 {
-        let completion = client.complete(task, &messages, None, false, true).await?;
+        let completion = client
+            .complete(task, &messages, Some(tools(false)), false, true)
+            .await?;
         let validated = if is_answer {
             evidence.answer(&completion.content, request.allow_supplement)
         } else {

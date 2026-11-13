@@ -4,7 +4,7 @@ import type { AiRequest, AiResult, AiSource } from '../domain/ai'
 import type { KnowledgePoint, ResourceItem } from '../domain/types'
 import MarkdownText from './MarkdownText.vue'
 import Icon from './Icon.vue'
-const props = defineProps<{ points: KnowledgePoint[]; resources: ResourceItem[]; busy: boolean; blocked?: boolean; error: string; phase: string; result: AiResult | null; sessionId: string; configured: boolean }>()
+const props = defineProps<{ points: KnowledgePoint[]; resources: ResourceItem[]; busy: boolean; blocked?: boolean; error: string; phase: string; result: AiResult | null; sessionId: string; configured: boolean; serviceLabel: string }>()
 const emit = defineEmits<{ start: [request: AiRequest]; cancel: []; reset: []; settings: []; showTask: []; locate: [id: string]; preview: [resource: ResourceItem] }>()
 const question = ref(''); const action = ref<'search' | 'answer'>('search'); const supplement = ref(false); const selectedResources = ref<string[]>([])
 const history = ref<{ question: string; result: AiResult }[]>([])
@@ -38,13 +38,13 @@ const textResources = computed(() => props.resources.filter(r => ['text', 'markd
       <textarea id="ai-question" v-model="question" class="field ai-question" :readonly="busy || blocked" aria-label="自然语言问题" data-testid="ai-question" :placeholder="action==='search'?'例如：进入 Docker 容器终端，但我忘了命令':'例如：怎么进入运行中的 Docker 容器？'" rows="3" @keydown.ctrl.enter.prevent="submit" />
       <details v-if="textResources.length" class="ai-text-context">
         <summary>附加文本资料<span v-if="selectedResources.length">（{{selectedResources.length}}）</span></summary>
-        <p>所选正文会随问题发送给 DeepSeek。</p>
+        <p>所选正文会随问题发送至 {{ serviceLabel }}。</p>
         <label v-for="resource in textResources" :key="resource.id"><input v-model="selectedResources" type="checkbox" :value="resource.id" :disabled="busy || blocked" />{{resource.title}}</label>
       </details>
       <label v-if="action==='answer'" class="ai-check"><input v-model="supplement" type="checkbox" :disabled="busy || blocked" aria-label="允许 AI 补充通用知识" />允许 AI 补充通用知识</label>
       <div class="ai-submit-row">
         <button v-if="busy" class="button" type="button" data-testid="ai-cancel" @click="emit('cancel')">取消</button>
-        <button v-else-if="!configured" class="button" type="button" @click="emit('settings')">配置 DeepSeek</button>
+        <button v-else-if="!configured" class="button" type="button" @click="emit('settings')">配置模型</button>
         <button class="button button-primary" type="submit" :disabled="busy || blocked || !configured || !question.trim()" data-testid="ai-submit"><Icon name="search" :size="15" />{{action==='search'?'自动查找':'检索并回答'}}</button>
       </div>
     </form>

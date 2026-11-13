@@ -1,7 +1,7 @@
 mod credentials;
-mod deepseek;
 mod draft;
 mod extract;
+mod provider;
 mod retrieve;
 
 use crate::store::{AiAdoptResult, AiChoice, SharedStore, Snapshot};
@@ -144,11 +144,9 @@ fn context(store: &SharedStore) -> Result<(Snapshot, u64, PathBuf), String> {
         guard.config_dir().to_owned(),
     ))
 }
-fn client(directory: &std::path::Path) -> Result<deepseek::DeepSeek, String> {
-    let config = credentials::load(directory)?;
-    let key = credentials::key(&config, directory)?
-        .ok_or("尚未配置 DeepSeek 密钥，请先打开 AI 设置。")?;
-    deepseek::DeepSeek::new(config, key)
+fn client(directory: &std::path::Path) -> Result<provider::Provider, String> {
+    let (config, key) = credentials::active(directory)?;
+    provider::Provider::new(config, key)
 }
 
 #[tauri::command]
@@ -173,10 +171,15 @@ pub fn ai_configure(
     credentials::configure(&directory, input)
 }
 #[tauri::command]
-pub async fn ai_check(store: tauri::State<'_, SharedStore>) -> Result<String, String> {
+pub async fn ai_check(
+    store: tauri::State<'_, SharedStore>,
+    input: credentials::CheckInput,
+) -> Result<String, String> {
     let state = store.inner().clone();
     let (_, epoch, directory) = context(&state)?;
-    let client = client(&directory)?;
+    let (config, key) = credentials::for_check(&directory, input)?;
+    let label = config.provider.label();
+    let client = provider::Provider::new(config, key)?;
     let task = Task {
         id: Uuid::new_v4().to_string(),
         store: state,
@@ -184,16 +187,42 @@ pub async fn ai_check(store: tauri::State<'_, SharedStore>) -> Result<String, St
         cancel: Arc::new(Cancellation::default()),
         channel: None,
     };
-    let messages =
-        vec![json!({"role":"user","content":"连接检查。请只返回 json 对象 {\"ok\":true}。"})];
-    let completion = client.complete(&task, &messages, None, false, true).await?;
-    let value: Value = serde_json::from_str(&completion.content)
-        .map_err(|_| "连接已响应，但未返回可使用的结构化结果。")?;
-    if value["ok"] != true {
-        return Err("连接已响应，但可用性检查未通过。".into());
-    }
-    task.check()?;
-    Ok("DeepSeek 连接与结构化输出可用。".into())
+    let work = async {
+        let mut messages = vec![
+            json!({"role":"user","content":"连接能力检查。调用 check_connection，value 必须为 1。"}),
+        ];
+        let tools = json!([{"type":"function","function":{"name":"check_connection","description":"连接检查，不读取或修改任何数据。","parameters":{"type":"object","properties":{"value":{"type":"integer","enum":[1]}},"required":["value"],"additionalProperties":false}}}]);
+        let completion = client
+            .complete(&task, &messages, Some(tools.clone()), true, false)
+            .await?;
+        if completion.tools.len() != 1 || completion.tools[0].function.name != "check_connection" {
+            return Err(
+                "连接已响应，但模型未按要求调用工具；请选择支持工具调用的模型。".to_owned(),
+            );
+        }
+        let arguments: Value = serde_json::from_str(&completion.tools[0].function.arguments)
+            .map_err(|_| "模型工具参数无效，请选择支持工具调用的模型。".to_owned())?;
+        if arguments != json!({"value":1}) {
+            return Err("模型未通过工具参数检查，请更换模型或检查兼容服务。".into());
+        }
+        let tool_id = completion.tools[0].id.clone();
+        messages.push(completion.message);
+        messages.push(json!({"role":"tool","tool_call_id":tool_id,"content":"{\"ok\":true}"}));
+        messages.push(json!({"role":"user","content":"请只返回完整 json 对象 {\"ok\":true}，不添加 Markdown。"}));
+        let completion = client
+            .complete(&task, &messages, Some(tools), false, true)
+            .await?;
+        let value: Value = serde_json::from_str(&completion.content)
+            .map_err(|_| "连接已响应，但未返回可使用的结构化结果。")?;
+        if value != json!({"ok":true}) || !completion.tools.is_empty() {
+            return Err("连接已响应，但可用性检查未通过。".into());
+        }
+        task.check()?;
+        Ok(format!("{label} 连接、结构化输出与工具调用检查通过。"))
+    };
+    tokio::time::timeout(Duration::from_secs(90), work)
+        .await
+        .map_err(|_| "连接检查超时，请检查地址或稍后重试。".to_owned())?
 }
 #[tauri::command]
 pub fn ai_start(
@@ -291,7 +320,7 @@ async fn run(
     request: AiRequest,
     snapshot: Snapshot,
     _directory: PathBuf,
-    client: deepseek::DeepSeek,
+    client: provider::Provider,
 ) -> Result<AiResult, String> {
     task.phase("starting", "正在准备本次允许发送的文本与知识上下文。")?;
     if request.action == "extract" {

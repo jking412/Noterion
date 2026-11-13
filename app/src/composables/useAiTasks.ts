@@ -1,5 +1,6 @@
 import { computed, onBeforeUnmount, ref } from 'vue'
 import type { AiEvent, AiRequest, AiResult, AiSettings } from '../domain/ai'
+import { providerLabels } from '../domain/ai'
 import { channel, errorText, invoke } from '../desktop'
 
 export function useAiTasks() {
@@ -11,6 +12,10 @@ export function useAiTasks() {
   const taskId = ref('')
   const sessionId = ref('')
   const request = ref<AiRequest | null>(null)
+  const activeConnection = computed(() => settings.value?.connections.find(c => c.provider === settings.value?.activeProvider))
+  const activeServiceLabel = computed(() => activeConnection.value ? `${providerLabels[activeConnection.value.provider]} · ${activeConnection.value.model}` : '当前启用的模型服务')
+  const requestServiceLabel = ref('')
+  const serviceLabel = computed(() => busy.value && requestServiceLabel.value ? requestServiceLabel.value : activeServiceLabel.value)
   let generation = 0
   const phaseLabel = computed(() => busy.value
     ? { extract: '正在整理知识', search: '正在查找知识', answer: '正在生成回答' }[request.value?.action || 'search']
@@ -19,6 +24,7 @@ export function useAiTasks() {
   async function start(value: AiRequest) {
     if (busy.value) return
     const epoch = ++generation
+    requestServiceLabel.value = activeServiceLabel.value
     busy.value = true; error.value = ''; result.value = null; phase.value = 'queued'; taskId.value = ''; request.value = { ...value, resourceIds: [...value.resourceIds] }
     try {
       const onEvent = channel<AiEvent>((event) => {
@@ -45,5 +51,5 @@ export function useAiTasks() {
   function reset() { void cancel(); generation++; result.value = null; error.value = ''; phase.value = ''; sessionId.value = ''; request.value = null }
   function retry() { if (request.value) void start(request.value) }
   onBeforeUnmount(() => { void cancel(); generation++ })
-  return { settings, busy, error, phase, phaseLabel, result, taskId, sessionId, request, refreshSettings, start, cancel, reset, retry }
+  return { settings, activeConnection, serviceLabel, busy, error, phase, phaseLabel, result, taskId, sessionId, request, refreshSettings, start, cancel, reset, retry }
 }

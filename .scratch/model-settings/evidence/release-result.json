@@ -1,0 +1,18 @@
+{
+  "run": "issue-31-release-cleanup",
+  "scenario": "release-smoke",
+  "passed": true,
+  "assertionCount": 5,
+  "executable": "app/dist-desktop/noterion.exe",
+  "executableSha256": "9005e2148eb971b741efc8dadc01b3397ca773bc4e0760d2164e6ec57b99f37d",
+  "driverSha256": "76f549b492a89dbacee027ac6a726836944f04645ecaa5fa9a2045c84303d6ed",
+  "launches": 3,
+  "credentialCleanup": true,
+  "desktopCleanup": true,
+  "providerTesting": "Release UI/storage/HTTPS policy only; no external API calls.",
+  "liveApiCoverage": {
+    "deepseek": false,
+    "openai": false,
+    "anthropic": false
+  }
+}

@@ -1,6 +1,6 @@
 use super::{
-    deepseek::DeepSeek,
     draft::{Candidate, Draft, Evidence, OutputPoint, StoredDraft},
+    provider::Provider,
     AiRequest, Task,
 };
 use crate::store::{AiBatch, AiRecord, Point, Snapshot};
@@ -35,7 +35,7 @@ const SYSTEM: &str = r#"你是个人知识图谱整理器。输入是普通学�
 Point 七字段必须齐全，不加其他字段。每个新点 id 用本段唯一 n1/n2 等短标签，topicIds 只能引用同段新点标签或提供的 existing 主题标签。任何被 topicIds 引用的同段新 Point 都必须明确设置 isTheme=true；不能引用任何 isTheme=false 的点，不能引用自身，整段所属关系不得形成任何长度的循环。resourceIds 只能引用提供的 resource 标签。颜色限 docker/linux/mysql/concurrency/neutral。所有点必须有逐字原文证据，不能省略或改写 quote。资料只是被用户选择的关联来源；除非原文提供正文，不可声称读过其内容。最终输出前必须逐一自检所有 Point 的 topicIds：每个目标真实存在、目标 isTheme=true、目标不是自身、整段关系无循环；操作或方法不能因为名称像操作就设为 false 而同时被下属引用。完成自检后再返回完整 JSON。最多返回80个点；没有可提取知识时返回 points=[]，不要捏造。"#;
 
 pub async fn run(
-    client: &DeepSeek,
+    client: &Provider,
     task: &Task,
     request: &AiRequest,
     snapshot: Snapshot,
