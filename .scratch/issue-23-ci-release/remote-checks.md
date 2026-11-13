@@ -14,6 +14,14 @@ Dedicated worktree: `C:/Users/skynesser/.codex/worktrees/8393/knowledgeGraph`; t
 
 The exact `npm test` failure was reproduced locally, then the Node-native suite was renamed to `release.node-test.mjs`, outside Vitest's discovery glob. Both intended test commands then passed: 54 frontend tests and 4 asset-boundary tests. No tests were ignored or allowed to fail.
 
+## Cold Runner success
+
+[Run 43354692958](https://github.com/jking412/Noterion/actions/runs/43354692958) completed successfully on PR head `23b6d7eda817efbe62157f1c7916b20c56ad4052`, testing merge commit `674a624f177b0c0d60b56b0b5d84e3275a03304f`. All check steps passed; the release job was skipped as required for a PR. The log explicitly reports a cache miss, then a new optimized release build in 4m51s, strict Clippy in 2m07s, Rust test compilation in 1m15s (0 Rust unit tests), and Microsoft-signed matching EdgeDriver `131.0.2903.86`.
+
+Real packaged-client smoke ran 2026-11-13 02:57:50–02:58:00. It passed embedded production origin/script checks, a visible knowledge-point save through Rust, complete exit and retrieval in a new process (PID 4684 → 3504). Downloaded static evidence is retained in `cold-run-43354692958/`: result, executable/driver inputs, driver provenance and the actual restarted UI screenshot. Visual inspection confirmed the saved name, description and unique search result; no development server or injected IPC was used.
+
+Candidate artifact ID `14005792718` is bound to the successful check; smoke evidence artifact ID `14005573279`. This is Actions candidate evidence, not proof of a public Release. A final publishing-only correction still requires a fresh PR check before merge.
+
 ## Remaining acceptance
 
-Second clean Runner build/smoke, main push publication, public asset download/start, idempotent rerun and concurrent release evidence are still pending. #23 remains open until its full acceptance is met.
+Final-head PR check, main push publication, public asset download/start, idempotent rerun and concurrent release evidence are still pending. #23 remains open until its full acceptance is met. The user explicitly authorized merging PR #24 after its checks are all green, including the 47 committed prerequisites, then completing publication validation.
