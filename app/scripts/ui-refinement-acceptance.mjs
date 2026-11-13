@@ -15,8 +15,9 @@ const options = Object.fromEntries(process.argv.slice(2).map(argument => {
   assert.ok(at > 2, 'Use --name=value arguments');
   return [argument.slice(2, at), argument.slice(at + 1)];
 }));
-assert.ok(Object.keys(options).every(key => ['run', 'phase', 'exe', 'driver', 'port', 'scenario'].includes(key)), 'Unknown option');
-assert.ok(!options.scenario || ['zoom', 'task-navigation', 'final'].includes(options.scenario), '--scenario=zoom|task-navigation|final');
+assert.ok(Object.keys(options).every(key => ['run', 'phase', 'exe', 'driver', 'port', 'scenario', 'scale', 'baseline-dpr'].includes(key)), 'Unknown option');
+assert.ok(!options.scenario || ['task-navigation', 'scaled'].includes(options.scenario), '--scenario=task-navigation|scaled');
+assert.ok(!options.scale || (Number(options.scale) >= 1 && Number(options.scale) <= 4), '--scale is a runtime DPR from 1 to 4');
 assert.match(options.run ?? '', /^issue-26-[a-z0-9-]+$/);
 assert.ok(['before', 'after'].includes(options.phase), '--phase=before|after is required');
 const after = options.phase === 'after';
@@ -105,6 +106,9 @@ async function capture(name) {
     controls: [...document.querySelectorAll('button,input,textarea,select')].filter(e=>e.getClientRects().length && getComputedStyle(e).visibility!=='hidden').map(e=>{
       const r=e.getBoundingClientRect();const s=getComputedStyle(e);
       return {name:e.getAttribute('aria-label')||e.innerText||e.id, tag:e.tagName, font:s.fontSize, x:r.x,y:r.y,width:r.width,height:r.height,disabled:e.disabled};
+    }),
+    content: [...document.querySelectorAll('[data-testid="knowledge-details"] h1,.prose-text,.modal-body,.ai-input-section,.ai-candidate-editor,.modal-header')].filter(e=>e.getClientRects().length).map(e=>{
+      const r=e.getBoundingClientRect();return {role:e.className||e.tagName,x:r.x,y:r.y,width:r.width,height:r.height,scrollWidth:e.scrollWidth,clientWidth:e.clientWidth};
     })
   };`);
   snapshots.push({ name, ...detail });
@@ -117,7 +121,8 @@ async function launch() {
   driver = spawn(driverExe, [`--port=${Number(options.port ?? 33261)}`, '--allowed-ips=127.0.0.1'], { windowsHide: true, stdio: 'ignore', env: environment });
   await until(async () => (await command('GET', '/status')).ready, 'driver ready');
   const created = await command('POST', '/session', { capabilities: { alwaysMatch: {
-    browserName: 'webview2', 'ms:edgeOptions': { binary: exe, webviewOptions: { userDataFolder: profile } },
+    browserName: 'webview2', 'ms:edgeOptions': { binary: exe, webviewOptions: { userDataFolder: profile,
+      ...(options.scale ? { additionalBrowserArguments: [`force-device-scale-factor=${options.scale}`] } : {}) } },
   } } });
   session = created.sessionId;
   const actual = await until(async () => {
@@ -126,7 +131,7 @@ async function launch() {
   }, 'visible embedded Tauri client');
   await until(async () => wd('GET', `/element/${await find('[data-testid="create-point"]')}/enabled`), 'native store loaded');
   await wd('POST', '/window/rect', { width: 1280, height: 800 });
-  await write('environment.json', { ...actual, exe, sha256: await hash(exe), driver: driverExe, driverVersion: spawnSync(driverExe, ['--version'], { windowsHide: true, encoding: 'utf8' }).stdout.trim(), provider: 'local HTTP/SSE fixture; no mock IPC; not official DeepSeek', config, profile });
+  await write('environment.json', { ...actual, exe, sha256: await hash(exe), driver: driverExe, driverVersion: spawnSync(driverExe, ['--version'], { windowsHide: true, encoding: 'utf8' }).stdout.trim(), provider: 'local HTTP/SSE fixture; no mock IPC; not official DeepSeek', config, profile, ...(options.scale ? { scaleMethod: 'WebView2 force-device-scale-factor startup argument', requestedScale: Number(options.scale) } : {}) });
 }
 async function stop() {
   if (session) { await command('DELETE', `/session/${session}`); session = undefined; }
@@ -191,17 +196,6 @@ async function retainedAnswer(question) {
   await click(summary, 'xpath');
   assert.equal((await all('[data-testid="ai-output"]')).length, 0, 'No old answer is presented as the current result');
 }
-async function nativeZoom(steps) {
-  await click('.wordmark');
-  for (let i = 0; i < (steps > 0 ? steps : 1); i++) {
-    await wd('POST', '/actions', { actions: [{ type: 'key', id: 'keyboard', actions: [
-      { type: 'keyDown', value: '\uE009' }, { type: 'keyDown', value: steps > 0 ? '+' : '0' },
-      { type: 'keyUp', value: steps > 0 ? '+' : '0' }, { type: 'keyUp', value: '\uE009' },
-    ] }] });
-  }
-  await wd('DELETE', '/actions'); await pause(150);
-}
-
 async function coreScreens() {
   await capture('00-graph-empty');
   await click('[data-testid="ai-settings"]'); await expectText('dialog', 'DeepSeek'); await capture('01-settings'); await click('[aria-label="关闭弹窗"]');
@@ -353,20 +347,7 @@ async function layoutChecks() {
       assert.ok(snapshot.page.width <= snapshot.viewport.width + 1, 'No document horizontal overflow');
       assert.ok(snapshot.controls.filter(c => c.name === '新建知识点' || c.name === '数据目录设置').every(c => c.x >= 0 && c.x + c.width <= snapshot.viewport.width + 1));
     }
-    const initial = await observe('return {width:innerWidth,dpr:devicePixelRatio};');
-    await nativeZoom(3); // Native WebView keyboard zoom, observed rather than assumed.
-    const middle = await observe('return {width:innerWidth,dpr:devicePixelRatio};');
-    await capture('17a-layout-native-zoom');
-    await clickText('知识导入'); await capture('17b-import-native-zoom');
-    await nativeZoom(2);
-    const zoomed = await observe('return {width:innerWidth,dpr:devicePixelRatio};');
-    assert.ok(zoomed.width < initial.width && zoomed.dpr > initial.dpr, 'Native zoom really changed the WebView');
-    assert.ok(Math.abs(middle.dpr / initial.dpr - 1.5) < .05, 'Observed middle zoom is 150%');
-    assert.ok(Math.abs(zoomed.dpr / initial.dpr - 2) < .05, 'Observed final zoom is 200%');
-    await capture('17c-layout-native-zoom');
-    await click('[aria-label="数据目录设置"]'); await capture('18-directory-native-zoom'); await click('[aria-label="关闭弹窗"]');
-    await nativeZoom(-1);
-    return { initial, middle, zoomed, middleScale: middle.dpr / initial.dpr, effectiveScale: zoomed.dpr / initial.dpr };
+    return { sizes: snapshots.filter(snapshot => snapshot.name.startsWith('16-layout-')).map(snapshot => snapshot.viewport) };
   });
 }
 
@@ -398,29 +379,52 @@ async function inspectTaskNavigation(name, first, expectDetailsClosed = false) {
     await until(() => fixture.requests.slice(first).some(r => r.aborted), 'Task navigation cancellation aborts native HTTP');
   });
 }
-async function zoomedTaskNavigation() {
+async function selectedTaskNavigation() {
   await settings('slow'); const first = fixture.requests.length;
   await begin('answer', '选中知识与高缩放时的任务导航验收');
   await until(() => fixture.requests.length > first, 'Native answer request is pending');
   await clickText('片段搜索');
   await fill('[data-testid="search-input"]', '进入容器终端');
   await click("//ul[contains(@class,'result-list')]//button[.//*[contains(@class,'result-name') and normalize-space(.)='进入容器终端']]", 'xpath');
-  await nativeZoom(5);
   await clickText('知识导入'); await click('[data-testid="ai-view-task"]');
   await inspectTaskNavigation('20-task-navigation-zoomed', first, true);
-  await nativeZoom(-1);
+}
+async function scaledScenario() {
+  assert.ok(options.scale, 'Runtime scale scenario requires --scale');
+  const baselineDpr = Number(options['baseline-dpr']);
+  assert.ok(baselineDpr > 0, 'Supply the measured unscaled runtime --baseline-dpr');
+  const ratio = Number(options.scale) / baselineDpr;
+  assert.ok(Math.abs(ratio - 1.5) < .01 || Math.abs(ratio - 2) < .01, 'Supplement covers 150% or 200% relative to the observed baseline DPR');
+  await wd('POST', '/window/rect', { width: Math.round(1600 / ratio), height: Math.round(1000 / ratio) });
+  await taskNavigation();
+  await check(`real WebView2 runtime at ${ratio * 100}% relative scale keeps long content and decisions usable`, async () => {
+    await clickText('知识图谱'); await click('[data-testid="create-point"]');
+    await fill('#knowledge-name', '容器网络与部署时的配置检查和排错方法：包含中文、英文 Docker Compose 以及较长的学习主题名称');
+    await fill('#knowledge-description', '高缩放长内容验收。\n'.repeat(15)); await click('[data-testid="save-point"]'); await absent('#knowledge-name');
+    const graph = await capture('21-scaled-graph-details');
+    assert.ok(Math.abs(graph.viewport.dpr - Number(options.scale)) < .05, 'Observed runtime DPR matches requested scale');
+    assert.ok(Math.abs(graph.viewport.dpr / baselineDpr - ratio) < .05, 'Observed runtime enlargement matches the requested baseline-relative scale');
+    assert.ok(graph.page.width <= graph.viewport.width + 1, 'No horizontal document overflow');
+    assert.ok(graph.controls.filter(c => c.name === '新建知识点' || c.name === '数据目录设置').every(c => c.x >= 0 && c.x + c.width <= graph.viewport.width + 1), 'Header actions stay inside the actual viewport');
+    await click('[data-testid="edit-point"]'); await capture('22-scaled-editor'); await click('[aria-label="关闭弹窗"]');
+    await clickText('知识导入'); await capture('23-scaled-import');
+    await click('[aria-label="数据目录设置"]'); await capture('24-scaled-directory'); await click('[aria-label="关闭弹窗"]');
+    for (const snapshot of snapshots) {
+      assert.ok(snapshot.page.width <= snapshot.viewport.width + 1, `${snapshot.name}: no horizontal page overflow`);
+      assert.ok(snapshot.content.every(c => c.x >= -1 && c.x + c.width <= snapshot.viewport.width + 1 && c.scrollWidth <= c.clientWidth + 1), `${snapshot.name}: headings, prose and form content remain within horizontal bounds`);
+    }
+    return { baselineDpr, requestedRatio: ratio, observedRatio: graph.viewport.dpr / baselineDpr, viewport: graph.viewport, method: 'Real WebView2 force-device-scale-factor startup argument; no CSS injection; not a global Windows DPI change' };
+  });
+  if (Math.abs(ratio - 2) < .01) await selectedTaskNavigation();
 }
 
 try {
   fixture = await startAiFixture();
   await launch();
-  if (options.scenario === 'task-navigation') {
+  if (options.scenario === 'scaled') {
+    await scaledScenario();
+  } else if (options.scenario === 'task-navigation') {
     await taskNavigation();
-  } else if (options.scenario === 'final') {
-    await taskNavigation(); await layoutChecks(); await zoomedTaskNavigation();
-  } else if (options.scenario === 'zoom') {
-    await clickText('知识导入'); await fill('[data-testid="ai-source"]', learningText);
-    await layoutChecks();
   } else {
     await coreScreens();
     if (after) await afterChecks();

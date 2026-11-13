@@ -1,0 +1,86 @@
+[
+  {
+    "name": "reviewed candidates save through the native store and survive restart",
+    "verdict": "PASS"
+  },
+  {
+    "name": "daily surfaces omit internal paths, transaction commentary and character counters",
+    "verdict": "PASS"
+  },
+  {
+    "name": "a missing managed file reports a recoverable error and restores after the file returns",
+    "verdict": "PASS"
+  },
+  {
+    "name": "extract: slow response has one honest status; cancel aborts HTTP and preserves input",
+    "verdict": "PASS"
+  },
+  {
+    "name": "extract: resubmission succeeds after cancellation with no stale response",
+    "verdict": "PASS"
+  },
+  {
+    "name": "extract: unauthorized ends waiting and exposes an actionable error with preserved input",
+    "verdict": "PASS"
+  },
+  {
+    "name": "extract: rate-limit ends waiting and exposes an actionable error with preserved input",
+    "verdict": "PASS"
+  },
+  {
+    "name": "extract: network-drop ends waiting and exposes an actionable error with preserved input",
+    "verdict": "PASS"
+  },
+  {
+    "name": "extract: corrected configuration permits successful retry",
+    "verdict": "PASS"
+  },
+  {
+    "name": "search: slow response has one honest status; cancel aborts HTTP and preserves input",
+    "verdict": "PASS"
+  },
+  {
+    "name": "search: resubmission succeeds after cancellation with no stale response",
+    "verdict": "PASS"
+  },
+  {
+    "name": "search: unauthorized ends waiting and exposes an actionable error with preserved input",
+    "verdict": "PASS"
+  },
+  {
+    "name": "search: rate-limit ends waiting and exposes an actionable error with preserved input",
+    "verdict": "PASS"
+  },
+  {
+    "name": "search: network-drop ends waiting and exposes an actionable error with preserved input",
+    "verdict": "PASS"
+  },
+  {
+    "name": "search: corrected configuration permits successful retry",
+    "verdict": "PASS"
+  },
+  {
+    "name": "answer: slow response has one honest status; cancel aborts HTTP and preserves input",
+    "verdict": "PASS"
+  },
+  {
+    "name": "answer: resubmission succeeds after cancellation with no stale response",
+    "verdict": "PASS"
+  },
+  {
+    "name": "answer: unauthorized ends waiting and exposes an actionable error with preserved input",
+    "verdict": "PASS"
+  },
+  {
+    "name": "answer: rate-limit ends waiting and exposes an actionable error with preserved input",
+    "verdict": "PASS"
+  },
+  {
+    "name": "answer: network-drop ends waiting and exposes an actionable error with preserved input",
+    "verdict": "PASS"
+  },
+  {
+    "name": "answer: corrected configuration permits successful retry",
+    "verdict": "PASS"
+  }
+]

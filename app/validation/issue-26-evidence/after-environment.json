@@ -1,0 +1,13 @@
+{
+  "ipc": "function",
+  "url": "http://tauri.localhost/",
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0",
+  "visible": "visible",
+  "exe": "C:\\Users\\skynesser\\.codex\\worktrees\\13f0\\knowledgeGraph\\app\\dist-desktop\\noterion.exe",
+  "sha256": "ff2ea762bf110a0677e59d72fee9656572cfd9632219dd3ae21aa2cd8a6b3fae",
+  "driver": "D:\\person\\application\\knowledgeGraph\\.scratch\\personal-knowledge-graph\\validation\\windows-desktop\\.tools\\issue3-webdriver\\msedgedriver.exe",
+  "driverVersion": "Microsoft Edge WebDriver 136.0.3240.76 (77e9ec69748f08de141572c1eec5e1ad497c7be6)",
+  "provider": "local HTTP/SSE fixture; no mock IPC; not official DeepSeek",
+  "config": "C:\\Users\\skynesser\\.codex\\worktrees\\13f0\\knowledgeGraph\\app\\validation\\issue-26-runs\\issue-26-after-02\\local\\config",
+  "profile": "C:\\Users\\skynesser\\.codex\\worktrees\\13f0\\knowledgeGraph\\app\\validation\\issue-26-runs\\issue-26-after-02\\local\\profile"
+}
