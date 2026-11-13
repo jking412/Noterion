@@ -1,0 +1,10 @@
+{
+  "exe": "D:\\a\\Noterion\\Noterion\\app\\release-extracted\\noterion.exe",
+  "exeSha256": "c2351bb178ef2a4107320095bd5369591924ebb2fe4fd7534dab8caf8d6c1ebd",
+  "driverExe": "D:\\a\\_temp\\webdriver\\msedgedriver.exe",
+  "driverSha256": "c34a6b22814a18599f2a67bef922ba879ae44158f216d4d2df797d293f545665",
+  "driverVersion": "Microsoft Edge WebDriver 131.0.2903.86 (cf5bf303997cad93d7a0bede234d3c3dc01cc63d)",
+  "node": "v24.14.0",
+  "platform": "win32",
+  "architecture": "x64"
+}

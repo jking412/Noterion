@@ -11,6 +11,11 @@ target/
 dist/
 build/
 coverage/
+app/dist-desktop/
+app/release-output/
+app/release-extracted/
+app/smoke-output/
+app/.npm-cache/
 
 # Local execution artifacts
 .sandcastle/logs/
