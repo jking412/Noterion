@@ -1,0 +1,325 @@
+[
+  {
+    "label": "manual create returns committed knowledge and full description",
+    "verdict": "PASS",
+    "at": "2026-11-13T03:16:56.237Z"
+  },
+  {
+    "label": "actual WebM VP9/Opus decodes, pointer seeks and continues advancing",
+    "verdict": "PASS",
+    "at": "2026-11-13T03:17:01.006Z",
+    "detail": {
+      "start": {
+        "currentTime": 0.50056,
+        "decodedFrames": 19,
+        "duration": 12.008,
+        "error": null,
+        "jsHeapUsed": 12587294,
+        "paused": false,
+        "readyState": 4,
+        "videoHeight": 720,
+        "videoWidth": 1280
+      },
+      "seek": {
+        "currentTime": 7.420675,
+        "decodedFrames": 67,
+        "duration": 12.008,
+        "error": null,
+        "jsHeapUsed": 12972885,
+        "paused": false,
+        "readyState": 4,
+        "videoHeight": 720,
+        "videoWidth": 1280
+      },
+      "continued": {
+        "currentTime": 9.239604,
+        "decodedFrames": 122,
+        "duration": 12.008,
+        "error": null,
+        "jsHeapUsed": 8840316,
+        "paused": false,
+        "readyState": 4,
+        "videoHeight": 720,
+        "videoWidth": 1280
+      }
+    }
+  },
+  {
+    "label": "same names preserve separate knowledge; optional description can be empty",
+    "verdict": "PASS",
+    "at": "2026-11-13T03:17:06.378Z"
+  },
+  {
+    "label": "name, description, short Chinese and special fragments search literally",
+    "verdict": "PASS",
+    "at": "2026-11-13T03:17:11.382Z"
+  },
+  {
+    "label": "shared point opens from either theme and edited content is shared",
+    "verdict": "PASS",
+    "at": "2026-11-13T03:17:13.278Z"
+  },
+  {
+    "label": "arbitrary-length topic cycle is rejected without closing the draft",
+    "verdict": "PASS",
+    "at": "2026-11-13T03:17:15.984Z"
+  },
+  {
+    "label": "normal restart retains edited content and complete topic detachment as independent knowledge",
+    "verdict": "PASS",
+    "at": "2026-11-13T03:17:32.196Z"
+  },
+  {
+    "label": "abnormal process exit preserves acknowledged durable commit",
+    "verdict": "PASS",
+    "at": "2026-11-13T03:17:47.753Z"
+  },
+  {
+    "label": "delete preview lists cascade, retained shared point and irreversible file retention",
+    "verdict": "PASS",
+    "at": "2026-11-13T03:17:49.854Z"
+  },
+  {
+    "label": "deleted cascade never reappears after restart; shared and independent knowledge remain",
+    "verdict": "PASS",
+    "at": "2026-11-13T03:18:07.979Z"
+  },
+  {
+    "label": "actual pointer dragging persists the node local position across a real desktop restart",
+    "verdict": "PASS",
+    "at": "2026-11-13T03:18:26.523Z",
+    "detail": {
+      "before": "translate(623.5830879749965 425.5366263220833)",
+      "moved": "translate(698.5830882404234 471.369959817622)",
+      "restarted": "translate(698.5830882404234 471.369959817622)"
+    }
+  },
+  {
+    "label": "real zoom and background pointer pan change the rendered camera",
+    "verdict": "PASS",
+    "at": "2026-11-13T03:18:27.533Z",
+    "detail": {
+      "zoomBefore": "100%",
+      "zoomAfter": "120%",
+      "cameraBefore": "translate(27.077580353840858 -117.40632430562141) scale(1.4399999949038025)",
+      "cameraAfter": "translate(92.07758035384091 -72.40632430562144) scale(1.4399999949038025)"
+    }
+  },
+  {
+    "label": "search result selection locates and highlights the requested graph node and complete detail",
+    "verdict": "PASS",
+    "at": "2026-11-13T03:18:28.105Z"
+  },
+  {
+    "label": "one saved resource is reusable from two knowledge details and detaching one keeps the other",
+    "verdict": "PASS",
+    "at": "2026-11-13T03:18:33.222Z"
+  },
+  {
+    "label": "managed image survives moving the source and restarting",
+    "verdict": "PASS",
+    "at": "2026-11-13T03:18:47.669Z",
+    "detail": {
+      "width": 960,
+      "height": 540
+    }
+  },
+  {
+    "label": "same filenames in different source directories do not overwrite or share the wrong copy",
+    "verdict": "PASS",
+    "at": "2026-11-13T03:18:48.758Z"
+  },
+  {
+    "label": "missing source file reports failure and keeps the draft instead of ready resource",
+    "verdict": "PASS",
+    "at": "2026-11-13T03:18:49.218Z"
+  },
+  {
+    "label": "real 1.28 GB local video starts with decoded frames",
+    "verdict": "PASS",
+    "at": "2026-11-13T03:18:57.791Z",
+    "detail": {
+      "currentTime": 1.069813,
+      "decodedFrames": 36,
+      "duration": 720,
+      "error": null,
+      "jsHeapUsed": 10114357,
+      "paused": false,
+      "readyState": 4,
+      "videoHeight": 720,
+      "videoWidth": 1280
+    }
+  },
+  {
+    "label": "distant pointer seek continues playing",
+    "verdict": "PASS",
+    "at": "2026-11-13T03:19:03.614Z",
+    "detail": {
+      "seek": {
+        "currentTime": 539.425965,
+        "decodedFrames": 72,
+        "duration": 720,
+        "error": null,
+        "jsHeapUsed": 10571842,
+        "paused": false,
+        "readyState": 4,
+        "videoHeight": 720,
+        "videoWidth": 1280
+      },
+      "continued": {
+        "currentTime": 544.432107,
+        "decodedFrames": 222,
+        "duration": 720,
+        "error": null,
+        "jsHeapUsed": 10752400,
+        "paused": false,
+        "readyState": 4,
+        "videoHeight": 720,
+        "videoWidth": 1280
+      }
+    }
+  },
+  {
+    "label": "local range protocol returns independent distant bytes and 416 for overflow",
+    "verdict": "PASS",
+    "at": "2026-11-13T03:19:03.921Z"
+  },
+  {
+    "label": "ordinary GET streams full video with independent hash, then cancellation stops a new read",
+    "verdict": "PASS",
+    "at": "2026-11-13T03:19:10.560Z",
+    "detail": {
+      "bytes": 1277422426,
+      "peakClientRss": 185352192,
+      "cancelledClientBytes": 8388608,
+      "cancelledServer": {
+        "bufferBytes": 65536,
+        "bytesRead": 8716288,
+        "bytesWritten": 8650752,
+        "cancelled": true,
+        "complete": false,
+        "disconnected": true,
+        "end": 1277422425,
+        "error": "远程主机强迫关闭了一个现有的连接。 (os error 10054)",
+        "event": "file-read",
+        "method": "GET",
+        "range": null,
+        "revoked": false,
+        "size": 1277422426,
+        "start": 0
+      },
+      "fullServer": {
+        "bufferBytes": 65536,
+        "bytesRead": 1277422426,
+        "bytesWritten": 1277422426,
+        "cancelled": false,
+        "complete": true,
+        "disconnected": false,
+        "end": 1277422425,
+        "error": null,
+        "event": "file-read",
+        "method": "GET",
+        "range": null,
+        "revoked": false,
+        "size": 1277422426,
+        "start": 0
+      }
+    }
+  },
+  {
+    "label": "unsupported codec presents honest failure and system-app fallback",
+    "verdict": "PASS",
+    "at": "2026-11-13T03:19:12.511Z"
+  },
+  {
+    "label": "creating a store refuses a nonempty unrelated directory without changing current facts",
+    "verdict": "PASS",
+    "at": "2026-11-13T03:19:14.596Z"
+  },
+  {
+    "label": "opening absent data reports a real error and does not create an empty store",
+    "verdict": "PASS",
+    "at": "2026-11-13T03:19:15.652Z"
+  },
+  {
+    "label": "explicit new directory and opening an existing directory keep separate durable content",
+    "verdict": "PASS",
+    "at": "2026-11-13T03:19:20.528Z"
+  },
+  {
+    "label": "link stores only address and supports multiple point associations with reusable lookup",
+    "verdict": "PASS",
+    "at": "2026-11-13T03:19:22.905Z"
+  },
+  {
+    "label": "copy cancellation never presents a ready resource or successful record",
+    "verdict": "PASS",
+    "at": "2026-11-13T03:19:24.810Z"
+  },
+  {
+    "label": "killing the application during copy cannot leave a ready formal resource after restart",
+    "verdict": "PASS",
+    "at": "2026-11-13T03:19:40.425Z"
+  },
+  {
+    "label": "a missing managed copy is marked missing and cannot be reported as ready or opened",
+    "verdict": "PASS",
+    "at": "2026-11-13T03:19:54.723Z"
+  },
+  {
+    "label": "previously chosen directory going offline does not silently create an empty replacement",
+    "verdict": "PASS",
+    "at": "2026-11-13T03:20:09.378Z"
+  },
+  {
+    "label": "restoring the selected directory reloads current committed facts",
+    "verdict": "PASS",
+    "at": "2026-11-13T03:20:23.506Z"
+  },
+  {
+    "label": "external SQLite write lock rejects editing while retaining the original fact and the user draft",
+    "verdict": "PASS",
+    "at": "2026-11-13T03:20:32.803Z"
+  },
+  {
+    "label": "failed locked deletion preserves the complete preview and reports no success",
+    "verdict": "PASS",
+    "at": "2026-11-13T03:20:39.864Z"
+  },
+  {
+    "label": "complete file copy followed by locked record commit never reports a ready resource",
+    "verdict": "PASS",
+    "at": "2026-11-13T03:20:46.208Z"
+  },
+  {
+    "label": "unlock and reread recover original facts without partial edit, deletion or failed file record",
+    "verdict": "PASS",
+    "at": "2026-11-13T03:20:48.085Z"
+  },
+  {
+    "label": "missing managed file directory rejects copying without silently recreating it",
+    "verdict": "PASS",
+    "at": "2026-11-13T03:20:48.725Z"
+  },
+  {
+    "label": "actual denied directory write reports copy failure and never presents ready data",
+    "verdict": "PASS",
+    "at": "2026-11-13T03:20:50.949Z"
+  },
+  {
+    "label": "restoring exact original directory permissions permits normal durable resource saving",
+    "verdict": "PASS",
+    "at": "2026-11-13T03:20:52.076Z"
+  },
+  {
+    "label": "a sparse source larger than actual available space is rejected before file allocation or ready record",
+    "verdict": "PASS",
+    "at": "2026-11-13T03:20:53.108Z",
+    "detail": {
+      "availableBytes": "562625511424",
+      "logicalSourceBytes": "563699253248",
+      "sourceIsSparse": true,
+      "method": "fsutil sparse setflag followed by logical truncate; no disk-filling fixture"
+    }
+  }
+]

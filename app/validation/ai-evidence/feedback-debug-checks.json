@@ -1,0 +1,10 @@
+[
+  {
+    "name": "AI configuration is available in the real desktop client",
+    "verdict": "PASS"
+  },
+  {
+    "name": "failed adoption clears an earlier local-save success message",
+    "verdict": "PASS"
+  }
+]

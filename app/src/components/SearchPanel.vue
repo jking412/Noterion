@@ -1,12 +1,17 @@
 <script setup lang="ts">
 import Icon from './Icon.vue'
+import { ref } from 'vue'
 import { getTopicTags } from '../domain/logic'
 import type { KnowledgePoint, MatchMode } from '../domain/types'
 defineProps<{ query: string; keywords: string[]; mode: MatchMode; results: KnowledgePoint[]; points: KnowledgePoint[]; selectedId: string | null; hasQuery: boolean }>()
 const emit = defineEmits<{ 'update:query': [value: string]; 'update:mode': [value: MatchMode]; add: []; remove: [index: number]; clear: []; select: [id: string] }>()
+const aiMode = ref(false)
 </script>
 <template>
   <aside class="search-panel glass-panel" aria-label="知识搜索">
+    <div class="search-methods" role="group" aria-label="查找方式"><button :class="{selected:!aiMode}" @click="aiMode=false">片段搜索</button><button :class="{selected:aiMode}" data-testid="ai-search-mode" @click="aiMode=true">AI 查找与问答</button></div>
+    <div v-show="aiMode" class="ai-search-content"><slot name="ai" /></div>
+    <div v-show="!aiMode" class="local-search-content">
     <div class="search-controls">
       <form class="search-form" @submit.prevent="emit('add')">
         <div class="search-input-wrap">
@@ -38,7 +43,8 @@ const emit = defineEmits<{ 'update:query': [value: string]; 'update:mode': [valu
       <div v-else-if="hasQuery" class="search-empty"><Icon name="search" :size="26" /><strong>没有找到相关知识</strong><p>换个片段，或试试任意匹配。</p></div>
       <div v-else class="search-empty search-start"><Icon name="search" :size="27" /><strong>{{ points.length ? '从记得的片段开始' : '先添加你的知识' }}</strong><p>{{ points.length ? '名称、命令，或一句描述。' : '新建知识点后，可按名称或描述查找。' }}</p></div>
     </div>
+    </div>
     <div class="search-footer"><span class="subtle-dot" />{{ points.length }} 个知识点<span class="footer-spacer" />个人知识图谱</div>
   </aside>
 </template>
-<style scoped>.result-description { display: block; font-size: 12px; color: #707070; line-height: 1.6; margin: 7px 0; overflow-wrap: anywhere; }</style>
+<style scoped>.result-description { display: block; font-size: 12px; color: #707070; line-height: 1.6; margin: 7px 0; overflow-wrap: anywhere; }.search-methods{display:flex;gap:4px;padding:9px 10px;border-bottom:1px solid #d9d9d9;flex-shrink:0}.search-methods button{flex:1;padding:8px 5px;font-size:12px;border-radius:6px;white-space:nowrap}.search-methods button.selected{background:#e4e4e4;color:#202020;box-shadow:inset 0 0 0 1px #ccc}.ai-search-content{overflow:auto;min-height:0;flex:1}</style>

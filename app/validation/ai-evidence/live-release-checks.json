@@ -1,0 +1,26 @@
+[
+  {
+    "name": "AI configuration is available in the real desktop client",
+    "verdict": "PASS"
+  },
+  {
+    "name": "real DeepSeek parses ordinary text into reviewable Point candidates",
+    "verdict": "PASS"
+  },
+  {
+    "name": "reviewed batch commits with both topics and survives desktop restart",
+    "verdict": "PASS"
+  },
+  {
+    "name": "natural language search locates real saved knowledge without supplying the command",
+    "verdict": "PASS"
+  },
+  {
+    "name": "grounded answer and contextual follow-up expose valid source navigation",
+    "verdict": "PASS"
+  },
+  {
+    "name": "exact repeat input reports existing adoption without duplicating saved knowledge",
+    "verdict": "PASS"
+  }
+]

@@ -1,7 +1,5 @@
-import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { createSeedData } from '../data/seed'
-import { buildImportPlan, parseImport } from '../domain/import'
 import type { KnowledgePoint, Point } from '../domain/types'
 import { completePositions } from './layout'
 
@@ -21,10 +19,14 @@ function point(id: string, topicIds: string[] = [], isTheme = false): KnowledgeP
 describe('仅补充新知识点的布局', () => {
   it('places every new normal-fixture node and its full label clear of saved nodes and other new labels', () => {
     const seed = createSeedData()
-    const source = readFileSync(new URL('../../validation/fixtures/graph-input.md', import.meta.url), 'utf8')
-    const draft = parseImport(source, 'markdown')
-    draft.rows.find((row) => row.id === 'container-troubleshoot')!.resolution = 'keep'
-    const imported = buildImportPlan(draft, seed).data!
+    const addedPoints: KnowledgePoint[] = [
+      { ...point('container-resources', ['docker'], true), name: '容器资源限制' },
+      { ...point('cpu-quota', ['container-resources', 'linux']), name: 'CPU 配额' },
+      { ...point('memory-limit', ['container-resources']), name: '内存上限' },
+      { ...point('readonly-filesystem', ['container-resources']), name: '只读文件系统' },
+      { ...point('container-healthcheck', ['container-resources']), name: '健康检查' },
+    ]
+    const imported = { ...seed, points: [...seed.points, ...addedPoints] }
     const before = JSON.stringify(seed)
     const positions = completePositions(imported.points, seed.positions)
     expect(Object.keys(positions)).toHaveLength(25)

@@ -1,0 +1,7 @@
+{
+  "run": "issue-22-migration-release-02",
+  "scenario": "migration",
+  "passed": true,
+  "assertions": 1,
+  "exe": "D:\\person\\application\\knowledgeGraph\\app\\dist-desktop\\noterion.exe"
+}

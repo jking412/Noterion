@@ -1,0 +1,7 @@
+{
+  "run": "issue-22-faults-debug-06",
+  "scenario": "faults",
+  "passed": true,
+  "assertions": 29,
+  "exe": "D:\\person\\application\\knowledgeGraph\\.scratch\\personal-knowledge-graph\\validation\\windows-desktop\\target\\debug\\noterion.exe"
+}

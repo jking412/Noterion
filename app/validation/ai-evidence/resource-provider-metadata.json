@@ -1,0 +1,60 @@
+[
+  {
+    "sequence": 1,
+    "mode": "good",
+    "stage": "extract",
+    "status": 200,
+    "requestBytes": 2891,
+    "messageCount": 2,
+    "toolNames": [],
+    "responseKind": "content",
+    "responseChunks": 15,
+    "finished": true,
+    "aborted": false
+  },
+  {
+    "sequence": 2,
+    "mode": "good",
+    "stage": "retrieve",
+    "status": 200,
+    "requestBytes": 2569,
+    "messageCount": 2,
+    "toolNames": [
+      "search_knowledge"
+    ],
+    "responseKind": "tool",
+    "responseChunks": 9,
+    "finished": true,
+    "aborted": false
+  },
+  {
+    "sequence": 3,
+    "mode": "good",
+    "stage": "retrieve",
+    "status": 200,
+    "requestBytes": 4030,
+    "messageCount": 4,
+    "toolNames": [
+      "search_knowledge",
+      "read_point",
+      "related_points"
+    ],
+    "responseKind": "content",
+    "responseChunks": 4,
+    "finished": true,
+    "aborted": false
+  },
+  {
+    "sequence": 4,
+    "mode": "good",
+    "stage": "answer",
+    "status": 200,
+    "requestBytes": 3697,
+    "messageCount": 5,
+    "toolNames": [],
+    "responseKind": "content",
+    "responseChunks": 6,
+    "finished": false,
+    "aborted": true
+  }
+]

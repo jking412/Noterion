@@ -1,0 +1,7 @@
+{
+  "run": "issue-22-live-release-04",
+  "scenario": "live",
+  "passed": true,
+  "assertions": 6,
+  "exe": "D:\\person\\application\\knowledgeGraph\\app\\dist-desktop\\noterion.exe"
+}

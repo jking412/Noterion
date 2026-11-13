@@ -1,0 +1,7 @@
+{
+  "run": "issue-22-feedback-green-02",
+  "scenario": "feedback",
+  "passed": true,
+  "assertions": 2,
+  "exe": "D:\\person\\application\\knowledgeGraph\\.scratch\\personal-knowledge-graph\\validation\\windows-desktop\\target\\debug\\noterion.exe"
+}

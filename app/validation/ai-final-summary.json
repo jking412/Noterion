@@ -1,0 +1,72 @@
+{
+  "date": "2026-11-13",
+  "timezone": "Asia/Shanghai",
+  "release": {
+    "executable": "app/dist-desktop/noterion.exe",
+    "bytes": 12653056,
+    "sha256": "74F0A08225CA2C6ECF8CD08BFB79035A2A9549D992EDB6218FCD601499D13B4F",
+    "archive": "app/dist-desktop/Noterion-Windows-x64-AI.zip",
+    "archiveSha256": "BF4AE92A655740CE17EBFCF2D38D03FE6F2F7CF5E9CA95A9ECC65D6E7330B58C"
+  },
+  "validation": [
+    {
+      "run": "issue-22-live-release-04",
+      "kind": "real-deepseek",
+      "passed": true,
+      "assertions": 6,
+      "result": "ai-evidence/live-release-result.json"
+    },
+    {
+      "run": "issue-22-faults-debug-06",
+      "kind": "simulated-provider",
+      "passed": true,
+      "assertions": 29,
+      "result": "ai-evidence/faults-debug-result.json"
+    },
+    {
+      "run": "issue-22-resources-debug-02",
+      "kind": "resource-integration",
+      "passed": true,
+      "assertions": 7,
+      "result": "ai-evidence/resources-debug-result.json"
+    },
+    {
+      "run": "issue-22-feedback-green-02",
+      "kind": "feedback-regression",
+      "passed": true,
+      "assertions": 2,
+      "result": "ai-evidence/feedback-debug-result.json"
+    },
+    {
+      "run": "issue-22-migration-release-02",
+      "kind": "v1-migration",
+      "passed": true,
+      "assertions": 1,
+      "result": "ai-evidence/migration-release-result.json"
+    },
+    {
+      "run": "issue-21-ai22-regression-release-02",
+      "kind": "local-regression",
+      "passed": true,
+      "assertions": 39,
+      "launches": 10,
+      "result": "ai-evidence/local-regression-result.json"
+    }
+  ],
+  "frontend": {
+    "typecheck": "PASS",
+    "tests": 32,
+    "files": 3
+  },
+  "review": {
+    "standardsHardViolations": 0,
+    "unresolvedP2": 0,
+    "nonBlockingSuggestions": 1
+  },
+  "limits": [
+    "Real model and simulated-provider runs are reported separately.",
+    "WebView proxy isolation is not OS-wide or native Rust network isolation; native disconnect is covered by a separate provider fixture.",
+    "PDF screenshot was visually inspected and its actual rendered text was visible.",
+    "No test key, data library or profile is included in the distribution archive."
+  ]
+}

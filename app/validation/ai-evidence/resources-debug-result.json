@@ -1,0 +1,7 @@
+{
+  "run": "issue-22-resources-debug-02",
+  "scenario": "resources",
+  "passed": true,
+  "assertions": 7,
+  "exe": "D:\\person\\application\\knowledgeGraph\\.scratch\\personal-knowledge-graph\\validation\\windows-desktop\\target\\debug\\noterion.exe"
+}

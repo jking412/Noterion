@@ -1,4 +1,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+mod ai;
 mod media;
 mod store;
 use std::sync::{Arc, Mutex};
@@ -8,6 +9,7 @@ fn main() {
     tauri::Builder::default()
         .manage(Arc::new(Mutex::new(store::Store::new())))
         .manage(media)
+        .manage(ai::AiHost::default())
         .invoke_handler(tauri::generate_handler![
             store::app_load,
             store::directory_select,
@@ -18,6 +20,14 @@ fn main() {
             store::resource_associate,
             store::resource_remove,
             store::point_move,
+            store::ai_records,
+            ai::ai_settings,
+            ai::ai_configure,
+            ai::ai_check,
+            ai::ai_start,
+            ai::ai_cancel,
+            ai::ai_adopt,
+            ai::ai_read_text,
             media::choose_file,
             media::choose_directory,
             media::resource_add_file,
