@@ -15,3 +15,7 @@ One concurrency defect: a shared release concurrency group with the default sing
 An additional recovery finding was reported during review: `github.run_attempt` changes on a failed-release-only rerun, although the successful check job does not rerun. The release job now downloads the immutable artifact ID output by the successful check job, retaining its checked origin.
 
 Spec: 2 actionable findings and 1 behavior/documentation mismatch, resolved. Worst finding was the pending release eviction. Real remote execution and publication evidence remain separate completion gates.
+
+## Final acceptance review
+
+After the actual main publication, anonymous Windows download/start, same-ref cancellation and selected-release-job retry, the independent Spec reviewer found no remaining blocking acceptance item. Formal tags are an optional route; their version rules are covered by CLI tests. Multi-tag queue stress and exhaustive failure injection at every upload stage were not claimed. Final public-download static JSON, version metadata and screenshots are retained alongside the run record.

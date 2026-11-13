@@ -1,0 +1,32 @@
+[
+  {
+    "launch": 1,
+    "hostPid": 38948,
+    "driverPid": 34424,
+    "environment": {
+      "invoke": "function",
+      "scripts": [
+        "http://tauri.localhost/assets/index-IulAocmg.js"
+      ],
+      "url": "http://tauri.localhost/",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0",
+      "visibility": "visible"
+    },
+    "storageLocation": "当前数据：\\\\?\\<worktree>\\app\\smoke-output\\final-smoke\\isolated-config\\data\n重新读取图谱"
+  },
+  {
+    "launch": 2,
+    "hostPid": 37828,
+    "driverPid": 3812,
+    "environment": {
+      "invoke": "function",
+      "scripts": [
+        "http://tauri.localhost/assets/index-IulAocmg.js"
+      ],
+      "url": "http://tauri.localhost/",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0",
+      "visibility": "visible"
+    },
+    "storageLocation": "当前数据：\\\\?\\<worktree>\\app\\smoke-output\\final-smoke\\isolated-config\\data\n重新读取图谱"
+  }
+]
