@@ -1,6 +1,6 @@
 # Issue #26：客户端细节与 AI 反馈验收
 
-日期：2026-11-13（Asia/Shanghai）。本轮使用真实 Windows Tauri 客户端、WebView2、Edge WebDriver 和原生 Rust 存储/HTTP 路径。常规 UI 与 AI 正常/异常路径有 21 项通过；最终程序另有 150% 与 200% 相对缩放、任务导航的 5 项窄化检查通过。各运行的结果分别保留，**不把曾因驱动缩放断言失败的整轮运行改记为成功**。机器汇总见 [issue-26-summary.json](issue-26-summary.json)。
+日期：2026-11-13（Asia/Shanghai）。本轮使用真实 Windows Tauri 客户端、WebView2、Edge WebDriver 和原生 Rust 存储/HTTP 路径。合入最新 main 已提交的品牌图标后，最终程序的核心与 AI 正常/异常整轮 **22 项通过、passed=true**；200% 相对 runtime 缩放与任务导航补证 **3 项通过、passed=true**。整合前的 150% 比例补证、历史 RED 和驱动诊断也分别保留，**不把曾因驱动缩放断言失败的整轮运行改记为成功**。机器汇总见 [issue-26-summary.json](issue-26-summary.json)。
 
 本轮供应商是确定性的本机 HTTP/SSE 夹具，替换的是供应商响应；没有 mock 桌面 IPC、直接注入正式知识或用浏览器页面冒充客户端。本轮没有调用官方 DeepSeek，不将模拟供应商成功或错误说成官方服务结果。
 
@@ -9,6 +9,7 @@
 - 专用 worktree：`C:/Users/skynesser/.codex/worktrees/13f0/knowledgeGraph`。
 - 分支：`codex/issue-26-ui-feedback`。
 - 基线已整合远端 CI 交付；#26 修改前固定审查基点：`647c20566550a86056b0e6b2def81ef36e71d4fe`。
+- 最后整合了 `origin/main` 的明确提交 `6f44e447be776ac92ec6bc00c90eb19e956e13a1`，合并提交为 `bbccbb64d3a26e6d8cc74bcaf1071d0bbbcb41c4`。保留 #25 已提交的品牌/原生图标与 #26 的任务状态、可读目录和缩放支持，没有复制其他会话的未提交资产；审查基点不变。
 - 本轮所有构建目标、配置、数据、资料副本、WebView profile 与截图均在本 worktree。历史 EdgeDriver 仅作为可执行工具只读使用，没有写入共享主目录或其他会话的工作区。
 - WebView2 / EdgeDriver：`136.0.3240.76`。入口实际为 `http://tauri.localhost/`，IPC 可用、文档可见；环境和程序哈希见各运行的 environment JSON。
 
@@ -16,7 +17,8 @@
 | --- | --- | --- |
 | 修改前 debug 客户端 | `d658807e3aa1faa91b182bd6ecfab414fa1cb4429d9754eb82641d2a2bb019f9` | 同一批关键路径的修改前截图、共享任务状态 RED、候选采用与重启 |
 | 首批 UI / AI 修改后的 debug 客户端 | `ff2ea762bf110a0677e59d72fee9656572cfd9632219dd3ae21aa2cd8a6b3fae` | 21 项 UI / AI 正常与故障检查、1280/1600 长内容截图；任务导航缺陷 RED |
-| 最终 debug 客户端 | `76cb3b6bce3333347e8782e5d9dd6546e9d642bd2c71c525bf927f2ae300db0c` | 审查修复后普通/高缩放任务导航、150%/200% 相对 runtime 缩放、长名称与表单操作 |
+| 审查修复后、main 整合前 debug 客户端 | `76cb3b6bce3333347e8782e5d9dd6546e9d642bd2c71c525bf927f2ae300db0c` | 普通/高缩放任务导航、150%/200% 相对 runtime 缩放、长名称与表单操作 |
+| 合入 main 品牌图标后的最终 debug 客户端 | `8f0f25a509329bcc0a117d3b83e841bc4cf4b9afe589137714feac59d55ec790` | 核心/AI 正常与异常整轮 22 项通过；200% runtime 比例、头部图标与操作边界、任务导航另 3 项通过 |
 
 本机 loopback HTTP 供应商只在 debug 配置允许，因此上述桌面故障验收使用 debug 程序。本轮未执行优化版桌面验收；类型、构建与测试检查见 [审查记录](issue-26-review.md)。本报告不把 debug 截图当作另一个 exe 的运行证据。
 
@@ -35,7 +37,7 @@
 | 跨工作面状态 | 整理学习文本时，问答处使用独立任务提示和“查看任务”，不冒充正在执行问答；反向跳转会激活真实 AI 模式 |
 | 任务导航与高缩放 | 慢回答→片段搜索→导入→查看任务后，AI 输入与实际取消可见；在 200% 相对 runtime 比例、已选知识详情时同样成立，并释放详情遮挡 |
 
-常规证据：[21 项检查](issue-26-evidence/after-checks.json)、[供应商脱敏元数据](issue-26-evidence/after-provider-metadata.json)。最终窄化证据：[150% 检查](issue-26-evidence/scale150-checks.json)、[200% 检查](issue-26-evidence/scale200-checks.json)、[高缩放任务导航观察](issue-26-evidence/scale200-20-task-navigation-zoomed-observation.json)。
+最终整合程序的常规证据：[22 项检查](issue-26-evidence/integrated-core-checks.json)、[整轮结果](issue-26-evidence/integrated-core-result.json)、[供应商脱敏元数据](issue-26-evidence/integrated-core-provider-metadata.json)。最终窄化证据：[200% 检查](issue-26-evidence/integrated-scale200-checks.json)、[整轮结果](issue-26-evidence/integrated-scale200-result.json)、[高缩放任务导航观察](issue-26-evidence/integrated-scale200-20-task-navigation-zoomed-observation.json)。整合前的 [21 项检查](issue-26-evidence/after-checks.json)与 [150% 检查](issue-26-evidence/scale150-checks.json)继续作为相应程序的历史证据保留。
 
 ## 缩放边界
 
@@ -43,8 +45,8 @@
 
 | 相对比例 | WebView2 runtime DPR | 实际 CSS 视口 | 检查 |
 | --- | --- | --- | --- |
-| 150% | 2.25 | 1067×667 | 长名称、正文、编辑/导入/目录与任务导航；标题、正文和表单边界断言 |
-| 200% | 3 | 800×500 | 同上，加已选知识后的跨页任务导航与实际取消 |
+| 150% | 2.25 | 1067×667 | main 整合前程序：长名称、正文、编辑/导入/目录与任务导航；标题、正文和表单边界断言 |
+| 200% | 3 | 800×500 | main 整合前和最终整合程序均验证：同上，加已选知识后的跨页任务导航与实际取消；最终头部品牌图标没有挡住操作 |
 
 使用 `force-device-scale-factor` 启动真实 WebView2，并对 DPR、相对比例、实际视口、正文/表单/操作边界作观察与断言。每次运行有独立 profile。没有注入 CSS，没有改变 Windows 全局 DPI；**没有声称 WebDriver Ctrl+Plus 已成功触发用户缩放快捷键**。
 
@@ -60,6 +62,18 @@
 | 资料库 | [保存机制常驻页脚](issue-26-evidence/before-08-library.png) | [资料、关联和操作](issue-26-evidence/after-08-library.png) |
 | 知识详情 | [原图谱与详情](issue-26-evidence/before-05-graph-details.png) | [字号层级、操作与阅读](issue-26-evidence/after-05-graph-details.png) |
 | 高缩放 | — | [150% 导入](issue-26-evidence/scale150-23-scaled-import.png)、[200% 编辑](issue-26-evidence/scale200-22-scaled-editor.png)、[200% 查看任务](issue-26-evidence/scale200-20-task-navigation-zoomed.png) |
+| main 整合后的最终头部 | — | [最终导入](issue-26-evidence/integrated-core-02-import-input.png)、[资料库](issue-26-evidence/integrated-core-08-library.png)、[AI 等待](issue-26-evidence/integrated-core-14-answer-slow.png)、[回答结果](issue-26-evidence/integrated-core-13-ai-answer.png)、[200% 任务导航](issue-26-evidence/integrated-scale200-20-task-navigation-zoomed.png) |
+
+## 最新 main 整合复核
+
+PR 创建时 main 新增了 #28 所整合的 #25 品牌图标与已提交客户端基线，因此先通过上述 merge 保留双方改动，再在同一 worktree 构建和验证最终 exe。未对品牌重新设计，未加入额外视觉打磨。
+
+| 新运行 | 程序 | 结果 | 本轮意义 |
+| --- | --- | --- | --- |
+| `issue-26-integrated-core-01` | 最终 `8f0f25a5…` | 22 项 PASS，整轮 `passed=true` | 清理后的正式 runner 重新覆盖全部核心、三类 AI 正常/慢/取消/401/429/断连/重试、文件恢复、候选保存重启、1280/1600 长名称与导航操作 |
+| `issue-26-integrated-scale200-01` | 同一最终 exe | 3 项 PASS，整轮 `passed=true` | 新头部与图标在实际 DPR3、800×500 视口下可操作；正文/表单边界、普通及已选知识后的任务导航和实际取消均通过 |
+
+两次运行均使用新 config/data/profile，程序哈希一致，见 [核心环境](issue-26-evidence/integrated-core-environment.json)与 [200% 环境](issue-26-evidence/integrated-scale200-environment.json)。历史截图、失败结果与整合前程序的验证边界没有覆盖或改名。
 
 ## 真实缺陷与失败记录
 

@@ -1,0 +1,45 @@
+[
+  {
+    "sequence": 1,
+    "mode": "good",
+    "stage": "extract",
+    "status": 200,
+    "requestBytes": 2847,
+    "messageCount": 2,
+    "toolNames": [],
+    "responseKind": "content",
+    "responseChunks": 14,
+    "finished": false,
+    "aborted": true
+  },
+  {
+    "sequence": 2,
+    "mode": "slow",
+    "stage": "retrieve",
+    "status": 200,
+    "requestBytes": 2280,
+    "messageCount": 2,
+    "toolNames": [
+      "search_knowledge"
+    ],
+    "responseKind": "slow",
+    "responseChunks": 6,
+    "finished": false,
+    "aborted": true
+  },
+  {
+    "sequence": 3,
+    "mode": "slow",
+    "stage": "retrieve",
+    "status": 200,
+    "requestBytes": 2298,
+    "messageCount": 2,
+    "toolNames": [
+      "search_knowledge"
+    ],
+    "responseKind": "slow",
+    "responseChunks": 7,
+    "finished": false,
+    "aborted": true
+  }
+]

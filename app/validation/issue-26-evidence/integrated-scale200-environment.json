@@ -1,0 +1,15 @@
+{
+  "ipc": "function",
+  "url": "http://tauri.localhost/",
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0",
+  "visible": "visible",
+  "exe": "C:\\Users\\skynesser\\.codex\\worktrees\\13f0\\knowledgeGraph\\app\\dist-desktop\\noterion.exe",
+  "sha256": "8f0f25a509329bcc0a117d3b83e841bc4cf4b9afe589137714feac59d55ec790",
+  "driver": "D:\\person\\application\\knowledgeGraph\\.scratch\\personal-knowledge-graph\\validation\\windows-desktop\\.tools\\issue3-webdriver\\msedgedriver.exe",
+  "driverVersion": "Microsoft Edge WebDriver 136.0.3240.76 (77e9ec69748f08de141572c1eec5e1ad497c7be6)",
+  "provider": "local HTTP/SSE fixture; no mock IPC; not official DeepSeek",
+  "config": "C:\\Users\\skynesser\\.codex\\worktrees\\13f0\\knowledgeGraph\\app\\validation\\issue-26-runs\\issue-26-integrated-scale200-01\\local\\config",
+  "profile": "C:\\Users\\skynesser\\.codex\\worktrees\\13f0\\knowledgeGraph\\app\\validation\\issue-26-runs\\issue-26-integrated-scale200-01\\local\\profile",
+  "scaleMethod": "WebView2 force-device-scale-factor startup argument",
+  "requestedScale": 3
+}
