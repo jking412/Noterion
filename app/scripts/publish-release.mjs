@@ -77,13 +77,6 @@ if (!prerelease) {
   assert.ok(['ahead', 'identical'].includes(comparison.status), 'Version tag must point to a commit reachable from main');
 }
 
-// An obsolete main build never becomes a newly published daily release. All
-// daily tags include the full SHA and never change GitHub's stable Latest link.
-if (prerelease && !(await currentMain())) {
-  await summary(`Skipped obsolete main commit ${sha}; main has advanced. No release was published.`);
-  process.exit(0);
-}
-
 const releases = api('releases?per_page=100');
 // Use the tag lookup for public versions, and the list for an unfinished draft.
 // Pagination matters once the repository has more than 100 daily versions.
@@ -105,6 +98,13 @@ if (release && !release.draft) {
   verify(downloaded, extract);
   smoke(extract, path.join(output, 'existing-client'));
   await summary(`Verified existing immutable release [${tag}](${release.html_url}) at ${sha}. Rerun published no duplicate and replaced no assets.`);
+  process.exit(0);
+}
+
+// Historical public releases remain verifiable on rerun, even after main moves.
+// Only a new publication must still be the current main commit.
+if (prerelease && !(await currentMain())) {
+  await summary(`Skipped obsolete main commit ${sha}; main has advanced. No release was published.`);
   process.exit(0);
 }
 

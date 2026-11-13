@@ -26,6 +26,8 @@ jobs:
   check:
     runs-on: windows-2022
     timeout-minutes: 60
+    outputs:
+      release-artifact-id: ${{ steps.release-artifact.outputs.artifact-id }}
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
@@ -60,7 +62,7 @@ jobs:
         working-directory: app
         run: npm test
       - name: Test release asset contract
-        run: node --test app/scripts/release.test.mjs
+        run: node --test app/scripts/release.node-test.mjs
       - name: Check Rust formatting
         working-directory: app/src-tauri
         run: cargo fmt --all -- --check
@@ -100,6 +102,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
       - name: Preserve checked release candidate
+        id: release-artifact
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: windows-x64-${{ github.sha }}-${{ github.run_attempt }}
@@ -118,6 +121,7 @@ jobs:
     concurrency:
       group: noterion-release
       cancel-in-progress: false
+      queue: max
     permissions:
       contents: write
     steps:
@@ -129,7 +133,8 @@ jobs:
           node-version-file: .node-version
       - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
-          name: windows-x64-${{ github.sha }}-${{ github.run_attempt }}
+          artifact-ids: ${{ needs.check.outputs.release-artifact-id }}
+          merge-multiple: true
           path: app/release-output
       - name: Verify checked assets
         env:

@@ -37,7 +37,7 @@ git diff -- app/package.json app/package-lock.json app/src-tauri/Cargo.toml app/
 npm.cmd ci --prefix app --registry=https://registry.npmjs.org
 npm.cmd run typecheck --prefix app
 npm.cmd test --prefix app
-node --test app/scripts/release.test.mjs
+node --test app/scripts/release.node-test.mjs
 cargo fmt --manifest-path app/src-tauri/Cargo.toml --all -- --check
 ./app/build.ps1 -Release
 cargo clippy --manifest-path app/src-tauri/Cargo.toml --locked --all-targets --target x86_64-pc-windows-msvc -- -D warnings
