@@ -1,8 +1,8 @@
 {
   "passed": true,
-  "at": "2026-11-13T06:28:31.0537938Z",
+  "at": "2026-11-13T06:32:13.4740224Z",
   "exe": "app/dist-desktop/noterion.exe",
-  "exeSha256": "40ebbac5e308bb5e582a5afed710a45e34d809834dffd3f8d9db2251ed7bdcd3",
+  "exeSha256": "5d2d9d687d4983e70abb544b12acc12d3295f9926c8d6df0da6525b985d222a1",
   "sourceIcon": "app/src-tauri/icons/icon.ico",
   "sourceIconSha256": "0b4ed0d0b7d13f5aa4de3db40014364a2bd794eff63b2da3aea1a1e48a7871a5",
   "resourceGroup": 32512,
@@ -108,7 +108,7 @@
     "taskbar": "taskbar-icon.png",
     "client": "../../../docs/images/knowledge-graph.png",
     "titlebarMethod": "Direct crop of specified-window PrintWindow capture; left0 top0 width520 height45 physical pixels",
-    "taskbarMethod": "Direct crop of actual Shell_TrayWnd screen capture; x1676 y0 width76 height72",
+    "taskbarMethod": "Direct crop of actual Shell_TrayWnd screen capture; x1642 y0 width76 height72",
     "pixelChanges": "No repainting or compositing"
   },
   "visualReview": {
@@ -117,5 +117,24 @@
     "exe": "PASS: Windows shell extracted the new mark",
     "client": "PASS: real WebDriver workspace capture; synthetic knowledge only"
   },
-  "limitations": "PrintWindow rendered the native title bar but not the WebView body. The real client body was verified and captured separately through WebDriver. Raw full captures with machine paths remain local in ignored icon-window-check-03. No live AI request was repeated for this branding change."
+  "limitations": "PrintWindow rendered the native title bar but not the WebView body. The real client body was verified and captured separately through WebDriver. Raw full captures with machine paths remain local in ignored icon-window-check-04. No live AI request was repeated for this branding change.",
+  "sourceCommit": "366633177c5afe6ab74489957b7572b4c2378e8e",
+  "favicons": [
+    {
+      "bytes": 498,
+      "height": 512,
+      "href": "http://tauri.localhost/favicon.svg",
+      "sha256": "745df2dc01e460e9eee3440862392a95bc167a7d546cbd896a5f428340150494",
+      "status": 200,
+      "width": 512
+    },
+    {
+      "bytes": 721,
+      "height": 32,
+      "href": "http://tauri.localhost/favicon.png",
+      "sha256": "6f8efb216a7eef7a422eb90660329cd6bb0474ba9ce28ab7d3dbe1fdf1031dca",
+      "status": 200,
+      "width": 32
+    }
+  ]
 }
