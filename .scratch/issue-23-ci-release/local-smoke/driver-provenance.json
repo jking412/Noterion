@@ -1,0 +1,19 @@
+{
+  "checkedAtUtc": "2026-11-13T02:39:59.1178172Z",
+  "runtimeVersion": "136.0.3240.76",
+  "runtimeRegistry": "HKLM32\\SOFTWARE\\Microsoft\\EdgeUpdate\\Clients\\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}",
+  "registeredRuntimes": [
+    {
+      "version": "136.0.3240.76",
+      "registry": "HKLM32\\SOFTWARE\\Microsoft\\EdgeUpdate\\Clients\\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}"
+    }
+  ],
+  "discoveryErrors": [],
+  "downloadUrl": "https://msedgedriver.microsoft.com/136.0.3240.76/edgedriver_win64.zip",
+  "archiveSha256": "62238d7201ddb1ca1f52a793a6eaca41fb68b436857d71e6b647474bd839d901",
+  "driverVersion": "136.0.3240.76",
+  "driverSha256": "76f549b492a89dbacee027ac6a726836944f04645ecaa5fa9a2045c84303d6ed",
+  "signatureStatus": "Valid",
+  "signerSubject": "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+  "signerThumbprint": "7920AC8FB05E0FFFE21E8FF4B4F03093BA6AC16E"
+}

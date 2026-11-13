@@ -1,0 +1,162 @@
+name: Windows desktop
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      clean:
+        description: 'Build without restoring or saving Cargo/npm caches'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+# A replacement run cancels obsolete checks. A cancelled upload stays a private
+# draft; the publish script verifies assets before making anything public.
+concurrency:
+  group: desktop-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: windows-2022
+    timeout-minutes: 60
+    outputs:
+      release-artifact-id: ${{ steps.release-artifact.outputs.artifact-id }}
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+        with:
+          node-version-file: .node-version
+      - name: Install pinned Rust toolchain
+        shell: pwsh
+        run: |
+          rustup show active-toolchain
+          if ($LASTEXITCODE -ne 0) { throw 'Pinned Rust toolchain installation failed' }
+      - name: Restore dependency and compiler cache
+        if: ${{ !inputs.clean }}
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+        with:
+          path: |
+            ~/AppData/Local/npm-cache
+            ~/.cargo/registry
+            ~/.cargo/git
+            app/src-tauri/target
+          key: desktop-${{ runner.os }}-x64-${{ hashFiles('.node-version', 'rust-toolchain.toml', 'app/package-lock.json', 'app/src-tauri/Cargo.lock') }}-${{ github.sha }}
+          restore-keys: |
+            desktop-${{ runner.os }}-x64-${{ hashFiles('.node-version', 'rust-toolchain.toml', 'app/package-lock.json', 'app/src-tauri/Cargo.lock') }}-
+      - name: Install locked frontend dependencies
+        working-directory: app
+        run: npm ci --registry=https://registry.npmjs.org
+      - name: Check frontend types
+        working-directory: app
+        run: npm run typecheck
+      - name: Test frontend behavior
+        working-directory: app
+        run: npm test
+      - name: Test release asset contract
+        run: node --test app/scripts/release.node-test.mjs
+      - name: Check Rust formatting
+        working-directory: app/src-tauri
+        run: cargo fmt --all -- --check
+      - name: Build optimized embedded client
+        shell: pwsh
+        run: ./app/build.ps1 -Release
+      - name: Check Rust diagnostics
+        working-directory: app/src-tauri
+        run: cargo clippy --locked --all-targets --target x86_64-pc-windows-msvc -- -D warnings
+      - name: Test Rust
+        working-directory: app/src-tauri
+        run: cargo test --locked --target x86_64-pc-windows-msvc
+      - name: Prepare matching WebView2 driver
+        shell: pwsh
+        run: ./app/scripts/setup-webdriver.ps1 -Destination "$env:RUNNER_TEMP/webdriver"
+      - name: Package release candidate
+        env:
+          SOURCE_SHA: ${{ github.sha }}
+          SOURCE_REF: ${{ github.ref }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: node app/scripts/release.mjs package --exe=app/dist-desktop/noterion.exe --output=app/release-output
+      - name: Verify and extract the distributable
+        env:
+          SOURCE_SHA: ${{ github.sha }}
+        run: node app/scripts/release.mjs verify --directory=app/release-output --extract=app/release-extracted
+      - name: Smoke test packaged real client
+        shell: pwsh
+        run: node app/scripts/release-smoke.mjs --exe="$pwd/app/release-extracted/noterion.exe" --driver="$env:RUNNER_TEMP/webdriver/msedgedriver.exe" --output="$env:RUNNER_TEMP/desktop-smoke"
+      - name: Preserve desktop diagnostics
+        if: ${{ always() }}
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: desktop-smoke-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/desktop-smoke
+            ${{ runner.temp }}/webdriver/provenance.json
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Preserve checked release candidate
+        id: release-artifact
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: windows-x64-${{ github.sha }}-${{ github.run_attempt }}
+          path: app/release-output/*
+          if-no-files-found: error
+          retention-days: 14
+
+  release:
+    needs: check
+    if: >-
+      github.repository == 'jking412/Noterion' &&
+      github.event_name != 'pull_request' &&
+      (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+    runs-on: windows-2022
+    timeout-minutes: 20
+    concurrency:
+      group: noterion-release
+      cancel-in-progress: false
+      queue: max
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+        with:
+          node-version-file: .node-version
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          artifact-ids: ${{ needs.check.outputs.release-artifact-id }}
+          merge-multiple: true
+          path: app/release-output
+      - name: Verify checked assets
+        env:
+          SOURCE_SHA: ${{ github.sha }}
+        run: node app/scripts/release.mjs verify --directory=app/release-output --extract=app/release-extracted
+      - name: Prepare matching WebView2 driver
+        shell: pwsh
+        run: ./app/scripts/setup-webdriver.ps1 -Destination "$env:RUNNER_TEMP/webdriver"
+      - name: Publish verified release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          SOURCE_SHA: ${{ github.sha }}
+          SOURCE_REF: ${{ github.ref }}
+        run: node app/scripts/publish-release.mjs --directory=app/release-output --driver=${{ runner.temp }}/webdriver/msedgedriver.exe --output=${{ runner.temp }}/published-smoke
+      - name: Preserve downloaded release validation
+        if: ${{ always() }}
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: published-smoke-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/published-smoke
+            ${{ runner.temp }}/webdriver/provenance.json
+          if-no-files-found: warn
+          retention-days: 14

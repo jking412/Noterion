@@ -1,0 +1,49 @@
+{
+  "passed": true,
+  "startedAt": "2026-11-13T02:57:50.056Z",
+  "completedAt": "2026-11-13T02:58:00.903Z",
+  "launches": 2,
+  "assertions": [
+    {
+      "label": "packaged client opens embedded interface and isolated Rust storage",
+      "verdict": "PASS",
+      "at": "2026-11-13T02:57:57.988Z",
+      "detail": {
+        "launch": 1,
+        "hostPid": 4684,
+        "driverPid": 8080,
+        "environment": {
+          "invoke": "function",
+          "scripts": [
+            "http://tauri.localhost/assets/index-IulAocmg.js"
+          ],
+          "url": "http://tauri.localhost/",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0",
+          "visibility": "visible"
+        },
+        "storageLocation": "当前数据：\\\\?\\D:\\a\\_temp\\desktop-smoke\\isolated-config\\data\n重新读取图谱"
+      }
+    },
+    {
+      "label": "visible save commits a knowledge point through the real Rust core",
+      "verdict": "PASS",
+      "at": "2026-11-13T02:57:58.870Z",
+      "detail": {
+        "pointName": "Release smoke: 保存后重启",
+        "description": "由真实 Windows 客户端保存的知识点；无需开发服务器。"
+      }
+    },
+    {
+      "label": "fresh client process reads the committed knowledge from disk",
+      "verdict": "PASS",
+      "at": "2026-11-13T02:58:00.670Z",
+      "detail": {
+        "pointName": "Release smoke: 保存后重启",
+        "firstPid": 4684,
+        "restartedPid": 3504
+      }
+    }
+  ],
+  "scope": "Windows x64 packaged exe; embedded UI; real Rust save; persistence after full process restart.",
+  "limitations": "No full desktop/media/large-video or live AI-service acceptance. This run uses only synthetic knowledge and isolated data."
+}

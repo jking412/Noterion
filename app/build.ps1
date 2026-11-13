@@ -1,8 +1,11 @@
 param([switch]$Offline, [switch]$Release)
 $ErrorActionPreference = 'Stop'
-$repository = Split-Path $PSScriptRoot
-$env:CARGO_HOME = Join-Path $repository '.scratch/personal-knowledge-graph/validation/windows-desktop/.cargo-home'
-$env:CARGO_TARGET_DIR = Join-Path $repository '.scratch/personal-knowledge-graph/validation/windows-desktop/target'
+# Respect normal Cargo configuration and runner caches. No developer-machine paths.
+if (-not $env:CARGO_TARGET_DIR) {
+    $env:CARGO_TARGET_DIR = Join-Path $PSScriptRoot 'src-tauri/target'
+}
+$targetDirectory = [IO.Path]::GetFullPath($env:CARGO_TARGET_DIR, $PSScriptRoot)
+$env:CARGO_TARGET_DIR = $targetDirectory
 $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio/Installer/vswhere.exe'
 $vs = & $vswhere -latest -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
 if (-not $vs) { throw 'Install Visual Studio C++ x64 tools and Windows SDK' }
@@ -14,7 +17,7 @@ Push-Location $PSScriptRoot
 try {
     & npm.cmd run build
     if ($LASTEXITCODE -ne 0) { throw 'Frontend build failed' }
-    $arguments = @('build','--locked','--manifest-path',(Join-Path $PSScriptRoot 'src-tauri/Cargo.toml'))
+    $arguments = @('build','--locked','--target','x86_64-pc-windows-msvc','--manifest-path',(Join-Path $PSScriptRoot 'src-tauri/Cargo.toml'))
     if ($Offline) { $arguments += '--offline' }
     if ($Release) { $arguments += '--release' }
     & cargo @arguments
@@ -22,6 +25,6 @@ try {
     $profile = if ($Release) { 'release' } else { 'debug' }
     $destination = Join-Path $PSScriptRoot 'dist-desktop'
     New-Item -ItemType Directory -Force $destination | Out-Null
-    Copy-Item -LiteralPath (Join-Path $env:CARGO_TARGET_DIR "$profile/noterion.exe") -Destination $destination
+    Copy-Item -LiteralPath (Join-Path $targetDirectory "x86_64-pc-windows-msvc/$profile/noterion.exe") -Destination $destination
     Get-FileHash -LiteralPath (Join-Path $destination 'noterion.exe') -Algorithm SHA256
 } finally { Pop-Location }
