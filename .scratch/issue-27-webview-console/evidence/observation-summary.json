@@ -1,0 +1,38 @@
+[
+  {
+    "run": "normal-before-01",
+    "elapsedSeconds": 30.661,
+    "windowSamples": 275,
+    "maximumWindowSampleGapMilliseconds": 218.277,
+    "consoleCount": 0,
+    "associatedConsoleCount": 0,
+    "verdict": "NO_CONSOLE_OBSERVED"
+  },
+  {
+    "run": "webdriver-before-01",
+    "elapsedSeconds": 27.507,
+    "windowSamples": 246,
+    "maximumWindowSampleGapMilliseconds": 191.367,
+    "consoleCount": 2,
+    "associatedConsoleCount": 0,
+    "verdict": "FAIL"
+  },
+  {
+    "run": "minimal-default-01",
+    "elapsedSeconds": 19.381,
+    "windowSamples": 173,
+    "maximumWindowSampleGapMilliseconds": 206.699,
+    "consoleCount": 1,
+    "associatedConsoleCount": 1,
+    "verdict": "FAIL"
+  },
+  {
+    "run": "minimal-default-02",
+    "elapsedSeconds": 57.008,
+    "windowSamples": 510,
+    "maximumWindowSampleGapMilliseconds": 279.967,
+    "consoleCount": 1,
+    "associatedConsoleCount": 1,
+    "verdict": "FAIL"
+  }
+]
