@@ -18,6 +18,9 @@ reqwest = { version = "=0.13.2", default-features = false, features = ["json", "
 tokio = { version = "=1.50.0", features = ["macros", "sync", "time"] }
 sha2 = "0.10"
 
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "=0.61.2", features = ["Win32_System_LibraryLoader", "Win32_UI_WindowsAndMessaging"] }
+
 [features]
 default = ["custom-protocol"]
 custom-protocol = ["tauri/custom-protocol"]
