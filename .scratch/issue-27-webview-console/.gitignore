@@ -1,0 +1,10 @@
+local/
+evidence/*
+!evidence/user-console.png
+!evidence/observation-summary.json
+**/compiler-temp/
+**/profile/
+**/config/
+**/isolated-config/
+**/webview-*/
+**/temp-*/
