@@ -315,8 +315,7 @@ impl Store {
             }
             // Reject malformed user edits before unioning with existing links.
             if point.name.is_empty()
-                || !["docker", "linux", "mysql", "concurrency", "neutral"]
-                    .contains(&point.color.as_str())
+                || !valid_point_color(&point.color)
                 || point.topic_ids.iter().collect::<HashSet<_>>().len() != point.topic_ids.len()
                 || point.resource_ids.iter().collect::<HashSet<_>>().len()
                     != point.resource_ids.len()

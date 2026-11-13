@@ -401,6 +401,13 @@ fn make_snapshot(root: &Path, mut facts: Facts, revision: u64) -> Snapshot {
     }
 }
 
+fn valid_point_color(color: &str) -> bool {
+    ["docker", "linux", "mysql", "concurrency", "neutral"].contains(&color)
+        || (color.len() == 7
+            && color.starts_with('#')
+            && color.as_bytes()[1..].iter().all(u8::is_ascii_hexdigit))
+}
+
 fn validate_facts(facts: &Facts) -> Result<(), String> {
     let by_id: HashMap<&str, &Point> = facts
         .points
@@ -440,7 +447,7 @@ fn validate_facts(facts: &Facts) -> Result<(), String> {
         if Uuid::parse_str(&point.id).is_err() || point.name.trim().is_empty() {
             return Err("知识点名称不能为空。".into());
         }
-        if !["docker", "linux", "mysql", "concurrency", "neutral"].contains(&point.color.as_str()) {
+        if !valid_point_color(&point.color) {
             return Err("知识点颜色无效。".into());
         }
         let topics: HashSet<&str> = point.topic_ids.iter().map(String::as_str).collect();

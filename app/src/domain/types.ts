@@ -1,4 +1,5 @@
-export type ThemeColor = 'docker' | 'linux' | 'mysql' | 'concurrency' | 'neutral'
+export type PresetColor = 'docker' | 'linux' | 'mysql' | 'concurrency' | 'neutral'
+export type ThemeColor = PresetColor | `#${string}`
 
 export interface Point {
   x: number

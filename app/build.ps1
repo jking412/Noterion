@@ -23,8 +23,11 @@ try {
     & cargo @arguments
     if ($LASTEXITCODE -ne 0) { throw 'Rust build failed' }
     $profile = if ($Release) { 'release' } else { 'debug' }
+    $builtExe = Join-Path $targetDirectory "x86_64-pc-windows-msvc/$profile/noterion.exe"
+    $iconEvidence = Join-Path $targetDirectory ('icon-check-' + $profile + '-' + [guid]::NewGuid().ToString('N'))
+    & (Join-Path $PSScriptRoot '../scripts/check-windows-icon.ps1') -Exe $builtExe -Output $iconEvidence
     $destination = Join-Path $PSScriptRoot 'dist-desktop'
     New-Item -ItemType Directory -Force $destination | Out-Null
-    Copy-Item -LiteralPath (Join-Path $targetDirectory "x86_64-pc-windows-msvc/$profile/noterion.exe") -Destination $destination
+    Copy-Item -LiteralPath $builtExe -Destination $destination
     Get-FileHash -LiteralPath (Join-Path $destination 'noterion.exe') -Algorithm SHA256
 } finally { Pop-Location }

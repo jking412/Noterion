@@ -6,8 +6,12 @@ param(
 $ErrorActionPreference = 'Stop'
 if ($env:OS -ne 'Windows_NT') { throw 'This check requires Windows.' }
 $exePath = (Resolve-Path -LiteralPath $Exe).Path
-$sourcePath = Join-Path $PSScriptRoot '../app/src-tauri/icons/icon.ico'
+$sourcePath = Join-Path $PSScriptRoot '../assets/brand/noterion.ico'
 $sourcePath = (Resolve-Path -LiteralPath $sourcePath).Path
+$nativeIconPath = Join-Path $PSScriptRoot '../app/src-tauri/icons/icon.ico'
+if ((Get-FileHash -LiteralPath $sourcePath -Algorithm SHA256).Hash -ne (Get-FileHash -LiteralPath $nativeIconPath -Algorithm SHA256).Hash) {
+    throw 'Native icon differs from the canonical Noterion brand icon.'
+}
 $outputPath = [IO.Path]::GetFullPath($Output)
 if (Test-Path -LiteralPath $outputPath) { throw 'Use a new output directory; existing evidence is never overwritten.' }
 New-Item -ItemType Directory -Path $outputPath | Out-Null

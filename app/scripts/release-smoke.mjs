@@ -185,15 +185,30 @@ try {
   await click('[data-testid="create-point"]');
   await fill('#knowledge-name', pointName);
   await fill('#knowledge-description', description);
+  await click('button[aria-label="紫色"]');
   await click('[data-testid="save-point"]');
   await check('visible save commits a knowledge point through the real Rust core', async () => {
     await until(async () => (await findAll('#knowledge-name')).length === 0, 'save dialog closes after commit');
     await until(async () => (await text('[data-testid="knowledge-details"] h1')) === pointName, 'saved knowledge detail appears');
     assert.ok((await text('[data-testid="knowledge-details"]')).includes(description));
     assert.equal((await findAll('[data-testid="storage-error"]')).length, 0);
+    const node = await find('.graph-node[aria-pressed="true"] .node-body');
+    assert.equal((await wd('GET', `/element/${node}/attribute/stroke`)).toLowerCase(), '#9771c9');
     return { pointName, description };
   });
   await capture('02-saved');
+  await click('[data-testid="edit-point"]');
+  await fill('#knowledge-color-code', '#cf4267');
+  await capture('02-custom-color-editor');
+  await click('[data-testid="save-point"]');
+  await check('editing a saved node applies the custom color without changing its content', async () => {
+    await until(async () => (await findAll('#knowledge-name')).length === 0, 'color editor closes after save');
+    const node = await find('.graph-node[aria-pressed="true"] .node-body');
+    assert.equal((await wd('GET', `/element/${node}/attribute/stroke`)).toLowerCase(), '#cf4267');
+    assert.equal(await text('[data-testid="knowledge-details"] h1'), pointName);
+    assert.ok((await text('[data-testid="knowledge-details"]')).includes(description));
+    return { color: '#cf4267', pointName };
+  });
   await stop(true);
   await launch();
   await fill('[data-testid="search-input"]', pointName);
@@ -203,6 +218,8 @@ try {
     assert.equal(await text('[data-testid="knowledge-details"] h1'), pointName);
     assert.ok((await text('[data-testid="knowledge-details"]')).includes(description));
     assert.notEqual(observations[0].hostPid, observations[1].hostPid, 'Persistence is observed from a new application process');
+    const node = await find('.graph-node[aria-pressed="true"] .node-body');
+    assert.equal((await wd('GET', `/element/${node}/attribute/stroke`)).toLowerCase(), '#cf4267', 'User color survives full process restart');
     assert.equal((await findAll('[data-testid="storage-error"]')).length, 0);
     return { pointName, firstPid: observations[0].hostPid, restartedPid: observations[1].hostPid };
   });

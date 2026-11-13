@@ -2,7 +2,8 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { select } from 'd3-selection'
 import { zoom, zoomIdentity, type ZoomBehavior, type ZoomTransform } from 'd3-zoom'
-import type { KnowledgePoint, Point, ThemeColor } from '../domain/types'
+import type { KnowledgePoint, Point } from '../domain/types'
+import { colorPalette } from '../domain/colors'
 import { completePositions } from '../graph/layout'
 
 // The debug desktop host can request one real rendering failure for end-to-end acceptance.
@@ -63,33 +64,8 @@ let drag: {
   moved: boolean
 } | null = null
 
-const colors: Record<ThemeColor, { light: string; middle: string; dark: string; stroke: string }> = {
-  docker: { light: '#f0f8ff', middle: '#bedcff', dark: '#74aff0', stroke: '#4b90e2' },
-  linux: { light: '#f0fbf4', middle: '#c5e9cf', dark: '#8dcca2', stroke: '#62a87c' },
-  mysql: { light: '#fffaf0', middle: '#ffe4af', dark: '#ebbc60', stroke: '#c59538' },
-  concurrency: { light: '#f8f3ff', middle: '#decdf6', dark: '#b290df', stroke: '#9771c9' },
-  neutral: { light: '#ffffff', middle: '#e8e8e8', dark: '#bfbfbf', stroke: '#8b8b8b' },
-}
-
 const pointMap = computed(() => new Map(props.points.map((point) => [point.id, point])))
-const rootFamilies: Record<string, ThemeColor> = {
-  docker: 'docker', linux: 'linux', mysql: 'mysql', concurrency: 'concurrency',
-}
-const displayFamilies = computed(() => {
-  function findRoot(id: string, visited: Set<string>): ThemeColor | undefined {
-    if (rootFamilies[id]) return rootFamilies[id]
-    if (visited.has(id)) return undefined
-    visited.add(id)
-    const point = pointMap.value.get(id)
-    if (!point) return undefined
-    for (const topicId of point.topicIds) {
-      const family = findRoot(topicId, visited)
-      if (family) return family
-    }
-    return undefined
-  }
-  return new Map(props.points.map((point) => [point.id, findRoot(point.id, new Set()) ?? point.color]))
-})
+const nodePalettes = computed(() => new Map(props.points.map(point => [point.id, colorPalette(point.color)])))
 const ready = computed(() => props.graphState === 'ready')
 const cameraString = computed(() => 'translate(' + camera.value.x + ' ' + camera.value.y + ') scale(' + camera.value.k + ')')
 const zoomPercentage = computed(() => Math.round(camera.value.k / fitScale.value * 100))
@@ -113,8 +89,7 @@ const messagePosition = computed(() => {
 })
 
 function radius(point: KnowledgePoint) { return point.isTheme ? 22 : 11.5 }
-function displayColor(point: KnowledgePoint) { return displayFamilies.value.get(point.id) ?? point.color }
-function palette(point: KnowledgePoint) { return colors[displayColor(point)] ?? colors.neutral }
+function palette(point: KnowledgePoint) { return nodePalettes.value.get(point.id)! }
 function coord(id: string): Point { return coordinates.value[id] ?? { x: 600, y: 310 } }
 
 function labelPlacement(point: KnowledgePoint) {
@@ -558,7 +533,7 @@ defineExpose({ fitAll, focusNode })
     >
       <defs>
         <linearGradient
-          v-for="(color, key) in colors"
+          v-for="[key, color] in nodePalettes"
           :id="'noterion-node-' + key"
           :key="key"
           x1="18%" y1="0%" x2="75%" y2="100%"
@@ -613,7 +588,7 @@ defineExpose({ fitAll, focusNode })
           <circle
             class="node-body"
             :r="radius(point)"
-            :fill="'url(#noterion-node-' + displayColor(point) + ')'"
+            :fill="'url(#noterion-node-' + point.id + ')'"
             :stroke="palette(point).stroke"
             stroke-width="1.15"
             filter="url(#noterion-node-shadow)"

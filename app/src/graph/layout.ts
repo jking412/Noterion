@@ -1,6 +1,7 @@
-import type { KnowledgePoint, Point, ThemeColor } from '../domain/types'
+import type { KnowledgePoint, Point, PresetColor } from '../domain/types'
+import { isPresetColor } from '../domain/colors'
 
-const anchors: Record<ThemeColor, Point> = {
+const anchors: Record<PresetColor, Point> = {
   docker: { x: 280, y: 170 },
   linux: { x: 850, y: 180 },
   mysql: { x: 280, y: 470 },
@@ -66,7 +67,7 @@ export function completePositions(
     const anchor = parents.length ? {
       x: parents.reduce((sum, at) => sum + at.x, 0) / parents.length,
       y: parents.reduce((sum, at) => sum + at.y, 0) / parents.length,
-    } : anchors[point.color]
+    } : anchors[isPresetColor(point.color) ? point.color : 'neutral']
     const phase = (hash(point.id) % 360) * Math.PI / 180
     let placed: Point | null = null
     // Search the closest free ring first. Rectangles reserve both circles and complete labels;

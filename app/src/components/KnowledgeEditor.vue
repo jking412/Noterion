@@ -1,18 +1,28 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { getTopicTags, validatePoint } from '../domain/logic'
+import { colorPalette, colorPresets, isPointColor } from '../domain/colors'
 import type { KnowledgePoint, ResourceItem } from '../domain/types'
 import ModalShell from './ModalShell.vue'
 
 const props = defineProps<{ point: KnowledgePoint; points: KnowledgePoint[]; resources: ResourceItem[]; creating?: boolean; busy?: boolean; operationError?: string }>()
 const emit = defineEmits<{ save: [point: KnowledgePoint]; close: [] }>()
 const draft = ref<KnowledgePoint>({ ...props.point, topicIds: [...props.point.topicIds], resourceIds: [...props.point.resourceIds] })
+const colorText = ref(colorPalette(draft.value.color).stroke)
 const submitted = ref(false)
 const themes = computed(() => props.points.filter((point) => point.isTheme && point.id !== draft.value.id))
-const validation = computed(() => validatePoint(draft.value, props.points))
+const validation = computed(() => !/^#[0-9a-f]{6}$/i.test(colorText.value) ? '请输入 #RRGGBB 格式的颜色。' : validatePoint(draft.value, props.points))
+const customColor = computed(() => colorPalette(draft.value.color).stroke)
+function setCustomColor(event: Event) {
+  const color = (event.target as HTMLInputElement).value
+  colorText.value = color
+  if (isPointColor(color)) draft.value.color = color
+}
+watch(() => draft.value.color, color => { colorText.value = colorPalette(color).stroke })
 
 watch(() => props.point, (point) => {
   draft.value = { ...point, topicIds: [...point.topicIds], resourceIds: [...point.resourceIds] }
+  colorText.value = colorPalette(point.color).stroke
   submitted.value = false
 })
 
@@ -31,6 +41,22 @@ function save() {
         <label class="editor-label" for="knowledge-name">名称</label>
         <input id="knowledge-name" v-model="draft.name" class="field" autofocus autocomplete="off" :aria-invalid="submitted && !draft.name.trim()" />
         <label class="check-option" style="margin-top:12px"><input v-model="draft.isTheme" type="checkbox" /><span>可作为主题组织其他知识点</span></label>
+        <fieldset class="color-fieldset" :disabled="busy">
+          <legend>节点颜色</legend>
+          <div class="color-choices">
+            <button v-for="preset in colorPresets" :key="preset.value" type="button" class="color-option"
+              :class="{ 'is-chosen': draft.color === preset.value }" :aria-label="preset.label"
+              :aria-pressed="draft.color === preset.value" @click="draft.color = preset.value">
+              <span class="color-swatch" :style="{ backgroundColor: colorPalette(preset.value).stroke }" aria-hidden="true" />
+              {{ preset.label }}
+            </button>
+            <label class="custom-color" for="knowledge-color">
+              <input id="knowledge-color" type="color" :value="customColor" aria-label="自定义节点颜色" @input="setCustomColor" />
+              自定义
+            </label>
+            <input id="knowledge-color-code" class="field color-code" :value="colorText" aria-label="节点颜色代码" maxlength="7" spellcheck="false" autocomplete="off" @input="setCustomColor" />
+          </div>
+        </fieldset>
         <div class="description-label">
           <label class="editor-label" for="knowledge-description">描述</label>
           <span>Markdown</span>
@@ -74,6 +100,14 @@ function save() {
 <style scoped>
 .editor { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(230px, 1fr); gap: 24px; }
 .editor-main { min-width: 0; }
+.color-fieldset { margin-top: 18px; }
+.color-choices { display: flex; flex-wrap: wrap; gap: 8px; }
+.color-option, .custom-color { display: inline-flex; align-items: center; gap: 7px; min-height: 36px; padding: 6px 9px; border: 1px solid var(--border); border-radius: 8px; background: #fff; font-size: 13px; cursor: pointer; }
+.color-option:hover { background: #f0f0f0; }
+.color-option.is-chosen { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.color-swatch { width: 16px; height: 16px; border-radius: 50%; border: 1px solid #0003; }
+.custom-color input { width: 26px; height: 26px; padding: 0; border: 0; background: transparent; cursor: pointer; }
+.color-code { width: 88px; min-height: 36px; padding: 6px 8px; font-family: ui-monospace, monospace; }
 .editor-label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: 600; }
 .editor-main > .field { box-sizing: border-box; width: 100%; }
 .description-label { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-top: 20px; }
