@@ -338,6 +338,8 @@ impl Store {
                         modifications.push(retained);
                         reused += 1;
                     } else {
+                        // AI updates content and links, not the user's visual styling.
+                        point.color = existing.color.clone();
                         // Input omission is not an unlink/delete instruction.
                         point.topic_ids.extend(existing.topic_ids.iter().cloned());
                         point
