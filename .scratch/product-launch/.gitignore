@@ -1,0 +1,5 @@
+# Local profiles, raw screenshots with machine paths, and exploratory failures.
+icon-window-check-*/
+icon-negative-control/
+readme-preview.html
+readme-preview*.png

@@ -32,7 +32,8 @@ input[type='checkbox'] { accent-color: #323232; width: 16px; height: 16px; }
 .app-shell { display: grid; grid-template-rows: 62px minmax(0, 1fr); height: 100dvh; padding: 8px; gap: 8px; min-width: 0; }
 .app-header { display: flex; align-items: center; justify-content: space-between; padding: 0 22px; position: relative; z-index: 60; }
 .brand { display: flex; align-items: center; gap: 22px; white-space: nowrap; }
-.wordmark { font-family: 'Segoe UI', system-ui, sans-serif; font-size: 28px; font-weight: 700; letter-spacing: -.9px; line-height: 1; }
+.wordmark { display: inline-flex; align-items: center; gap: 9px; font-family: 'Segoe UI', system-ui, sans-serif; font-size: 28px; font-weight: 700; letter-spacing: -.9px; line-height: 1; }
+.brand-icon { display: block; flex: 0 0 auto; }
 .brand-divider { display: none; }
 .app-title { font-size: 17px; font-weight: 600; letter-spacing: .3px; }
 .header-actions { display: flex; align-items: center; gap: 20px; }

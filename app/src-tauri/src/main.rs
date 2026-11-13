@@ -1,5 +1,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 mod ai;
+mod branding;
 mod media;
 mod store;
 use std::sync::{Arc, Mutex};
@@ -44,6 +45,7 @@ fn main() {
             )
             .title("Noterion · 个人知识图谱")
             .zoom_hotkeys_enabled(true)
+            .icon(tauri::include_image!("icons/icon.png"))?
             .inner_size(1600.0, 1000.0)
             .min_inner_size(1000.0, 700.0);
             if let Some(path) = std::env::var_os("NOTERION_WEBVIEW_DIR") {
@@ -54,7 +56,9 @@ fn main() {
                 window =
                     window.initialization_script("window.__NOTERION_GRAPH_FAIL_ONCE__ = true;");
             }
-            window.build()?;
+            let window = window.build()?;
+            #[cfg(windows)]
+            branding::set_taskbar_icon(&window)?;
             Ok(())
         })
         .run(tauri::generate_context!())

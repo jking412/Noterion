@@ -1,0 +1,27 @@
+{
+  "passed": true,
+  "sourceCommit": "366633177c5afe6ab74489957b7572b4c2378e8e",
+  "exeSha256": "5d2d9d687d4983e70abb544b12acc12d3295f9926c8d6df0da6525b985d222a1",
+  "startedAt": "2026-11-13T06:32:27.421Z",
+  "completedAt": "2026-11-13T06:32:33.848Z",
+  "launches": 2,
+  "assertions": [
+    {
+      "label": "packaged client opens embedded interface and isolated Rust storage",
+      "verdict": "PASS",
+      "at": "2026-11-13T06:32:29.557Z"
+    },
+    {
+      "label": "visible save commits a knowledge point through the real Rust core",
+      "verdict": "PASS",
+      "at": "2026-11-13T06:32:30.404Z"
+    },
+    {
+      "label": "fresh client process reads the committed knowledge from disk",
+      "verdict": "PASS",
+      "at": "2026-11-13T06:32:33.071Z"
+    }
+  ],
+  "scope": "Windows x64 packaged exe; embedded UI; real Rust save; persistence after full process restart.",
+  "limitations": "No full desktop/media/large-video or live AI-service acceptance. This run uses only synthetic knowledge and isolated data."
+}

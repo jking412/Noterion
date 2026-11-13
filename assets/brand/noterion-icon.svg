@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" fill="none">
+  <title>Noterion — a path back to what you know</title>
+  <rect x="20" y="20" width="472" height="472" rx="112" fill="#202729" stroke="#465052" stroke-width="2"/>
+  <path d="M140 366V146L372 366V146" stroke="#F5F1E8" stroke-width="64" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="256" cy="256" r="35" fill="#202729"/>
+  <circle cx="256" cy="256" r="21" fill="#E8B66A"/>
+</svg>

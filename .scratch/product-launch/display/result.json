@@ -1,0 +1,140 @@
+{
+  "passed": true,
+  "at": "2026-11-13T06:32:13.4740224Z",
+  "exe": "app/dist-desktop/noterion.exe",
+  "exeSha256": "5d2d9d687d4983e70abb544b12acc12d3295f9926c8d6df0da6525b985d222a1",
+  "sourceIcon": "app/src-tauri/icons/icon.ico",
+  "sourceIconSha256": "0b4ed0d0b7d13f5aa4de3db40014364a2bd794eff63b2da3aea1a1e48a7871a5",
+  "resourceGroup": 32512,
+  "frames": [
+    {
+      "width": 16,
+      "height": 16,
+      "resourceId": 1,
+      "bytes": 421,
+      "sha256": "335265585bd4176ed330b26c403e48afd5e0983e2f92de2b2b5e9d1191cf593d",
+      "exactSourceMatch": true
+    },
+    {
+      "width": 20,
+      "height": 20,
+      "resourceId": 2,
+      "bytes": 484,
+      "sha256": "d52694bf315303c9e98ca4cce18abd0c0912b8fa9e1034519e67790ac1beac88",
+      "exactSourceMatch": true
+    },
+    {
+      "width": 24,
+      "height": 24,
+      "resourceId": 3,
+      "bytes": 556,
+      "sha256": "9bd6256402af748b5a1a53a46a8ee39b5217f0425182ded6abad16307508478a",
+      "exactSourceMatch": true
+    },
+    {
+      "width": 32,
+      "height": 32,
+      "resourceId": 4,
+      "bytes": 721,
+      "sha256": "6f8efb216a7eef7a422eb90660329cd6bb0474ba9ce28ab7d3dbe1fdf1031dca",
+      "exactSourceMatch": true
+    },
+    {
+      "width": 40,
+      "height": 40,
+      "resourceId": 5,
+      "bytes": 907,
+      "sha256": "e41c4a5f0d997198efae79186ddbda39197ee2e971a29d0ff159f0bb0c3a9c85",
+      "exactSourceMatch": true
+    },
+    {
+      "width": 48,
+      "height": 48,
+      "resourceId": 6,
+      "bytes": 1096,
+      "sha256": "fc70bf76be2dac19cbe907ba1819507e234b073cd085dce75787dc4755ccb089",
+      "exactSourceMatch": true
+    },
+    {
+      "width": 64,
+      "height": 64,
+      "resourceId": 7,
+      "bytes": 1381,
+      "sha256": "4070b93a4d2c4c1822fbee1cee043933fab8353f1de4e9e9d3cd731d291bc678",
+      "exactSourceMatch": true
+    },
+    {
+      "width": 128,
+      "height": 128,
+      "resourceId": 8,
+      "bytes": 3140,
+      "sha256": "908d1fd0c95094120e283a4ba49bb6d087b2ed65634e8d251459737a709f4ec9",
+      "exactSourceMatch": true
+    },
+    {
+      "width": 256,
+      "height": 256,
+      "resourceId": 9,
+      "bytes": 7561,
+      "sha256": "6ee14418b4b31557ec19d7e9046afda60796bccc8c9dd6dba25956830841c9f7",
+      "exactSourceMatch": true
+    }
+  ],
+  "window": {
+    "icons": [
+      {
+        "file": "window-big.png",
+        "width": 48,
+        "height": 48,
+        "rgbaSha256": "8e64964dda8b76814877b2157c910421383d317dd3ad1b145fe9bfffa9cefeed"
+      },
+      {
+        "file": "window-small.png",
+        "width": 256,
+        "height": 256,
+        "rgbaSha256": "8e99b78226f28b475aa65bde687ec27da696852952e2de606ec3a1f6b2701cdf"
+      }
+    ],
+    "ownerVerified": true
+  },
+  "shellIcon": {
+    "file": "exe-shell-icon.png",
+    "width": 32,
+    "height": 32,
+    "rgbaSha256": "836cc919b755408d66668692d681f1e90de9b0da0e34889833d421dfb6197899"
+  },
+  "display": {
+    "nativeTitlebar": "native-titlebar.png",
+    "taskbar": "taskbar-icon.png",
+    "client": "../../../docs/images/knowledge-graph.png",
+    "titlebarMethod": "Direct crop of specified-window PrintWindow capture; left0 top0 width520 height45 physical pixels",
+    "taskbarMethod": "Direct crop of actual Shell_TrayWnd screen capture; x1642 y0 width76 height72",
+    "pixelChanges": "No repainting or compositing"
+  },
+  "visualReview": {
+    "titlebar": "PASS: new N-and-gold-point mark",
+    "taskbar": "PASS: new N-and-gold-point mark displayed by Windows",
+    "exe": "PASS: Windows shell extracted the new mark",
+    "client": "PASS: real WebDriver workspace capture; synthetic knowledge only"
+  },
+  "limitations": "PrintWindow rendered the native title bar but not the WebView body. The real client body was verified and captured separately through WebDriver. Raw full captures with machine paths remain local in ignored icon-window-check-04. No live AI request was repeated for this branding change.",
+  "sourceCommit": "366633177c5afe6ab74489957b7572b4c2378e8e",
+  "favicons": [
+    {
+      "bytes": 498,
+      "height": 512,
+      "href": "http://tauri.localhost/favicon.svg",
+      "sha256": "745df2dc01e460e9eee3440862392a95bc167a7d546cbd896a5f428340150494",
+      "status": 200,
+      "width": 512
+    },
+    {
+      "bytes": 721,
+      "height": 32,
+      "href": "http://tauri.localhost/favicon.png",
+      "sha256": "6f8efb216a7eef7a422eb90660329cd6bb0474ba9ce28ab7d3dbe1fdf1031dca",
+      "status": 200,
+      "width": 32
+    }
+  ]
+}
