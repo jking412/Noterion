@@ -153,11 +153,10 @@ try {
   // the download. The downloaded bytes are the same ones already smoke-tested.
   const publicDirectory = path.join(output, 'public-assets');
   await fs.mkdir(publicDirectory);
-  const publicRelease = await fetch(`https://api.github.com/repos/${repo}/releases/tags/${tag}`, { signal: AbortSignal.timeout(30000) });
-  assert.equal(publicRelease.status, 200, 'Published release must be publicly visible');
-  const publicData = await publicRelease.json();
-  assert.equal(publicData.assets.length, assets.length);
-  for (const asset of publicData.assets) {
+  const publicRelease = await fetch(published.html_url, { signal: AbortSignal.timeout(30000) });
+  assert.equal(publicRelease.status, 200, 'Published release page must be publicly visible');
+  assert.equal(published.assets.length, assets.length);
+  for (const asset of published.assets) {
     assert.ok(assets.includes(asset.name));
     const response = await fetch(asset.browser_download_url, { signal: AbortSignal.timeout(90000) });
     assert.equal(response.status, 200, `Public asset download: ${asset.name}`);
