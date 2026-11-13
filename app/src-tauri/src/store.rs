@@ -82,6 +82,15 @@ struct DirectoryConfig {
     root: PathBuf,
 }
 
+pub struct CopiedFile {
+    pub id: String,
+    pub filename: String,
+    pub title: String,
+    pub mime: String,
+    pub kind: String,
+    pub size: u64,
+}
+
 pub struct Store {
     root: PathBuf,
     config_dir: PathBuf,
@@ -290,14 +299,17 @@ impl Store {
 
     pub fn add_copied_file(
         &mut self,
-        id: String,
-        filename: String,
-        title: String,
-        mime: String,
-        kind: String,
-        size: u64,
+        file: CopiedFile,
         point_ids: Vec<String>,
     ) -> Result<Snapshot, String> {
+        let CopiedFile {
+            id,
+            filename,
+            title,
+            mime,
+            kind,
+            size,
+        } = file;
         if Uuid::parse_str(&id).is_err()
             || filename.is_empty()
             || Path::new(&filename)

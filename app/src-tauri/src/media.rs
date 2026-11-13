@@ -331,7 +331,11 @@ pub async fn resource_add_file(
             if cancel.load(Ordering::SeqCst){return Err("复制已取消，未添加资料。".into());}
             std::fs::rename(&partial,&final_path).map_err(|e|format!("完成副本失败：{e}"))?;
             let (kind,mime)=classify(&filename);
-            data.add_copied_file(id,filename.clone(),if title.trim().is_empty(){filename}else{title.trim().into()},mime,kind,total,point_ids)
+            data.add_copied_file(store::CopiedFile {
+                id, filename: filename.clone(),
+                title: if title.trim().is_empty(){filename}else{title.trim().into()},
+                mime, kind, size: total,
+            }, point_ids)
         })();
         if copy.is_err(){let _=std::fs::remove_file(&partial);let _=std::fs::remove_file(&final_path);}
         host.log(serde_json::json!({"event":"file-copy","size":original.len(),"success":copy.is_ok(),"bufferBytes":131072,"error":copy.as_ref().err()}));

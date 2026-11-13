@@ -4,7 +4,7 @@
 
 ## 运行
 
-预构建程序位于 `app/dist-desktop/noterion.exe`。复制到本机可写目录后直接双击，无需 Vite、Python、数据库服务器、Docker 或独立后台服务。需要 Windows x64 和 Microsoft Edge WebView2 Runtime；源码构建额外需要下面的开发工具。应用默认把知识和资料放在程序旁的 `data` 目录。程序目录不可写时，使用“数据目录”选择本机可写目录。
+从 [GitHub Releases](https://github.com/jking412/Noterion/releases) 下载 Windows x64 便携 ZIP，按附带的 `SHA256SUMS` 校验后，解压到本机可写目录并运行 `noterion.exe`。无需 Vite、Python、数据库服务器、Docker 或独立后台服务。需要 Windows x64 和 Microsoft Edge WebView2 Runtime；源码构建额外需要下面的开发工具。应用默认把知识和资料放在程序旁的 `data` 目录。程序目录不可写时，使用“数据目录”选择本机可写目录。
 
 目录设置仅保存一个位置指针到 `%LOCALAPPDATA%/Noterion/directory.json`，不会把知识或资料自动改存到该目录。多个程序副本共享此位置设置。启动后界面始终显示实际使用的数据目录。
 
@@ -22,7 +22,7 @@
 
 ## 开发与构建
 
-环境：Windows 11 x64，Node 24，Rust 1.93.1 MSVC，Visual Studio 2022 C++ x64 工具与 Windows SDK，WebView2 Runtime。npm 和 Cargo 版本由各锁文件固定依赖；本机原生文件选择使用 rfd，正式存储使用随程序编译的 SQLite。
+环境：Windows x64，Node 版本见根 `.node-version`，Rust 及组件见根 `rust-toolchain.toml`，Visual Studio 2022 C++ x64 工具与 Windows SDK，WebView2 Runtime。npm 和 Cargo 依赖由各锁文件固定；本机原生文件选择使用 rfd，正式存储使用随程序编译的 SQLite。
 
 在仓库根目录运行：
 
@@ -34,7 +34,7 @@ cd ..
 ./app/build.ps1
 ```
 
-`build.ps1` 自动加载 VS 编译环境，构建并嵌入前端资源，输出 `app/dist-desktop/noterion.exe`。首次需要联网下载开发依赖，安装后的本地核心功能无需联网。缓存已就绪时可加 `-Offline`；优化版加 `-Release`。脚本使用仓库内历史 Windows 验证目录中的 Cargo cache/target 以复用本机已编译的依赖，缺失时会由 Cargo 创建并下载，不依赖该目录的历史数据服务。
+`build.ps1` 自动加载 VS 编译环境，构建并嵌入前端资源，输出 `app/dist-desktop/noterion.exe`。首次需要联网下载开发依赖，安装后的本地核心功能无需联网。缓存已就绪时可加 `-Offline`；优化版必须加 `-Release`。脚本使用正常 Cargo home，默认 target 为 `app/src-tauri/target`，也尊重调用方的 `CARGO_HOME` 和 `CARGO_TARGET_DIR`。发布与维护命令见 [发布说明](../docs/releasing.md)。
 
 日常前端开发可用 `npm.cmd run dev` 查看布局，但普通浏览器没有本地核心，不会模拟成功保存。正式开发/验收必须构建真实 exe；仅启动网页不构成客户端运行。
 
