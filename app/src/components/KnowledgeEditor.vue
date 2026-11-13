@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { getTopicTags, validatePoint } from '../domain/logic'
 import { colorPalette, colorPresets, isPointColor } from '../domain/colors'
-import type { KnowledgePoint, ResourceItem } from '../domain/types'
+import type { KnowledgePoint, PresetColor, ResourceItem } from '../domain/types'
 import ModalShell from './ModalShell.vue'
 
 const props = defineProps<{ point: KnowledgePoint; points: KnowledgePoint[]; resources: ResourceItem[]; creating?: boolean; busy?: boolean; operationError?: string }>()
@@ -13,6 +13,10 @@ const submitted = ref(false)
 const themes = computed(() => props.points.filter((point) => point.isTheme && point.id !== draft.value.id))
 const validation = computed(() => !/^#[0-9a-f]{6}$/i.test(colorText.value) ? '请输入 #RRGGBB 格式的颜色。' : validatePoint(draft.value, props.points))
 const customColor = computed(() => colorPalette(draft.value.color).stroke)
+function setPresetColor(color: PresetColor) {
+  draft.value.color = color
+  colorText.value = colorPalette(color).stroke
+}
 function setCustomColor(event: Event) {
   const color = (event.target as HTMLInputElement).value
   colorText.value = color
@@ -46,7 +50,7 @@ function save() {
           <div class="color-choices">
             <button v-for="preset in colorPresets" :key="preset.value" type="button" class="color-option"
               :class="{ 'is-chosen': draft.color === preset.value }" :aria-label="preset.label"
-              :aria-pressed="draft.color === preset.value" @click="draft.color = preset.value">
+              :aria-pressed="draft.color === preset.value" @click="setPresetColor(preset.value)">
               <span class="color-swatch" :style="{ backgroundColor: colorPalette(preset.value).stroke }" aria-hidden="true" />
               {{ preset.label }}
             </button>

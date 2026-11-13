@@ -186,6 +186,9 @@ try {
   await fill('#knowledge-name', pointName);
   await fill('#knowledge-description', description);
   await click('button[aria-label="紫色"]');
+  await fill('#knowledge-color-code', '#nope');
+  await click('button[aria-label="紫色"]');
+  assert.equal(await wd('GET', `/element/${await find('#knowledge-color-code')}/property/value`), '#9771c9', 'Re-selecting a preset clears an invalid custom value');
   await click('[data-testid="save-point"]');
   await check('visible save commits a knowledge point through the real Rust core', async () => {
     await until(async () => (await findAll('#knowledge-name')).length === 0, 'save dialog closes after commit');
