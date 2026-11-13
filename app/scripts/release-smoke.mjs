@@ -141,8 +141,12 @@ async function launch() {
     assert.equal((await findAll('[data-testid="storage-error"]')).length, 0, 'Isolated storage must load without errors');
     return await wd('GET', `/element/${await find('[data-testid="create-point"]')}/enabled`);
   }, 'Rust opens isolated data directory');
-  const storageLocation = await text('.storage-location');
-  assert.ok(storageLocation.includes(path.join(config, 'data')), 'Visible data directory points inside this smoke run');
+  await click('[aria-label="数据目录设置"]');
+  const storageLocation = await wd('GET', `/element/${await find('#data-directory')}/property/value`);
+  assert.ok(!storageLocation.startsWith('\\\\?\\'), 'Data directory is displayed as a readable Windows path');
+  assert.equal(path.normalize(storageLocation).toLowerCase(), path.normalize(path.join(config, 'data')).toLowerCase(),
+    'Visible data directory points exactly to this smoke run isolated storage');
+  await click('[aria-label="关闭弹窗"]');
   observations.push({ launch: launches, hostPid, driverPid: driver.pid, environment, storageLocation });
   await write('launches.json', observations);
 }
