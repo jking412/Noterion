@@ -1,0 +1,214 @@
+{
+  "passed": true,
+  "release": {
+    "name": "Noterion 0.1.0-main.6f44e447be77",
+    "tag": "main-6f44e447be776ac92ec6bc00c90eb19e956e13a1",
+    "url": "https://github.com/jking412/Noterion/releases/tag/main-6f44e447be776ac92ec6bc00c90eb19e956e13a1",
+    "publishedAt": "2026-11-13T07:01:43Z",
+    "prerelease": true,
+    "draft": false,
+    "assets": [
+      {
+        "name": "manifest.json",
+        "size": 636,
+        "digest": "sha256:71f37aeb632215f66f79a63822beef15b2ce6e1b5a4d1be7812ab03e7635dd0a",
+        "url": "https://github.com/jking412/Noterion/releases/download/main-6f44e447be776ac92ec6bc00c90eb19e956e13a1/manifest.json"
+      },
+      {
+        "name": "Noterion-0.1.0-main.6f44e447be77-windows-x64.zip",
+        "size": 4583514,
+        "digest": "sha256:74dd5004e57736d6d402c7e7754fb5c50a657163a39b62d3ac26cc1c6313528b",
+        "url": "https://github.com/jking412/Noterion/releases/download/main-6f44e447be776ac92ec6bc00c90eb19e956e13a1/Noterion-0.1.0-main.6f44e447be77-windows-x64.zip"
+      },
+      {
+        "name": "README.txt",
+        "size": 1641,
+        "digest": "sha256:285549405c0fe91b7ee738a1f13c58af87e31c58652e26780ab36f9a51d9386a",
+        "url": "https://github.com/jking412/Noterion/releases/download/main-6f44e447be776ac92ec6bc00c90eb19e956e13a1/README.txt"
+      },
+      {
+        "name": "SHA256SUMS",
+        "size": 272,
+        "digest": "sha256:a65aff2d43c49f1ef02fd4c15326d5b598a7959b8fe950bde840fbbcb8caacc2",
+        "url": "https://github.com/jking412/Noterion/releases/download/main-6f44e447be776ac92ec6bc00c90eb19e956e13a1/SHA256SUMS"
+      }
+    ]
+  },
+  "anonymousDownloadVerified": true,
+  "sourceCommit": "6f44e447be776ac92ec6bc00c90eb19e956e13a1",
+  "executable": {
+    "name": "noterion.exe",
+    "size": 12878336,
+    "sha256": "69b344ceb5e42cbb142ded353abe03dea7cc3fb6df326f26dc139ba560871a96"
+  },
+  "localSmoke": {
+    "passed": true,
+    "launches": 2,
+    "assertions": [
+      {
+        "label": "packaged client opens embedded interface and isolated Rust storage",
+        "verdict": "PASS"
+      },
+      {
+        "label": "visible save commits a knowledge point through the real Rust core",
+        "verdict": "PASS"
+      },
+      {
+        "label": "fresh client process reads the committed knowledge from disk",
+        "verdict": "PASS"
+      }
+    ]
+  },
+  "officialAi": {
+    "endpoint": "https://api.deepseek.com",
+    "model": "deepseek-flash",
+    "passed": true,
+    "assertions": [
+      {
+        "name": "AI configuration is available in the real desktop client",
+        "verdict": "PASS"
+      },
+      {
+        "name": "real DeepSeek parses ordinary text into reviewable Point candidates",
+        "verdict": "PASS"
+      },
+      {
+        "name": "reviewed batch commits with both topics and survives desktop restart",
+        "verdict": "PASS"
+      },
+      {
+        "name": "natural language search locates real saved knowledge without supplying the command",
+        "verdict": "PASS"
+      },
+      {
+        "name": "grounded answer and contextual follow-up expose valid source navigation",
+        "verdict": "PASS"
+      },
+      {
+        "name": "exact repeat input reports existing adoption without duplicating saved knowledge",
+        "verdict": "PASS"
+      }
+    ],
+    "credentialCleanup": {
+      "passed": true,
+      "status": "尚未配置密钥",
+      "removeDisabled": true,
+      "keyInputEmpty": true,
+      "scope": "The same isolated config used by the official live test"
+    }
+  },
+  "icons": {
+    "passed": true,
+    "sourceIcoSha256": "0b4ed0d0b7d13f5aa4de3db40014364a2bd794eff63b2da3aea1a1e48a7871a5",
+    "frames": [
+      {
+        "width": 16,
+        "height": 16,
+        "resourceId": 1,
+        "bytes": 421,
+        "sha256": "335265585bd4176ed330b26c403e48afd5e0983e2f92de2b2b5e9d1191cf593d",
+        "exactSourceMatch": true
+      },
+      {
+        "width": 20,
+        "height": 20,
+        "resourceId": 2,
+        "bytes": 484,
+        "sha256": "d52694bf315303c9e98ca4cce18abd0c0912b8fa9e1034519e67790ac1beac88",
+        "exactSourceMatch": true
+      },
+      {
+        "width": 24,
+        "height": 24,
+        "resourceId": 3,
+        "bytes": 556,
+        "sha256": "9bd6256402af748b5a1a53a46a8ee39b5217f0425182ded6abad16307508478a",
+        "exactSourceMatch": true
+      },
+      {
+        "width": 32,
+        "height": 32,
+        "resourceId": 4,
+        "bytes": 721,
+        "sha256": "6f8efb216a7eef7a422eb90660329cd6bb0474ba9ce28ab7d3dbe1fdf1031dca",
+        "exactSourceMatch": true
+      },
+      {
+        "width": 40,
+        "height": 40,
+        "resourceId": 5,
+        "bytes": 907,
+        "sha256": "e41c4a5f0d997198efae79186ddbda39197ee2e971a29d0ff159f0bb0c3a9c85",
+        "exactSourceMatch": true
+      },
+      {
+        "width": 48,
+        "height": 48,
+        "resourceId": 6,
+        "bytes": 1096,
+        "sha256": "fc70bf76be2dac19cbe907ba1819507e234b073cd085dce75787dc4755ccb089",
+        "exactSourceMatch": true
+      },
+      {
+        "width": 64,
+        "height": 64,
+        "resourceId": 7,
+        "bytes": 1381,
+        "sha256": "4070b93a4d2c4c1822fbee1cee043933fab8353f1de4e9e9d3cd731d291bc678",
+        "exactSourceMatch": true
+      },
+      {
+        "width": 128,
+        "height": 128,
+        "resourceId": 8,
+        "bytes": 3140,
+        "sha256": "908d1fd0c95094120e283a4ba49bb6d087b2ed65634e8d251459737a709f4ec9",
+        "exactSourceMatch": true
+      },
+      {
+        "width": 256,
+        "height": 256,
+        "resourceId": 9,
+        "bytes": 7561,
+        "sha256": "6ee14418b4b31557ec19d7e9046afda60796bccc8c9dd6dba25956830841c9f7",
+        "exactSourceMatch": true
+      }
+    ],
+    "runtimeSizes": [
+      {
+        "width": 48,
+        "height": 48,
+        "rgbaSha256": "8e64964dda8b76814877b2157c910421383d317dd3ad1b145fe9bfffa9cefeed"
+      },
+      {
+        "width": 256,
+        "height": 256,
+        "rgbaSha256": "8e99b78226f28b475aa65bde687ec27da696852952e2de606ec3a1f6b2701cdf"
+      }
+    ],
+    "favicons": [
+      {
+        "height": 512,
+        "href": "http://tauri.localhost/favicon.svg",
+        "sha256": "a13b35ad2603dda8e406cc7f8431ebd653d832eb438d8878fa9522e57ced7e3f",
+        "status": 200,
+        "width": 512
+      },
+      {
+        "height": 32,
+        "href": "http://tauri.localhost/favicon.png",
+        "sha256": "6f8efb216a7eef7a422eb90660329cd6bb0474ba9ce28ab7d3dbe1fdf1031dca",
+        "status": 200,
+        "width": 32
+      }
+    ],
+    "visualReview": "Actual title bar, taskbar and shell icon match the new mark"
+  },
+  "screenshots": {
+    "publicClient": "Direct WebDriver canvas-workspace screenshot after Fit all; same published EXE and adopted synthetic AI data",
+    "aiImages": "Direct crops of real live-run screenshots; x0 y171 w2400 h1239 excludes machine data path, no repainting",
+    "nativeTitlebar": "PrintWindow crop x0 y0 w520 h45",
+    "taskbar": "Actual taskbar capture crop x1642 y0 w76 h72"
+  },
+  "limitations": "PrintWindow renders the native title bar but not the WebView body; WebDriver independently captures the actual body. No personal knowledge or original PDFs/videos were sent. No full credential value is retained in these records."
+}
