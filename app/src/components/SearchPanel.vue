@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import Icon from './Icon.vue'
-import { ref } from 'vue'
 import { getTopicTags } from '../domain/logic'
 import type { KnowledgePoint, MatchMode } from '../domain/types'
 defineProps<{ query: string; keywords: string[]; mode: MatchMode; results: KnowledgePoint[]; points: KnowledgePoint[]; selectedId: string | null; hasQuery: boolean }>()
 const emit = defineEmits<{ 'update:query': [value: string]; 'update:mode': [value: MatchMode]; add: []; remove: [index: number]; clear: []; select: [id: string] }>()
-const aiMode = ref(false)
+const aiMode = defineModel<boolean>('aiMode', { default: false })
 </script>
 <template>
   <aside class="search-panel glass-panel" aria-label="知识搜索">
@@ -44,7 +43,7 @@ const aiMode = ref(false)
       <div v-else class="search-empty search-start"><Icon name="search" :size="27" /><strong>{{ points.length ? '从记得的片段开始' : '先添加你的知识' }}</strong><p>{{ points.length ? '名称、命令，或一句描述。' : '新建知识点后，可按名称或描述查找。' }}</p></div>
     </div>
     </div>
-    <div class="search-footer"><span class="subtle-dot" />{{ points.length }} 个知识点<span class="footer-spacer" />个人知识图谱</div>
+    <div class="search-footer"><span class="subtle-dot" />{{ points.length }} 个知识点<span class="footer-spacer" /></div>
   </aside>
 </template>
-<style scoped>.result-description { display: block; font-size: 12px; color: #707070; line-height: 1.6; margin: 7px 0; overflow-wrap: anywhere; }.search-methods{display:flex;gap:4px;padding:9px 10px;border-bottom:1px solid #d9d9d9;flex-shrink:0}.search-methods button{flex:1;padding:8px 5px;font-size:12px;border-radius:6px;white-space:nowrap}.search-methods button.selected{background:#e4e4e4;color:#202020;box-shadow:inset 0 0 0 1px #ccc}.ai-search-content{overflow:auto;min-height:0;flex:1}</style>
+<style scoped>.result-description { display: block; font-size: 13px; color: #595959; line-height: 1.6; margin: 7px 0; overflow-wrap: anywhere; }.search-methods{display:flex;gap:4px;padding:9px 10px;border-bottom:1px solid #d9d9d9;flex-shrink:0}.search-methods button{flex:1;padding:8px 5px;font-size:13px;border-radius:6px;white-space:nowrap}.search-methods button.selected{background:#e4e4e4;color:#202020;box-shadow:inset 0 0 0 1px #ccc}.ai-search-content{overflow:auto;min-height:0;flex:1}</style>

@@ -1,0 +1,6 @@
+[
+  {
+    "name": "reviewed candidates save through the native store and survive restart",
+    "verdict": "PASS"
+  }
+]

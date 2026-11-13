@@ -54,18 +54,18 @@ const remainingPoints = computed(() => props.points.filter(point => !props.impac
 .impact-columns { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 22px; }
 .impact-section { min-width: 0; }
 .impact-section h3 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 15px; font-weight: 600; }
-.impact-section h3 > span { display: inline-grid; place-items: center; min-width: 24px; height: 24px; padding: 0 4px; border-radius: 6px; background: #e3e3e3; font-size: 12px; }
-.impact-help { min-height: 42px; margin: 9px 0 12px; color: #646464; font-size: 12px; line-height: 1.75; }
+.impact-section h3 > span { display: inline-grid; place-items: center; min-width: 24px; height: 24px; padding: 0 4px; border-radius: 6px; background: #e3e3e3; font-size: 13px; }
+.impact-help { min-height: 42px; margin: 9px 0 12px; color: #646464; font-size: 13px; line-height: 1.75; }
 .point-list { display: flex; flex-direction: column; gap: 8px; max-height: 310px; margin: 0; padding: 2px; overflow-y: auto; list-style: none; }
 .point-list li { padding: 11px 12px; border: 1px solid #d9d9d9; border-radius: 9px; background: #ffffffa8; }
 .point-line { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
 .point-line strong { font-size: 14px; font-weight: 500; overflow-wrap: anywhere; }
-.point-type { flex: 0 0 auto; color: #646464; font-size: 11px; }
+.point-type { flex: 0 0 auto; color: #646464; font-size: 13px; }
 .topic-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .empty-list { margin: 0; padding: 18px 14px; border: 1px dashed #cecece; border-radius: 9px; color: #646464; font-size: 13px; line-height: 1.7; }
 .delete-note { margin-top: 22px; padding: 13px 15px; border: 1px solid #cecece; border-radius: 9px; background: #ecececa8; }
 .delete-note p { margin: 0; font-size: 13px; line-height: 1.8; }
 .delete-note p + p { color: #646464; }
-.delete-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 22px; padding-top: 18px; border-top: 1px solid #d9d9d9; }
+.delete-footer>p { flex-basis:100%; color:#813b2f; line-height:1.8; overflow-wrap:anywhere; }.delete-footer { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; margin-top: 22px; padding-top: 18px; border-top: 1px solid #d9d9d9; }
 @media (max-width: 700px) { .impact-columns { grid-template-columns: minmax(0,1fr); } .impact-help { min-height: 0; } }
 </style>

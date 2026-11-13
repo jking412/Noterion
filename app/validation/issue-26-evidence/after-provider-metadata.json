@@ -1,0 +1,701 @@
+[
+  {
+    "sequence": 1,
+    "mode": "slow",
+    "stage": "extract",
+    "status": 200,
+    "requestBytes": 2847,
+    "messageCount": 2,
+    "toolNames": [],
+    "responseKind": "slow",
+    "responseChunks": 7,
+    "finished": false,
+    "aborted": true
+  },
+  {
+    "sequence": 2,
+    "mode": "good",
+    "stage": "extract",
+    "status": 200,
+    "requestBytes": 2847,
+    "messageCount": 2,
+    "toolNames": [],
+    "responseKind": "content",
+    "responseChunks": 14,
+    "finished": false,
+    "aborted": true
+  },
+  {
+    "sequence": 3,
+    "mode": "good",
+    "stage": "retrieve",
+    "status": 200,
+    "requestBytes": 2283,
+    "messageCount": 2,
+    "toolNames": [
+      "search_knowledge"
+    ],
+    "responseKind": "tool",
+    "responseChunks": 9,
+    "finished": true,
+    "aborted": false
+  },
+  {
+    "sequence": 4,
+    "mode": "good",
+    "stage": "retrieve",
+    "status": 200,
+    "requestBytes": 3516,
+    "messageCount": 4,
+    "toolNames": [
+      "search_knowledge",
+      "read_point",
+      "related_points"
+    ],
+    "responseKind": "content",
+    "responseChunks": 4,
+    "finished": true,
+    "aborted": false
+  },
+  {
+    "sequence": 5,
+    "mode": "good",
+    "stage": "search",
+    "status": 200,
+    "requestBytes": 3047,
+    "messageCount": 5,
+    "toolNames": [],
+    "responseKind": "content",
+    "responseChunks": 5,
+    "finished": false,
+    "aborted": true
+  },
+  {
+    "sequence": 6,
+    "mode": "good",
+    "stage": "retrieve",
+    "status": 200,
+    "requestBytes": 2277,
+    "messageCount": 2,
+    "toolNames": [
+      "search_knowledge"
+    ],
+    "responseKind": "tool",
+    "responseChunks": 9,
+    "finished": true,
+    "aborted": false
+  },
+  {
+    "sequence": 7,
+    "mode": "good",
+    "stage": "retrieve",
+    "status": 200,
+    "requestBytes": 3510,
+    "messageCount": 4,
+    "toolNames": [
+      "search_knowledge",
+      "read_point",
+      "related_points"
+    ],
+    "responseKind": "content",
+    "responseChunks": 4,
+    "finished": true,
+    "aborted": false
+  },
+  {
+    "sequence": 8,
+    "mode": "good",
+    "stage": "answer",
+    "status": 200,
+    "requestBytes": 3177,
+    "messageCount": 5,
+    "toolNames": [],
+    "responseKind": "content",
+    "responseChunks": 6,
+    "finished": false,
+    "aborted": true
+  },
+  {
+    "sequence": 9,
+    "mode": "slow",
+    "stage": "extract",
+    "status": 200,
+    "requestBytes": 2999,
+    "messageCount": 2,
+    "toolNames": [],
+    "responseKind": "slow",
+    "responseChunks": 11,
+    "finished": false,
+    "aborted": true
+  },
+  {
+    "sequence": 10,
+    "mode": "good",
+    "stage": "extract",
+    "status": 200,
+    "requestBytes": 2999,
+    "messageCount": 2,
+    "toolNames": [],
+    "responseKind": "content",
+    "responseChunks": 14,
+    "finished": false,
+    "aborted": true
+  },
+  {
+    "sequence": 11,
+    "mode": "unauthorized",
+    "stage": "extract",
+    "status": 401,
+    "requestBytes": 3012,
+    "messageCount": 2,
+    "toolNames": [],
+    "responseKind": "http-error",
+    "responseChunks": 0,
+    "finished": true,
+    "aborted": false
+  },
+  {
+    "sequence": 12,
+    "mode": "rate-limit",
+    "stage": "extract",
+    "status": 429,
+    "requestBytes": 3010,
+    "messageCount": 2,
+    "toolNames": [],
+    "responseKind": "http-error",
+    "responseChunks": 0,
+    "finished": true,
+    "aborted": false
+  },
+  {
+    "sequence": 13,
+    "mode": "rate-limit",
+    "stage": "extract",
+    "status": 429,
+    "requestBytes": 3010,
+    "messageCount": 2,
+    "toolNames": [],
+    "responseKind": "http-error",
+    "responseChunks": 0,
+    "finished": true,
+    "aborted": false
+  },
+  {
+    "sequence": 14,
+    "mode": "rate-limit",
+    "stage": "extract",
+    "status": 429,
+    "requestBytes": 3010,
+    "messageCount": 2,
+    "toolNames": [],
+    "responseKind": "http-error",
+    "responseChunks": 0,
+    "finished": true,
+    "aborted": false
+  },
+  {
+    "sequence": 15,
+    "mode": "network-drop",
+    "stage": "unknown",
+    "status": 0,
+    "requestBytes": 0,
+    "messageCount": 0,
+    "toolNames": [],
+    "responseKind": "network-drop",
+    "responseChunks": 0,
+    "finished": false,
+    "aborted": true
+  },
+  {
+    "sequence": 16,
+    "mode": "network-drop",
+    "stage": "unknown",
+    "status": 0,
+    "requestBytes": 0,
+    "messageCount": 0,
+    "toolNames": [],
+    "responseKind": "network-drop",
+    "responseChunks": 0,
+    "finished": false,
+    "aborted": true
+  },
+  {
+    "sequence": 17,
+    "mode": "network-drop",
+    "stage": "unknown",
+    "status": 0,
+    "requestBytes": 0,
+    "messageCount": 0,
+    "toolNames": [],
+    "responseKind": "network-drop",
+    "responseChunks": 0,
+    "finished": false,
+    "aborted": true
+  },
+  {
+    "sequence": 18,
+    "mode": "good",
+    "stage": "extract",
+    "status": 200,
+    "requestBytes": 3012,
+    "messageCount": 2,
+    "toolNames": [],
+    "responseKind": "content",
+    "responseChunks": 14,
+    "finished": false,
+    "aborted": true
+  },
+  {
+    "sequence": 19,
+    "mode": "slow",
+    "stage": "retrieve",
+    "status": 200,
+    "requestBytes": 2557,
+    "messageCount": 4,
+    "toolNames": [
+      "search_knowledge"
+    ],
+    "responseKind": "slow",
+    "responseChunks": 11,
+    "finished": false,
+    "aborted": true
+  },
+  {
+    "sequence": 20,
+    "mode": "good",
+    "stage": "retrieve",
+    "status": 200,
+    "requestBytes": 2557,
+    "messageCount": 4,
+    "toolNames": [
+      "search_knowledge"
+    ],
+    "responseKind": "tool",
+    "responseChunks": 9,
+    "finished": true,
+    "aborted": false
+  },
+  {
+    "sequence": 21,
+    "mode": "good",
+    "stage": "retrieve",
+    "status": 200,
+    "requestBytes": 3792,
+    "messageCount": 6,
+    "toolNames": [
+      "search_knowledge",
+      "read_point",
+      "related_points"
+    ],
+    "responseKind": "content",
+    "responseChunks": 4,
+    "finished": true,
+    "aborted": false
+  },
+  {
+    "sequence": 22,
+    "mode": "good",
+    "stage": "search",
+    "status": 200,
+    "requestBytes": 3323,
+    "messageCount": 7,
+    "toolNames": [],
+    "responseKind": "content",
+    "responseChunks": 5,
+    "finished": false,
+    "aborted": true
+  },
+  {
+    "sequence": 23,
+    "mode": "unauthorized",
+    "stage": "retrieve",
+    "status": 401,
+    "requestBytes": 2570,
+    "messageCount": 4,
+    "toolNames": [
+      "search_knowledge"
+    ],
+    "responseKind": "http-error",
+    "responseChunks": 0,
+    "finished": true,
+    "aborted": false
+  },
+  {
+    "sequence": 24,
+    "mode": "rate-limit",
+    "stage": "retrieve",
+    "status": 429,
+    "requestBytes": 2568,
+    "messageCount": 4,
+    "toolNames": [
+      "search_knowledge"
+    ],
+    "responseKind": "http-error",
+    "responseChunks": 0,
+    "finished": true,
+    "aborted": false
+  },
+  {
+    "sequence": 25,
+    "mode": "rate-limit",
+    "stage": "retrieve",
+    "status": 429,
+    "requestBytes": 2568,
+    "messageCount": 4,
+    "toolNames": [
+      "search_knowledge"
+    ],
+    "responseKind": "http-error",
+    "responseChunks": 0,
+    "finished": true,
+    "aborted": false
+  },
+  {
+    "sequence": 26,
+    "mode": "rate-limit",
+    "stage": "retrieve",
+    "status": 429,
+    "requestBytes": 2568,
+    "messageCount": 4,
+    "toolNames": [
+      "search_knowledge"
+    ],
+    "responseKind": "http-error",
+    "responseChunks": 0,
+    "finished": true,
+    "aborted": false
+  },
+  {
+    "sequence": 27,
+    "mode": "network-drop",
+    "stage": "unknown",
+    "status": 0,
+    "requestBytes": 0,
+    "messageCount": 0,
+    "toolNames": [],
+    "responseKind": "network-drop",
+    "responseChunks": 0,
+    "finished": false,
+    "aborted": true
+  },
+  {
+    "sequence": 28,
+    "mode": "network-drop",
+    "stage": "unknown",
+    "status": 0,
+    "requestBytes": 0,
+    "messageCount": 0,
+    "toolNames": [],
+    "responseKind": "network-drop",
+    "responseChunks": 0,
+    "finished": false,
+    "aborted": true
+  },
+  {
+    "sequence": 29,
+    "mode": "network-drop",
+    "stage": "unknown",
+    "status": 0,
+    "requestBytes": 0,
+    "messageCount": 0,
+    "toolNames": [],
+    "responseKind": "network-drop",
+    "responseChunks": 0,
+    "finished": false,
+    "aborted": true
+  },
+  {
+    "sequence": 30,
+    "mode": "good",
+    "stage": "retrieve",
+    "status": 200,
+    "requestBytes": 2570,
+    "messageCount": 4,
+    "toolNames": [
+      "search_knowledge"
+    ],
+    "responseKind": "tool",
+    "responseChunks": 9,
+    "finished": false,
+    "aborted": true
+  },
+  {
+    "sequence": 31,
+    "mode": "good",
+    "stage": "retrieve",
+    "status": 200,
+    "requestBytes": 3805,
+    "messageCount": 6,
+    "toolNames": [
+      "search_knowledge",
+      "read_point",
+      "related_points"
+    ],
+    "responseKind": "content",
+    "responseChunks": 4,
+    "finished": false,
+    "aborted": true
+  },
+  {
+    "sequence": 32,
+    "mode": "good",
+    "stage": "search",
+    "status": 200,
+    "requestBytes": 3336,
+    "messageCount": 7,
+    "toolNames": [],
+    "responseKind": "content",
+    "responseChunks": 5,
+    "finished": false,
+    "aborted": true
+  },
+  {
+    "sequence": 33,
+    "mode": "good",
+    "stage": "retrieve",
+    "status": 200,
+    "requestBytes": 2555,
+    "messageCount": 4,
+    "toolNames": [
+      "search_knowledge"
+    ],
+    "responseKind": "tool",
+    "responseChunks": 9,
+    "finished": true,
+    "aborted": false
+  },
+  {
+    "sequence": 34,
+    "mode": "good",
+    "stage": "retrieve",
+    "status": 200,
+    "requestBytes": 3790,
+    "messageCount": 6,
+    "toolNames": [
+      "search_knowledge",
+      "read_point",
+      "related_points"
+    ],
+    "responseKind": "content",
+    "responseChunks": 4,
+    "finished": true,
+    "aborted": false
+  },
+  {
+    "sequence": 35,
+    "mode": "good",
+    "stage": "answer",
+    "status": 200,
+    "requestBytes": 3457,
+    "messageCount": 7,
+    "toolNames": [],
+    "responseKind": "content",
+    "responseChunks": 6,
+    "finished": false,
+    "aborted": true
+  },
+  {
+    "sequence": 36,
+    "mode": "slow",
+    "stage": "retrieve",
+    "status": 200,
+    "requestBytes": 2835,
+    "messageCount": 6,
+    "toolNames": [
+      "search_knowledge"
+    ],
+    "responseKind": "slow",
+    "responseChunks": 13,
+    "finished": false,
+    "aborted": true
+  },
+  {
+    "sequence": 37,
+    "mode": "good",
+    "stage": "retrieve",
+    "status": 200,
+    "requestBytes": 2835,
+    "messageCount": 6,
+    "toolNames": [
+      "search_knowledge"
+    ],
+    "responseKind": "tool",
+    "responseChunks": 9,
+    "finished": true,
+    "aborted": false
+  },
+  {
+    "sequence": 38,
+    "mode": "good",
+    "stage": "retrieve",
+    "status": 200,
+    "requestBytes": 4070,
+    "messageCount": 8,
+    "toolNames": [
+      "search_knowledge",
+      "read_point",
+      "related_points"
+    ],
+    "responseKind": "content",
+    "responseChunks": 4,
+    "finished": true,
+    "aborted": false
+  },
+  {
+    "sequence": 39,
+    "mode": "good",
+    "stage": "answer",
+    "status": 200,
+    "requestBytes": 3737,
+    "messageCount": 9,
+    "toolNames": [],
+    "responseKind": "content",
+    "responseChunks": 6,
+    "finished": false,
+    "aborted": true
+  },
+  {
+    "sequence": 40,
+    "mode": "unauthorized",
+    "stage": "retrieve",
+    "status": 401,
+    "requestBytes": 3128,
+    "messageCount": 8,
+    "toolNames": [
+      "search_knowledge"
+    ],
+    "responseKind": "http-error",
+    "responseChunks": 0,
+    "finished": true,
+    "aborted": false
+  },
+  {
+    "sequence": 41,
+    "mode": "rate-limit",
+    "stage": "retrieve",
+    "status": 429,
+    "requestBytes": 3126,
+    "messageCount": 8,
+    "toolNames": [
+      "search_knowledge"
+    ],
+    "responseKind": "http-error",
+    "responseChunks": 0,
+    "finished": true,
+    "aborted": false
+  },
+  {
+    "sequence": 42,
+    "mode": "rate-limit",
+    "stage": "retrieve",
+    "status": 429,
+    "requestBytes": 3126,
+    "messageCount": 8,
+    "toolNames": [
+      "search_knowledge"
+    ],
+    "responseKind": "http-error",
+    "responseChunks": 0,
+    "finished": true,
+    "aborted": false
+  },
+  {
+    "sequence": 43,
+    "mode": "rate-limit",
+    "stage": "retrieve",
+    "status": 429,
+    "requestBytes": 3126,
+    "messageCount": 8,
+    "toolNames": [
+      "search_knowledge"
+    ],
+    "responseKind": "http-error",
+    "responseChunks": 0,
+    "finished": true,
+    "aborted": false
+  },
+  {
+    "sequence": 44,
+    "mode": "network-drop",
+    "stage": "unknown",
+    "status": 0,
+    "requestBytes": 0,
+    "messageCount": 0,
+    "toolNames": [],
+    "responseKind": "network-drop",
+    "responseChunks": 0,
+    "finished": false,
+    "aborted": true
+  },
+  {
+    "sequence": 45,
+    "mode": "network-drop",
+    "stage": "unknown",
+    "status": 0,
+    "requestBytes": 0,
+    "messageCount": 0,
+    "toolNames": [],
+    "responseKind": "network-drop",
+    "responseChunks": 0,
+    "finished": false,
+    "aborted": true
+  },
+  {
+    "sequence": 46,
+    "mode": "network-drop",
+    "stage": "unknown",
+    "status": 0,
+    "requestBytes": 0,
+    "messageCount": 0,
+    "toolNames": [],
+    "responseKind": "network-drop",
+    "responseChunks": 0,
+    "finished": false,
+    "aborted": true
+  },
+  {
+    "sequence": 47,
+    "mode": "good",
+    "stage": "retrieve",
+    "status": 200,
+    "requestBytes": 3128,
+    "messageCount": 8,
+    "toolNames": [
+      "search_knowledge"
+    ],
+    "responseKind": "tool",
+    "responseChunks": 9,
+    "finished": true,
+    "aborted": false
+  },
+  {
+    "sequence": 48,
+    "mode": "good",
+    "stage": "retrieve",
+    "status": 200,
+    "requestBytes": 4363,
+    "messageCount": 10,
+    "toolNames": [
+      "search_knowledge",
+      "read_point",
+      "related_points"
+    ],
+    "responseKind": "content",
+    "responseChunks": 4,
+    "finished": true,
+    "aborted": false
+  },
+  {
+    "sequence": 49,
+    "mode": "good",
+    "stage": "answer",
+    "status": 200,
+    "requestBytes": 4030,
+    "messageCount": 11,
+    "toolNames": [],
+    "responseKind": "content",
+    "responseChunks": 6,
+    "finished": false,
+    "aborted": true
+  }
+]

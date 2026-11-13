@@ -1,0 +1,12 @@
+[
+  {
+    "antipattern": "layout-transition",
+    "name": "Layout property animation",
+    "description": "Animating width, height, padding, or margin causes layout thrash and janky performance. Use transform and opacity instead, or grid-template-rows for height animations.",
+    "severity": "warning",
+    "category": "quality",
+    "file": "C:\\Users\\skynesser\\.codex\\worktrees\\13f0\\knowledgeGraph\\app\\src\\components\\GraphCanvas.vue",
+    "line": 729,
+    "snippet": "transition: width"
+  }
+]

@@ -1,0 +1,12 @@
+{
+  "expected": "No question task status/cancel during extraction; a separate task-navigation notice",
+  "actual": {
+    "cancel": 1,
+    "statuses": [
+      "正在整理知识\n正在理解原文 1/1；完成后统一预览，不会逐段入图。"
+    ],
+    "text": "查找知识\n回答问题\n新会话\n自然语言问题\n\n发送范围：本次问题、必要对话及检索到的知识和资料信息。\n\n取消\n自动查找\n\n正在整理知识\n正在理解原文 1/1；完成后统一预览，不会逐段入图。"
+  },
+  "verdict": "RED: reproduced",
+  "assertion": "Question panel must not present extraction as its current question task\n\n1 !== 0\n"
+}

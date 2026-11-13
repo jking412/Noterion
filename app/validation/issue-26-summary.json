@@ -1,0 +1,161 @@
+{
+  "issue": "https://github.com/jking412/Noterion/issues/26",
+  "reviewBase": "647c20566550a86056b0e6b2def81ef36e71d4fe",
+  "baselineExecutableSha256": "d658807e3aa1faa91b182bd6ecfab414fa1cb4429d9754eb82641d2a2bb019f9",
+  "intermediateExecutableSha256": "ff2ea762bf110a0677e59d72fee9656572cfd9632219dd3ae21aa2cd8a6b3fae",
+  "finalExecutableSha256": "8f0f25a509329bcc0a117d3b83e841bc4cf4b9afe589137714feac59d55ec790",
+  "providerBoundary": "Real Windows Tauri/WebView2 and native Rust HTTP/store; deterministic local HTTP/SSE provider; no mock IPC; no official DeepSeek request in this task.",
+  "regularRun": {
+    "run": "issue-26-integrated-core-01",
+    "passedChecks": 22,
+    "wholeRunPassed": true,
+    "sourceSha": "bbccbb64d3a26e6d8cc74bcaf1071d0bbbcb41c4",
+    "exeSha256": "8f0f25a509329bcc0a117d3b83e841bc4cf4b9afe589137714feac59d55ec790"
+  },
+  "finalSupplements": [
+    {
+      "run": "issue-26-integrated-scale200-01",
+      "passed": true,
+      "checks": [
+        {
+          "name": "19-task-navigation: view task returns to the active AI mode and exposes actual cancellation",
+          "verdict": "PASS"
+        },
+        {
+          "name": "real WebView2 runtime at 200% relative scale keeps long content and decisions usable",
+          "verdict": "PASS",
+          "detail": {
+            "baselineDpr": 1.5,
+            "requestedRatio": 2,
+            "observedRatio": 2,
+            "viewport": {
+              "dpr": 3,
+              "height": 500,
+              "width": 800
+            },
+            "method": "Real WebView2 force-device-scale-factor startup argument; no CSS injection; not a global Windows DPI change"
+          }
+        },
+        {
+          "name": "20-task-navigation-zoomed: view task returns to the active AI mode and exposes actual cancellation",
+          "verdict": "PASS"
+        }
+      ]
+    }
+  ],
+  "knownDefectsReproducedAndFixed": [
+    "Cross-surface extraction status/cancel appeared in question panel.",
+    "View task returned to local-search mode and hid the active question cancellation."
+  ],
+  "scalingBoundary": {
+    "baselineDpr": 1.5,
+    "relative150": {
+      "runtimeDpr": 2.25,
+      "viewport": {
+        "width": 1067,
+        "height": 667
+      },
+      "sourceRun": "issue-26-scale150-02",
+      "sourceExecutableSha256": "76cb3b6bce3333347e8782e5d9dd6546e9d642bd2c71c525bf927f2ae300db0c"
+    },
+    "relative200": {
+      "runtimeDpr": 3,
+      "viewport": {
+        "width": 800,
+        "height": 500
+      },
+      "sourceRun": "issue-26-integrated-scale200-01",
+      "sourceExecutableSha256": "8f0f25a509329bcc0a117d3b83e841bc4cf4b9afe589137714feac59d55ec790"
+    },
+    "method": "WebView2 force-device-scale-factor startup arguments with independent profiles; no CSS injection or global Windows DPI change; W3C keyboard zoom was not verified successful."
+  },
+  "intermediateSourceSha": "1ef8f474aad3ed6bb1fd1d148df1c4576ed21a8c",
+  "finalSourceSha": "bbccbb64d3a26e6d8cc74bcaf1071d0bbbcb41c4",
+  "retainedDiagnosticRuns": [
+    {
+      "run": "issue-26-after-01",
+      "evidencePrefix": "after-readonly-assertion"
+    },
+    {
+      "run": "issue-26-zoom-01",
+      "evidencePrefix": "os-zoom-inconclusive"
+    },
+    {
+      "run": "issue-26-final-01",
+      "evidencePrefix": "keyboard-zoom-inconclusive"
+    },
+    {
+      "run": "issue-26-scale150-01",
+      "evidencePrefix": "baseline-equivalent-scale-probe"
+    }
+  ],
+  "preIntegrationExecutableSha256": "76cb3b6bce3333347e8782e5d9dd6546e9d642bd2c71c525bf927f2ae300db0c",
+  "preIntegrationSourceSha": "d288a2a9be3b91f4e5936193ea4496d3ab3d4408",
+  "preIntegrationSupplements": [
+    {
+      "run": "issue-26-scale150-02",
+      "passed": true,
+      "checks": [
+        {
+          "name": "19-task-navigation: view task returns to the active AI mode and exposes actual cancellation",
+          "verdict": "PASS"
+        },
+        {
+          "name": "real WebView2 runtime at 150% relative scale keeps long content and decisions usable",
+          "verdict": "PASS",
+          "detail": {
+            "baselineDpr": 1.5,
+            "requestedRatio": 1.5,
+            "observedRatio": 1.5,
+            "viewport": {
+              "dpr": 2.25,
+              "height": 667,
+              "width": 1067
+            },
+            "method": "Real WebView2 force-device-scale-factor startup argument; no CSS injection; not a global Windows DPI change"
+          }
+        }
+      ]
+    },
+    {
+      "run": "issue-26-scale200-01",
+      "passed": true,
+      "checks": [
+        {
+          "name": "19-task-navigation: view task returns to the active AI mode and exposes actual cancellation",
+          "verdict": "PASS"
+        },
+        {
+          "name": "real WebView2 runtime at 200% relative scale keeps long content and decisions usable",
+          "verdict": "PASS",
+          "detail": {
+            "baselineDpr": 1.5,
+            "requestedRatio": 2,
+            "observedRatio": 2,
+            "viewport": {
+              "dpr": 3,
+              "height": 500,
+              "width": 800
+            },
+            "method": "Real WebView2 force-device-scale-factor startup argument; no CSS injection; not a global Windows DPI change"
+          }
+        },
+        {
+          "name": "20-task-navigation-zoomed: view task returns to the active AI mode and exposes actual cancellation",
+          "verdict": "PASS"
+        }
+      ]
+    }
+  ],
+  "historicalRegularRun": {
+    "run": "issue-26-after-02",
+    "passedChecks": 21,
+    "wholeRunPassed": false,
+    "remainingFailure": "W3C keyboard zoom did not change runtime metrics; superseded for layout coverage by baseline-relative native runtime scale supplements."
+  },
+  "integration": {
+    "mainSha": "6f44e447be776ac92ec6bc00c90eb19e956e13a1",
+    "mergeSha": "bbccbb64d3a26e6d8cc74bcaf1071d0bbbcb41c4",
+    "method": "merge origin/main in the dedicated Issue #26 worktree; preserve committed Issue #25 brand/native icons and Issue #26 task/zoom refinements"
+  }
+}

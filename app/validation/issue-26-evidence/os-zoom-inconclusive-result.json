@@ -1,0 +1,14 @@
+{
+  "run": "issue-26-zoom-01",
+  "phase": "after",
+  "scenario": "zoom",
+  "passed": false,
+  "assertions": 0,
+  "screenshots": [
+    "16-layout-1280",
+    "16-layout-1600",
+    "failure"
+  ],
+  "exe": "C:\\Users\\skynesser\\.codex\\worktrees\\13f0\\knowledgeGraph\\app\\dist-desktop\\noterion.exe",
+  "boundary": "Real debug Windows Tauri/WebView2 UI and native Rust store/HTTP; deterministic local provider, not official DeepSeek."
+}

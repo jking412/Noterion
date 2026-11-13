@@ -12,7 +12,7 @@ use std::{
     io::Read,
     path::PathBuf,
     sync::{
-        atomic::{AtomicBool, AtomicUsize, Ordering},
+        atomic::{AtomicBool, Ordering},
         Arc, Mutex,
     },
     time::Duration,
@@ -100,7 +100,6 @@ pub(super) struct Task {
     epoch: u64,
     cancel: Arc<Cancellation>,
     channel: Option<Channel<AiEvent>>,
-    received: AtomicUsize,
 }
 impl Task {
     fn check(&self) -> Result<(), String> {
@@ -125,26 +124,6 @@ impl Task {
             result: None,
             error: None,
         })
-    }
-    fn delta(&self, delta: &str) -> Result<(), String> {
-        self.check()?;
-        let old = self
-            .received
-            .fetch_add(delta.chars().count(), Ordering::Relaxed);
-        // JSON contains internal identity handles. Only show progress until decoding and validation finish.
-        if old / 160 != (old + delta.chars().count()) / 160 {
-            self.send(AiEvent {
-                task_id: self.id.clone(),
-                phase: "receiving".into(),
-                detail: Some(format!(
-                    "正在接收模型结果（{} 字）；完成后校验内容与来源。",
-                    old + delta.chars().count()
-                )),
-                result: None,
-                error: None,
-            })?;
-        }
-        Ok(())
     }
     fn send(&self, event: AiEvent) -> Result<(), String> {
         if let Some(channel) = &self.channel {
@@ -204,7 +183,6 @@ pub async fn ai_check(store: tauri::State<'_, SharedStore>) -> Result<String, St
         epoch,
         cancel: Arc::new(Cancellation::default()),
         channel: None,
-        received: AtomicUsize::new(0),
     };
     let messages =
         vec![json!({"role":"user","content":"连接检查。请只返回 json 对象 {\"ok\":true}。"})];
@@ -265,7 +243,6 @@ pub fn ai_start(
         epoch,
         cancel,
         channel: Some(on_event),
-        received: AtomicUsize::new(0),
     };
     tauri::async_runtime::spawn(async move {
         let work = run(&host, &task, request, snapshot, directory, client);

@@ -1,0 +1,32 @@
+[
+  {
+    "launch": 1,
+    "hostPid": 33628,
+    "driverPid": 11260,
+    "environment": {
+      "invoke": "function",
+      "scripts": [
+        "http://tauri.localhost/assets/index-YWWR1Tqh.js"
+      ],
+      "url": "http://tauri.localhost/",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0",
+      "visibility": "visible"
+    },
+    "storageLocation": "C:\\Users\\skynesser\\.codex\\worktrees\\13f0\\knowledgeGraph\\app\\validation\\issue-26-runs\\issue-26-release-smoke-green\\isolated-config\\data"
+  },
+  {
+    "launch": 2,
+    "hostPid": 25208,
+    "driverPid": 7404,
+    "environment": {
+      "invoke": "function",
+      "scripts": [
+        "http://tauri.localhost/assets/index-YWWR1Tqh.js"
+      ],
+      "url": "http://tauri.localhost/",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0",
+      "visibility": "visible"
+    },
+    "storageLocation": "C:\\Users\\skynesser\\.codex\\worktrees\\13f0\\knowledgeGraph\\app\\validation\\issue-26-runs\\issue-26-release-smoke-green\\isolated-config\\data"
+  }
+]

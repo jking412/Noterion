@@ -1,0 +1,17 @@
+{
+  "run": "issue-26-integrated-scale200-01",
+  "phase": "after",
+  "scenario": "scaled",
+  "passed": true,
+  "assertions": 3,
+  "screenshots": [
+    "19-task-navigation",
+    "21-scaled-graph-details",
+    "22-scaled-editor",
+    "23-scaled-import",
+    "24-scaled-directory",
+    "20-task-navigation-zoomed"
+  ],
+  "exe": "C:\\Users\\skynesser\\.codex\\worktrees\\13f0\\knowledgeGraph\\app\\dist-desktop\\noterion.exe",
+  "boundary": "Real debug Windows Tauri/WebView2 UI and native Rust store/HTTP; deterministic local provider, not official DeepSeek."
+}

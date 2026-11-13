@@ -1,0 +1,49 @@
+{
+  "passed": true,
+  "startedAt": "2026-11-13T07:09:50.867Z",
+  "completedAt": "2026-11-13T07:09:57.076Z",
+  "launches": 2,
+  "assertions": [
+    {
+      "label": "packaged client opens embedded interface and isolated Rust storage",
+      "verdict": "PASS",
+      "at": "2026-11-13T07:09:52.800Z",
+      "detail": {
+        "launch": 1,
+        "hostPid": 33628,
+        "driverPid": 11260,
+        "environment": {
+          "invoke": "function",
+          "scripts": [
+            "http://tauri.localhost/assets/index-YWWR1Tqh.js"
+          ],
+          "url": "http://tauri.localhost/",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0",
+          "visibility": "visible"
+        },
+        "storageLocation": "C:\\Users\\skynesser\\.codex\\worktrees\\13f0\\knowledgeGraph\\app\\validation\\issue-26-runs\\issue-26-release-smoke-green\\isolated-config\\data"
+      }
+    },
+    {
+      "label": "visible save commits a knowledge point through the real Rust core",
+      "verdict": "PASS",
+      "at": "2026-11-13T07:09:53.453Z",
+      "detail": {
+        "pointName": "Release smoke: 保存后重启",
+        "description": "由真实 Windows 客户端保存的知识点；无需开发服务器。"
+      }
+    },
+    {
+      "label": "fresh client process reads the committed knowledge from disk",
+      "verdict": "PASS",
+      "at": "2026-11-13T07:09:56.357Z",
+      "detail": {
+        "pointName": "Release smoke: 保存后重启",
+        "firstPid": 33628,
+        "restartedPid": 25208
+      }
+    }
+  ],
+  "scope": "Windows x64 packaged exe; embedded UI; real Rust save; persistence after full process restart.",
+  "limitations": "No full desktop/media/large-video or live AI-service acceptance. This run uses only synthetic knowledge and isolated data."
+}

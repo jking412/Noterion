@@ -1,0 +1,21 @@
+[
+  {
+    "name": "19-task-navigation: view task returns to the active AI mode and exposes actual cancellation",
+    "verdict": "PASS"
+  },
+  {
+    "name": "real WebView2 runtime at 150% relative scale keeps long content and decisions usable",
+    "verdict": "PASS",
+    "detail": {
+      "baselineDpr": 1.5,
+      "requestedRatio": 1.5,
+      "observedRatio": 1.5,
+      "viewport": {
+        "dpr": 2.25,
+        "height": 667,
+        "width": 1067
+      },
+      "method": "Real WebView2 force-device-scale-factor startup argument; no CSS injection; not a global Windows DPI change"
+    }
+  }
+]

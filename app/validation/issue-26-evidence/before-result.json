@@ -1,0 +1,25 @@
+{
+  "run": "issue-26-before-01",
+  "phase": "before",
+  "passed": true,
+  "assertions": 1,
+  "screenshots": [
+    "00-graph-empty",
+    "01-settings",
+    "02-import-input",
+    "03-import-waiting",
+    "03b-shared-task-state",
+    "04-candidates",
+    "05-graph-details",
+    "06-editor",
+    "07-delete-confirmation",
+    "08-library",
+    "09-resource-preview",
+    "10-records",
+    "11-data-directory",
+    "12-ai-search",
+    "13-ai-answer"
+  ],
+  "exe": "C:\\Users\\skynesser\\.codex\\worktrees\\13f0\\knowledgeGraph\\app\\dist-desktop\\noterion.exe",
+  "boundary": "Real debug Windows Tauri/WebView2 UI and native Rust store/HTTP; deterministic local provider, not official DeepSeek."
+}

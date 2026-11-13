@@ -1,0 +1,4 @@
+# Raw desktop runs include isolated data, credential configuration and WebView profiles.
+# Publish only the curated evidence in ../issue-26-evidence/.
+*
+!.gitignore

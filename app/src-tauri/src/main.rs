@@ -44,6 +44,7 @@ fn main() {
                 tauri::WebviewUrl::App("index.html".into()),
             )
             .title("Noterion · 个人知识图谱")
+            .zoom_hotkeys_enabled(true)
             .icon(tauri::include_image!("icons/icon.png"))?
             .inner_size(1600.0, 1000.0)
             .min_inner_size(1000.0, 700.0);

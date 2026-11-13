@@ -27,7 +27,7 @@ function save() {
   <ModalShell :title="creating ? '新建知识点' : '编辑知识点'" wide @close="emit('close')">
     <form class="editor" novalidate @submit.prevent="save">
       <div class="editor-main">
-        <h2 class="editor-label">内容</h2>
+
         <label class="editor-label" for="knowledge-name">名称</label>
         <input id="knowledge-name" v-model="draft.name" class="field" autofocus autocomplete="off" :aria-invalid="submitted && !draft.name.trim()" />
         <label class="check-option" style="margin-top:12px"><input v-model="draft.isTheme" type="checkbox" /><span>可作为主题组织其他知识点</span></label>
@@ -36,12 +36,12 @@ function save() {
           <span>Markdown</span>
         </div>
         <textarea id="knowledge-description" v-model="draft.description" class="field description-input" spellcheck="false" aria-describedby="description-help" />
-        <p id="description-help" class="field-help">描述、命令与个人理解保存在同一份原文中，可用“## 描述”“## 命令”“## 个人理解”分段。</p>
+        <p id="description-help" class="field-help">支持 Markdown，可用“## 命令”“## 个人理解”分段。</p>
       </div>
       <div class="editor-side">
         <fieldset>
           <legend>所属主题</legend>
-          <p class="field-help">可选择多个主题；不选择时作为独立知识点保留。</p>
+          <p class="field-help">可多选；留空为独立知识点。</p>
           <div class="option-list">
             <label v-for="theme in themes" :key="theme.id" class="check-option">
               <input v-model="draft.topicIds" type="checkbox" :value="theme.id" :aria-label="'所属主题 ' + theme.name" />
@@ -77,9 +77,9 @@ function save() {
 .editor-label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: 600; }
 .editor-main > .field { box-sizing: border-box; width: 100%; }
 .description-label { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-top: 20px; }
-.description-label > span { color: #646464; font-size: 12px; }
-.description-input { display: block; min-height: 345px; resize: vertical; padding: 12px; font-family: 'Cascadia Code', Consolas, 'Microsoft YaHei', monospace; font-size: 13px; line-height: 1.7; }
-.field-help { margin: 8px 0 12px; color: #646464; font-size: 12px; line-height: 1.7; }
+.description-label > span { color: #646464; font-size: 13px; }
+.description-input { display: block; min-height: 345px; resize: vertical; padding: 12px; font-family: inherit; font-size: 13px; line-height: 1.7; }
+.field-help { margin: 8px 0 12px; color: #646464; font-size: 13px; line-height: 1.7; }
 .editor-side { display: flex; min-width: 0; flex-direction: column; gap: 20px; }
 fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
 legend { margin-bottom: 8px; padding: 0; font-size: 14px; font-weight: 600; }
@@ -89,7 +89,7 @@ legend { margin-bottom: 8px; padding: 0; font-size: 14px; font-weight: 600; }
 .check-option input { flex: 0 0 auto; margin: 4px 0 0; accent-color: #333; }
 .check-option span { min-width: 0; }
 .check-option strong { display: block; font-size: 13px; font-weight: 500; line-height: 1.6; overflow-wrap: anywhere; }
-.check-option small { display: block; color: #646464; font-size: 11px; line-height: 1.5; overflow-wrap: anywhere; }
+.check-option small { display: block; color: #646464; font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
 .theme-ancestors { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
 .validation-message { grid-column: 1 / -1; margin: 0; padding: 10px 12px; border: 1px solid #777; border-radius: 8px; background: #ececec; font-size: 13px; }
 .editor-footer { display: flex; grid-column: 1 / -1; justify-content: flex-end; gap: 10px; padding-top: 18px; border-top: 1px solid #d9d9d9; }
