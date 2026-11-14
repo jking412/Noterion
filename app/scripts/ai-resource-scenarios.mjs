@@ -7,7 +7,7 @@ export async function runResourceScenario(h) {
   const {
     out, assert, fs, click, clickText, fill, text, observe, all, until,
     expectText, capture, check, settings, candidates, selectKnowledge,
-    localSearch, selectCandidate,
+    localSearch, selectCandidate, openSearch,
   } = h;
   const fixture = await startAiFixture();
   const title = 'AI 资料整合验收学习笔记';
@@ -87,7 +87,7 @@ export async function runResourceScenario(h) {
     });
 
     await check('grounded UI answering allows selected text context and exposes a valid knowledge citation', async () => {
-      await clickText('知识图谱');
+      await openSearch();
       await click('[data-testid="ai-search-mode"]');
       await clickText('回答问题');
       await click('.ai-text-context summary');
@@ -139,20 +139,23 @@ export async function runResourceScenario(h) {
       const requestsBeforeRepeat = fixture.requests.length;
       await importSavedText(true);
       assert.equal(fixture.requests.length, requestsBeforeRepeat, 'known repeat is resolved locally without another provider request');
-      await expectText('[aria-label="AI 候选预览"]', '这份输入已经处理过');
+      await expectText('[data-testid="ai-duplicate"]', '这份文本已采用');
       await click('[data-testid="ai-adopt"]');
       await expectText('[data-testid="ai-adopted"]', '这份输入已经采用');
+      const savedResult = await text('[data-testid="ai-adopted"]');
+      assert.doesNotMatch(savedResult, /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i, 'saved result never falls back to internal identity');
+      const savedNames = await observe('return [...document.querySelectorAll(".ai-adopted-links button")].map(element => element.textContent.trim());');
+      assert.deepEqual([...savedNames].sort(), ['Docker', 'Linux'], 'only surviving contributions are offered for navigation');
+      await click("//div[@data-testid='ai-adopted']//button[normalize-space(.)='Docker']", 'xpath');
+      await expectText('[data-testid="knowledge-details"] h1', 'Docker');
+      await expectText('[data-testid="knowledge-details"] .resources-column', title);
       await localSearch('进入容器终端');
       assert.equal((await all('.result-list .result-item')).length, 0);
-      await clickText('导入记录');
-      await expectText('.ai-record-details', sourceName);
-      await expectText('.ai-record-contributions', '知识点已移除');
-      assert.equal((await all('.ai-record-list button')).length, 1, 'exact repeat reuses the same import record');
-      const recordText = await text('.ai-record-details');
-      assert.doesNotMatch(recordText, /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i, 'visible record never falls back to internal identity');
-      assert.equal(await observe(`return [...document.querySelectorAll('.ai-record-contributions button')].some(element => element.textContent.includes('知识点已移除') && element.disabled);`), true);
+      await clickText('知识导入');
+      await expectText('[data-testid="ai-adopted"]', '这份输入已经采用');
+      assert.equal((await all('.ai-record-list, [data-testid="ai-record-update"]')).length, 0);
       await capture('11-resource-repeat-after-delete');
-      return { exactRepeat: true, deletedKnowledgeRemainsAbsent: true, removedContributionLabel: true };
+      return { exactRepeat: true, deletedKnowledgeRemainsAbsent: true, survivingContributionsNavigable: true };
     });
 
     await check('a link resource enters AI import as an association without pretending to convert its content', async () => {
@@ -165,8 +168,7 @@ export async function runResourceScenario(h) {
       await until(async () => !(await all('.resource-add-form')).length, 'link resource record is saved');
       await click(`//article[@aria-label='学习资料：${linkTitle}']//button[normalize-space(.)='导入知识']`, 'xpath');
       await expectText('.ai-context-banner', linkTitle);
-      await expectText('.ai-context-banner', '仅作为关联来源');
-      await expectText('.ai-context-banner', '转文字');
+      await expectText('.ai-context-banner', '请粘贴笔记，或选择 TXT / Markdown 文件');
       assert.equal(await observe('return document.querySelector("[data-testid=ai-source]").value;'), '');
       assert.equal(await observe(`return [...document.querySelectorAll('.ai-context-banner button')].some(element => element.textContent.trim() === '读取这份文本');`), false);
       await capture('12-link-association-only');

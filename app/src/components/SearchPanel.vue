@@ -18,7 +18,7 @@ const aiMode = defineModel<boolean>('aiMode', { default: false })
           <input :value="query" @input="emit('update:query', ($event.target as HTMLInputElement).value)" @keydown.esc="emit('clear')" @keydown.down.prevent="results[0] && emit('select', results[0].id)" placeholder="搜索名称或描述" aria-label="搜索名称或描述" autocomplete="off" spellcheck="false" data-testid="search-input" />
           <button v-if="query" type="button" class="clear-input" aria-label="清空输入" @click="emit('update:query', '')"><Icon name="close" :size="14" /></button>
         </div>
-        <button class="button add-keyword" type="submit" title="把输入添加为一个关键词，词内可以含空格"><Icon name="plus" :size="14" /><span>添加关键词</span></button>
+        <button class="button add-keyword" type="submit"><Icon name="plus" :size="14" /><span>添加关键词</span></button>
       </form>
       <div v-if="keywords.length" class="keyword-list" aria-label="已添加的关键词">
         <span v-for="(term, i) in keywords" :key="term" class="keyword-chip">{{ term }}<button type="button" :aria-label="'移除关键词 ' + term" @click="emit('remove', i)"><Icon name="close" :size="12" /></button></span>
@@ -40,7 +40,7 @@ const aiMode = defineModel<boolean>('aiMode', { default: false })
         </li>
       </ul>
       <div v-else-if="hasQuery" class="search-empty"><Icon name="search" :size="26" /><strong>没有找到相关知识</strong><p>换个片段，或试试任意匹配。</p></div>
-      <div v-else class="search-empty search-start"><Icon name="search" :size="27" /><strong>{{ points.length ? '从记得的片段开始' : '先添加你的知识' }}</strong><p>{{ points.length ? '名称、命令，或一句描述。' : '新建知识点后，可按名称或描述查找。' }}</p></div>
+      <div v-else class="search-empty search-start"><Icon name="search" :size="27" /><strong>{{ points.length ? '从记得的片段开始' : '先添加你的知识' }}</strong></div>
     </div>
     </div>
     <div class="search-footer"><span class="subtle-dot" />{{ points.length }} 个知识点<span class="footer-spacer" /></div>

@@ -218,7 +218,7 @@ pub async fn ai_check(
             return Err("连接已响应，但可用性检查未通过。".into());
         }
         task.check()?;
-        Ok(format!("{label} 连接、结构化输出与工具调用检查通过。"))
+        Ok(format!("{label} 连接正常"))
     };
     tokio::time::timeout(Duration::from_secs(90), work)
         .await
