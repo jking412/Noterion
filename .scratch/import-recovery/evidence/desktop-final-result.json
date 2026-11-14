@@ -1,0 +1,18 @@
+{
+  "run": "issue-34-recovery-final-001",
+  "scenario": "recovery",
+  "passed": true,
+  "assertionCount": 20,
+  "executableSha256": "42df96febfbc67e421dda2321797fb78a73b7637bf7655f10733dbbbadba6a8b",
+  "driverSha256": "76f549b492a89dbacee027ac6a726836944f04645ecaa5fa9a2045c84303d6ed",
+  "launches": 2,
+  "desktopCleanup": true,
+  "credentialCleanup": true,
+  "fixtureRequests": 42,
+  "liveApiCoverage": {
+    "deepseek": false,
+    "openai": false,
+    "anthropic": false
+  },
+  "providerTesting": "Deterministic loopback HTTP/SSE fixtures through actual Windows Tauri client. No official live API calls."
+}

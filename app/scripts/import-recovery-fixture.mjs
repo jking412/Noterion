@@ -5,12 +5,13 @@ import assert from 'node:assert/strict';
 
 export const RECOVERY_KEYS = Object.freeze({ deepseek: 'synthetic-deepseek-34', openai: 'synthetic-openai-34', anthropic: 'synthetic-anthropic-34' });
 export const RECOVERY_TEXT = '😀 Docker 学习笔记。\r\n进入容器终端：docker\t exec -it demo sh。\r\nLinux 记录。';
-const modes = new Set(['mixed', 'missing', 'excess', 'normalized', 'good', 'unrecoverable', 'unauthorized', 'slow', 'structure']);
+const modes = new Set(['mixed', 'missing', 'excess', 'normalized', 'good', 'unrecoverable', 'unauthorized', 'slow', 'structure', 'warning-recoverable', 'warning-persistent']);
 const parse = value => { try { return JSON.parse(value); } catch { return undefined; } };
 
 export async function startRecoveryFixture() {
-  const requests = [], sockets = new Set(), timers = new Set();
-  let mode = 'mixed';
+  const requests = [], sockets = new Set(), timers = new Set(), pendingWarningReplies = new Set();
+  let mode = 'mixed', warningAttempt = 0, warningOriginalInput;
+  const releaseWarningRetry = () => { for (const resolve of pendingWarningReplies) resolve(); pendingWarningReplies.clear(); };
   const server = http.createServer(async (request, response) => {
     const route = /^\/(deepseek|openai|anthropic)\/v1\/(chat\/completions|messages)$/.exec(request.url ?? '');
     const provider = route?.[1], anthropic = provider === 'anthropic';
@@ -54,8 +55,17 @@ export async function startRecoveryFixture() {
     const input = messages.map(message => parse(message.content)).find(value => typeof value?.text === 'string') ?? {};
     const latest = messages.map(message => parse(message.content)).findLast(value => value?.sourceRepair === true);
     const repair = !!latest;
+    const warningMode = mode === 'warning-recoverable' || mode === 'warning-persistent';
     summary.repair = repair;
-    summary.structureRepair = !repair && messages.some(message => message.role === 'assistant');
+    summary.structureRepair = !repair && !warningMode && messages.some(message => message.role === 'assistant');
+    if (warningMode) {
+      summary.warningAttempt = ++warningAttempt;
+      if (warningAttempt === 1) warningOriginalInput = input.text;
+      else {
+        summary.fullInputRetry = typeof input.text === 'string' && input.text === warningOriginalInput && !repair;
+        if (!summary.fullInputRetry) violation('warning retry preserves complete original input');
+      }
+    }
     let content;
     if (repair) {
       const previous = messages.filter(message => message.role === 'assistant').map(message => parse(message.content)).find(value => value?.points);
@@ -79,11 +89,22 @@ export async function startRecoveryFixture() {
       const original = input.text ?? RECOVERY_TEXT;
       const resourceIds = (input.allowedResources ?? []).map(resource => resource.id);
       const candidate = (id, name, description, topicIds, isTheme, color) => ({ point: { id, name, description, topicIds, resourceIds, isTheme, color }, evidence: [{ quote: name, inferred: false }] });
-      const points = [candidate('n1', 'Docker', '', [], true, 'docker'), candidate('n2', '进入容器终端', 'docker exec -it demo sh', ['n1'], false, 'neutral'), candidate('n3', 'Linux', '', [], true, 'linux')].filter(item => original.includes(item.point.name));
+      let points = [candidate('n1', 'Docker', '', [], true, 'docker'), candidate('n2', '进入容器终端', 'docker exec -it demo sh', ['n1'], false, 'neutral'), candidate('n3', 'Linux', '', [], true, 'linux')].filter(item => original.includes(item.point.name));
       if (mode === 'missing' || mode === 'mixed' || mode === 'unrecoverable' || mode === 'structure') { const item = points.find(item => item.point.id === 'n1'); if (item) item.evidence = []; }
       if (mode === 'excess' || mode === 'mixed') { const item = points.find(item => item.point.id === 'n3'); if (item) item.evidence = Array.from({ length: 9 }, () => ({ quote: 'Linux', inferred: false })); }
       if (mode === 'normalized' || mode === 'mixed') { const item = points.find(item => item.point.id === 'n2'); if (item) item.evidence = [{ quote: '进入容器终端：docker exec -it demo sh。', inferred: false }]; }
-      content = JSON.stringify({ points, warnings: [] });
+      const warnings = warningMode && (mode === 'warning-persistent' || warningAttempt === 1) ? ['Docker 部分尚未处理。'] : [];
+      if (warnings.length) points = points.filter(item => item.point.id === 'n3');
+      if (warningMode) { summary.warningResponse = !!warnings.length; summary.returnedCandidates = points.length; }
+      content = JSON.stringify({ points, warnings });
+    }
+    // Hold the second response until the real desktop has been observed in its
+    // loading state. The harness can prove that partial candidates never surface.
+    if (warningMode && warningAttempt === 2) {
+      summary.waitingForRelease = true;
+      await new Promise(resolve => pendingWarningReplies.add(resolve));
+      summary.waitingForRelease = false;
+      if (response.destroyed) return;
     }
     const frames = anthropic ? messageFrames(content, summary.sequence) : chatFrames(content, summary.sequence);
     for (const frame of frames) { const bytes = Buffer.from(frame); const midpoint = Math.floor(bytes.length / 2); response.write(bytes.subarray(0, midpoint)); response.write(bytes.subarray(midpoint)); }
@@ -93,9 +114,10 @@ export async function startRecoveryFixture() {
   await new Promise((resolve, reject) => { server.once('error', reject); server.listen(0, '127.0.0.1', resolve); });
   return {
     requests,
-    mode(next) { assert.ok(modes.has(next)); mode = next; },
+    mode(next) { assert.ok(modes.has(next)); releaseWarningRetry(); mode = next; warningAttempt = 0; warningOriginalInput = undefined; },
+    releaseWarningRetry,
     baseUrl(provider) { assert.ok(provider in RECOVERY_KEYS); return `http://127.0.0.1:${server.address().port}/${provider}/v1`; },
-    close() { return new Promise(resolve => { for (const timer of timers) clearInterval(timer); server.close(resolve); for (const socket of sockets) socket.destroy(); }); },
+    close() { releaseWarningRetry(); return new Promise(resolve => { for (const timer of timers) clearInterval(timer); server.close(resolve); for (const socket of sockets) socket.destroy(); }); },
   };
 }
 

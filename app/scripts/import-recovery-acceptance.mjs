@@ -62,7 +62,7 @@ async function scrollWorkspaceTop() {
   await pause(350);
 }
 async function check(name, action) { const detail = await action(); checks.push({ name, verdict: 'PASS', detail }); await save('checks.json', checks); console.log(`PASS ${name}`); }
-async function cleanCopy() { const source = await text('[aria-label="AI 知识整理"]'); assert.ok(!/evidence|JSON|UTF-16|校验|测试覆盖|验收|实网|开发者/.test(source), 'Import UI has no internal diagnostics or validation commentary'); }
+async function cleanCopy() { const source = await text('[aria-label="AI 知识整理"]'); assert.ok(!/evidence|warnings|sourceRepair|JSON|UTF-16|校验|测试覆盖|验收|实网|开发者/.test(source), 'Import UI has no internal diagnostics or validation commentary'); }
 async function launch() {
   const profile = path.join(out, `profile-${++launches}`), environment = { ...process.env, NOTERION_CONFIG_DIR: config, NOTERION_WEBVIEW_DIR: profile, TAURI_WEBVIEW_AUTOMATION: 'true' };
   for (const name of ['NOTERION_TEST_KEY', 'NOTERION_TEST_PROVIDER', 'NOTERION_TEST_BASE_URL', 'NOTERION_DEEPSEEK_KEY']) delete environment[name];
@@ -83,8 +83,15 @@ async function openImport() { await clickText('知识导入'); if ((await all('[
 async function extract(source) { await openImport(); await fill('[data-testid="ai-source"]', source); await click('[data-testid="ai-extract"]'); }
 async function candidates(expected = 3) { await until(async () => (await all('.ai-candidate-list button')).length || (await all('[data-testid="ai-import-error"]')).length, 'candidates or real failure', 60000); if ((await all('[data-testid="ai-import-error"]')).length) throw new Error(await text('[data-testid="ai-import-error"]')); if (expected !== null) assert.equal((await all('.ai-candidate-list button')).length, expected); }
 async function verifyEvidence(source) {
-  const buttons = await all('.ai-candidate-list button');
-  for (const item of buttons) { await wd('POST', `/element/${item[elementKey]}/click`, {}); const quotes = await observe('return [...document.querySelectorAll(".ai-evidence blockquote p")].map(element => element.textContent);'); assert.ok(quotes.length); for (const quote of quotes) assert.ok(source.includes(quote), 'Every displayed quote is exact original source'); }
+  const buttons = await all('.ai-candidate-list button'), names = [];
+  for (const item of buttons) { await wd('POST', `/element/${item[elementKey]}/click`, {}); names.push(await value('[aria-label="候选知识点名称"]')); const quotes = await observe('return [...document.querySelectorAll(".ai-evidence blockquote p")].map(element => element.textContent);'); assert.ok(quotes.length); for (const quote of quotes) assert.ok(source.includes(quote), 'Every displayed quote is exact original source'); }
+  return names;
+}
+async function noPartialDraft(source) {
+  assert.equal((await all('.ai-candidate-list button')).length, 0, 'Declared omissions must not publish a partial candidate preview');
+  assert.equal((await all('[data-testid="ai-adopt"]')).length, 0, 'Declared omissions must not expose adoption');
+  assert.equal(await value('[data-testid="ai-source"]'), source);
+  assert.ok(!(await text('[aria-label="AI 知识整理"]')).includes('Docker 部分尚未处理。'), 'Model omission warnings stay out of product UI');
 }
 async function selectKnowledge(name) { await clickText('知识图谱'); await clickText('片段搜索'); await fill('[data-testid="search-input"]', name); await click(`//ul[contains(@class,'result-list')]//button[contains(@class,'result-item')][.//*[contains(@class,'result-name') and normalize-space(.)=${literal(name)}]]`, 'xpath'); await expectText('[data-testid="knowledge-details"]', name); }
 async function addResource() { const filename = path.join(out, 'learning.md'); await fs.writeFile(filename, RECOVERY_TEXT, { flag: 'wx' }); await clickText('资料库'); await clickText('添加资料'); await fill('[aria-label="资料文件路径"]', filename); await fill('[aria-label="资料名称"]', '恢复来源资料'); await clickText('保存资料'); await until(async () => !(await all('.resource-add-form')).length, 'source resource saved'); }
@@ -115,6 +122,31 @@ try {
       await candidates(); await verifyEvidence(source); await cleanCopy(); assert.ok(fixture.requests.slice(before).some(item => item.sourceIdRepair)); assert.ok(fixture.requests.length - before <= 3);
       await capture(`02-preview-${provider}`); await fill('[aria-label="候选知识点描述"]', `已核对 ${provider}`); await click('[data-testid="ai-adopt"]'); await expectText('[data-testid="ai-adopted"]', '知识已保存到本机'); await cleanCopy(); await capture(`03-adopted-${provider}`);
       return { candidates: 3, exactQuotes: true, targetedSourceRepair: true, programSourceIds: true, explicitAdoption: true, sourceAssociated: true, calls: fixture.requests.length - before };
+    });
+  }
+  for (const provider of providers) {
+    await configure(provider);
+    await check(`${provider}: declared omissions retry the complete source before preview and adoption`, async () => {
+      fixture.mode('warning-recoverable'); const source = `${RECOVERY_TEXT}\n补全 ${provider}`, before = fixture.requests.length;
+      await openImport(); await fill('[data-testid="ai-source"]', source);
+      if (!await wd('GET', `/element/${await find('.ai-source-picker input[type="checkbox"]')}/selected`)) {
+        if (!await observe('return document.querySelector(".ai-source-picker").open;')) await click('.ai-source-picker summary');
+        await click('.ai-source-picker label');
+      }
+      await click('[data-testid="ai-extract"]'); await until(() => fixture.requests.slice(before).some(item => item.warningAttempt === 2 && item.waitingForRelease), 'complete retry after declared omission');
+      await noPartialDraft(source); await expectText('[aria-label="AI 知识整理"]', '正在整理知识'); await cleanCopy(); await capture(`12-warning-loading-${provider}`);
+      fixture.releaseWarningRetry(); await candidates(); assert.deepEqual((await verifyEvidence(source)).sort(), ['Docker', 'Linux', '进入容器终端'].sort());
+      const calls = fixture.requests.slice(before); assert.equal(calls.length, 2); assert.equal(calls[0].warningResponse, true); assert.equal(calls[0].returnedCandidates, 1); assert.equal(calls[1].warningResponse, false); assert.equal(calls[1].fullInputRetry, true); assert.ok(calls.every(item => !item.repair));
+      await cleanCopy(); await capture(`13-warning-preview-${provider}`); await click('[data-testid="ai-adopt"]'); await expectText('[data-testid="ai-adopted"]', '知识已保存到本机'); await scrollWorkspaceTop(); await cleanCopy(); await capture(`14-warning-saved-${provider}`);
+      return { partialPreviewAbsentDuringRetry: true, completeOriginalRetried: true, candidates: 3, exactQuotes: true, explicitAdoption: true, calls: 2 };
+    });
+    await check(`${provider}: persistent omissions fail without preview or completed cache and same-input retry requests again`, async () => {
+      fixture.mode('warning-persistent'); const source = `${RECOVERY_TEXT}\n补全重试 ${provider}`, before = fixture.requests.length;
+      await extract(source); await until(() => fixture.requests.slice(before).some(item => item.warningAttempt === 2 && item.waitingForRelease), 'bounded retry before repeated omission'); await noPartialDraft(source);
+      fixture.releaseWarningRetry(); await expectText('[data-testid="ai-import-error"]', '暂时无法整理这段内容，请重试。'); await noPartialDraft(source); await cleanCopy(); await capture(`15-warning-failed-${provider}`);
+      const calls = fixture.requests.slice(before); assert.equal(calls.length, 2); assert.ok(calls.every(item => item.warningResponse && !item.repair)); assert.equal(calls[1].fullInputRetry, true);
+      fixture.mode('good'); const retryBefore = fixture.requests.length; await click('[data-testid="ai-extract"]'); await candidates(); assert.equal(fixture.requests.length - retryBefore, 1, 'A failed omission cannot be reused as a completed cached segment'); assert.deepEqual((await verifyEvidence(source)).sort(), ['Docker', 'Linux', '进入容器终端'].sort()); await cleanCopy();
+      return { callsBeforeFailure: 2, partialPreviewAbsent: true, adoptionAbsent: true, inputRetained: true, sameInputRetryCalls: 1, retryCandidates: 3 };
     });
   }
   await check('multiple source chunks retain all candidates after local source recovery', async () => { fixture.mode('mixed'); const source = Array.from({ length: 180 }, () => RECOVERY_TEXT).join('\n') + '\n多段检查', before = fixture.requests.length; await extract(source); await candidates(null); const calls = fixture.requests.slice(before), segments = calls.filter(item => !item.repair).length, count = (await all('.ai-candidate-list button')).length; assert.ok(segments > 1); assert.equal(count, segments * 3); assert.ok(calls.length <= segments * 3); await verifyEvidence(source); await cleanCopy(); await capture('04-multiple-chunks'); return { segments, candidates: count, exactQuotes: true }; });
