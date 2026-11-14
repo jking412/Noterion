@@ -4,6 +4,9 @@ mod extract;
 mod provider;
 mod retrieve;
 
+#[cfg(test)]
+mod recovery_tests;
+
 use crate::store::{AiAdoptResult, AiChoice, SharedStore, Snapshot};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
@@ -79,6 +82,7 @@ pub struct AdoptInput {
 pub struct AiHost(Arc<Inner>);
 #[derive(Default)]
 struct Inner {
+    extraction: extract::RecoveryCache,
     tasks: Mutex<HashMap<String, Arc<Cancellation>>>,
     drafts: Mutex<HashMap<String, Arc<draft::StoredDraft>>>,
     sessions: Mutex<HashMap<String, Session>>,
@@ -329,8 +333,17 @@ async fn run(
             .lock()
             .map_err(|_| "本地存储暂时不可用。")?
             .ai_records()?;
-        let draft = extract::run(&client, task, &request, snapshot, task.epoch, &records).await?;
-        task.phase("validating", "正在核对整批身份、主题关系及资料引用。")?;
+        let draft = extract::run(
+            &client,
+            task,
+            &request,
+            snapshot,
+            task.epoch,
+            &records,
+            &host.0.extraction,
+        )
+        .await?;
+        task.phase("validating", "正在整理知识…")?;
         {
             let store = task.store.lock().map_err(|_| "本地存储暂时不可用。")?;
             store.validate_candidate_points(&draft.batch.points)?;

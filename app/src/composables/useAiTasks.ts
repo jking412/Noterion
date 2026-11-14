@@ -24,8 +24,9 @@ export function useAiTasks() {
   async function start(value: AiRequest) {
     if (busy.value) return
     const epoch = ++generation
+    const submitted = { ...value, resourceIds: [...value.resourceIds] }
     requestServiceLabel.value = activeServiceLabel.value
-    busy.value = true; error.value = ''; result.value = null; phase.value = 'queued'; taskId.value = ''; request.value = { ...value, resourceIds: [...value.resourceIds] }
+    busy.value = true; error.value = ''; result.value = null; phase.value = 'queued'; taskId.value = ''; request.value = submitted
     try {
       const onEvent = channel<AiEvent>((event) => {
         if (generation !== epoch || !busy.value) return
@@ -36,7 +37,7 @@ export function useAiTasks() {
         if (event.result) { result.value = event.result; busy.value = false; phase.value = 'completed'; if (event.result.kind === 'answer') sessionId.value = event.result.sessionId }
         if (['cancelled', 'failed', 'completed', 'complete'].includes(event.phase)) busy.value = false
       })
-      const id = await invoke<string>('ai_start', { request: value, onEvent })
+      const id = await invoke<string>('ai_start', { request: submitted, onEvent })
       if (generation !== epoch) { void invoke('ai_cancel', { taskId: id }).catch(() => {}); return }
       taskId.value = id
     } catch (e) { if (generation === epoch && busy.value) { error.value = errorText(e); busy.value = false; phase.value = 'failed' } }

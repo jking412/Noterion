@@ -127,6 +127,19 @@ pub fn managed_name(id: &str, filename: &str) -> String {
 }
 
 impl Store {
+    #[cfg(test)]
+    pub(crate) fn isolated(config_dir: PathBuf) -> Self {
+        let mut store = Self {
+            root: config_dir.join("data"),
+            config_dir,
+            connection: None,
+            error: None,
+            epoch: 0,
+        };
+        store.initialize(true).expect("isolated test store");
+        store
+    }
+
     pub fn new() -> Self {
         let override_dir = std::env::var_os("NOTERION_CONFIG_DIR").map(PathBuf::from);
         let executable_dir = std::env::current_exe()
