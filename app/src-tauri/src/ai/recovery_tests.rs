@@ -204,6 +204,107 @@ fn extraction_request(text: String) -> AiRequest {
     }
 }
 
+#[test]
+fn model_declared_omissions_are_reextracted_before_a_complete_preview() {
+    let (task, directory) = isolated_task();
+    let host = AiHost::default();
+    let snapshot = task.store.lock().unwrap().snapshot().unwrap();
+    let (client, server, _) = fixture_with(ProviderKind::Openai, 2, |_, index| {
+        let mut points = vec![
+            json!({"point":point("n1","Linux"),"evidence":[{"quote":"Linux 是操作系统。","inferred":false}]}),
+        ];
+        let warnings = if index == 0 {
+            vec!["Docker 部分尚未处理。"]
+        } else {
+            points.push(json!({"point":point("n2","Docker"),"evidence":[{"quote":"Docker 用于管理容器。","inferred":false}]}));
+            vec![]
+        };
+        json!({"points":points,"warnings":warnings}).to_string()
+    });
+    let runtime = tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()
+        .unwrap();
+    let result = runtime.block_on(run(
+        &host,
+        &task,
+        extraction_request("Linux 是操作系统。Docker 用于管理容器。".into()),
+        snapshot,
+        directory,
+        client,
+    ));
+    let requests = server.join().unwrap();
+    let draft = match result {
+        Ok(AiResult::Extract { draft }) => draft,
+        _ => panic!("omission must be reextracted"),
+    };
+    assert_eq!(
+        draft.points.len(),
+        2,
+        "a declared omission cannot become a completed partial preview"
+    );
+    assert_eq!(draft.points[1].point.name, "Docker");
+    assert_eq!(requests.len(), 2);
+}
+
+#[test]
+fn repeated_model_omissions_never_publish_or_cache_a_completed_segment() {
+    let (task, directory) = isolated_task();
+    let host = AiHost::default();
+    let snapshot = task.store.lock().unwrap().snapshot().unwrap();
+    let (client, server, _) = fixture_with(ProviderKind::Openai, 2, |_, _| {
+        json!({"points":[{"point":point("n1","Linux"),"evidence":[{"quote":"Linux 是操作系统。","inferred":false}]}],"warnings":["Docker 部分尚未处理。"]}).to_string()
+    });
+    let runtime = tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()
+        .unwrap();
+    let result = runtime.block_on(run(
+        &host,
+        &task,
+        extraction_request("Linux 是操作系统。Docker 用于管理容器。".into()),
+        snapshot,
+        directory.clone(),
+        client,
+    ));
+    let requests = server.join().unwrap();
+    assert!(
+        result.is_err(),
+        "unresolved omissions must remain retryable failures"
+    );
+    assert!(host.0.drafts.lock().unwrap().is_empty());
+    assert!(task
+        .store
+        .lock()
+        .unwrap()
+        .snapshot()
+        .unwrap()
+        .points
+        .is_empty());
+    assert_eq!(requests.len(), 2, "omission repairs remain bounded");
+
+    let (client, server, _) = fixture_with(ProviderKind::Openai, 1, |_, _| {
+        json!({"points":[
+            {"point":point("n1","Linux"),"evidence":[{"quote":"Linux 是操作系统。","inferred":false}]},
+            {"point":point("n2","Docker"),"evidence":[{"quote":"Docker 用于管理容器。","inferred":false}]}
+        ],"warnings":[]}).to_string()
+    });
+    let snapshot = task.store.lock().unwrap().snapshot().unwrap();
+    let result = runtime.block_on(run(
+        &host,
+        &task,
+        extraction_request("Linux 是操作系统。Docker 用于管理容器。".into()),
+        snapshot,
+        directory,
+        client,
+    ));
+    assert!(
+        matches!(result, Ok(AiResult::Extract { ref draft }) if draft.points.len() == 2),
+        "retry must request the unresolved segment instead of reusing a partial result"
+    );
+    assert_eq!(server.join().unwrap().len(), 1);
+}
+
 fn isolated_task() -> (Task, PathBuf) {
     let directory = std::env::current_dir()
         .unwrap()

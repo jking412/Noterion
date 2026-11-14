@@ -28,6 +28,34 @@ struct Output {
     #[serde(default)]
     warnings: Vec<String>,
 }
+
+impl Output {
+    fn parse(content: &str) -> Result<Self, String> {
+        let output: Self =
+            serde_json::from_str(content).map_err(|_| "AI 输出不是约定的完整 Point JSON 结构。")?;
+        if output.points.len() > 80 || output.warnings.len() > 20 {
+            return Err("AI 返回的候选数量超出本段上限。".into());
+        }
+        // A model-declared omission is unresolved work, even when the returned
+        // candidates are otherwise valid. Never cache it as a completed segment.
+        if !output.warnings.is_empty() {
+            return Err("输出仍声明有未处理或需确认的内容。请完整处理当前原文并保留已识别知识，不要仅清空 warnings 掩盖漏项。".into());
+        }
+        let mut ids = HashSet::new();
+        for candidate in &output.points {
+            candidate.point.check()?;
+            let id = &candidate.point.id;
+            if !id.starts_with('n')
+                || !id.chars().all(|c| c.is_ascii_alphanumeric())
+                || !ids.insert(id)
+            {
+                return Err("AI 返回重复或非法的候选身份。".into());
+            }
+        }
+        Ok(output)
+    }
+}
+
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 struct Extracted {
@@ -387,24 +415,14 @@ fn decode(
     if original.get(offset..offset.saturating_add(chunk.len())) != Some(chunk) {
         return Err("AI 来源分段与当前原文不一致。".into());
     }
-    let output: Output =
-        serde_json::from_str(content).map_err(|_| "AI 输出不是约定的完整 Point JSON 结构。")?;
-    if output.points.len() > 80 || output.warnings.len() > 20 {
-        return Err("AI 返回的候选数量超出本段上限。".into());
-    }
+    let output = Output::parse(content)?;
     let mut identities = HashMap::new();
     for candidate in &output.points {
-        candidate.point.check()?;
         let id = &candidate.point.id;
-        if !id.starts_with('n')
-            || !id.chars().all(|c| c.is_ascii_alphanumeric())
-            || existing.contains_key(id)
-            || identities
-                .insert(id.clone(), Uuid::new_v4().to_string())
-                .is_some()
-        {
+        if existing.contains_key(id) {
             return Err("AI 返回重复或非法的候选身份。".into());
         }
+        identities.insert(id.clone(), Uuid::new_v4().to_string());
     }
     let mut points = vec![];
     for candidate in output.points {

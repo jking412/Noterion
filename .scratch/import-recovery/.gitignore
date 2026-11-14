@@ -1,2 +1,7 @@
 .tools/
 runs/
+!red-http.log
+!red-sources.log
+!green-sources.log
+!red-omissions.log
+!green-omissions.log

@@ -1,0 +1,44 @@
+   Compiling noterion v0.1.0 (C:\Users\skynesser\.codex\worktrees\noterion-issue-34-recovery\knowledgeGraph\app\src-tauri)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.09s
+     Running unittests src\main.rs (target\x86_64-pc-windows-msvc\debug\deps\noterion-f5ed510420b6ea87.exe)
+
+running 5 tests
+test ai::extract::source_tests::source_recovery_reproduces_empty_and_excess_sources_as_the_same_original_error ... ok
+test ai::extract::source_tests::source_recovery_keeps_all_nine_verifiable_quotes ... FAILED
+test ai::recovery_tests::missing_sources_recover_through_real_protocols_and_remain_explicitly_adopted ... FAILED
+test ai::recovery_tests::retry_retains_completed_chunks_without_publishing_an_incomplete_preview ... FAILED
+test ai::recovery_tests::structure_repair_does_not_spend_the_missing_source_repair_budget ... FAILED
+
+failures:
+
+---- ai::extract::source_tests::source_recovery_keeps_all_nine_verifiable_quotes stdout ----
+
+thread 'ai::extract::source_tests::source_recovery_keeps_all_nine_verifiable_quotes' (26460) panicked at src\ai\source_tests.rs:24:58:
+nine genuine quotations must reach preview without losing sources: AI 候选缺少可核对的原文依据。
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- ai::recovery_tests::missing_sources_recover_through_real_protocols_and_remain_explicitly_adopted stdout ----
+
+thread 'ai::recovery_tests::missing_sources_recover_through_real_protocols_and_remain_explicitly_adopted' (14488) panicked at src\ai\recovery_tests.rs:95:27:
+ordinary source omission must recover into preview, got: AI 返回结果未通过校验：AI 候选缺少可核对的原文依据。 本次未采用任何知识。
+
+---- ai::recovery_tests::retry_retains_completed_chunks_without_publishing_an_incomplete_preview stdout ----
+
+thread 'ai::recovery_tests::retry_retains_completed_chunks_without_publishing_an_incomplete_preview' (25720) panicked at src\ai\recovery_tests.rs:177:78:
+retry must recover retained chunks into complete preview
+
+---- ai::recovery_tests::structure_repair_does_not_spend_the_missing_source_repair_budget stdout ----
+
+thread 'ai::recovery_tests::structure_repair_does_not_spend_the_missing_source_repair_budget' (25164) panicked at src\ai\recovery_tests.rs:146:5:
+separate recoverable defects must reach preview: AI 返回结果未通过校验：AI 候选缺少可核对的原文依据。 本次未采用任何知识。
+
+
+failures:
+    ai::extract::source_tests::source_recovery_keeps_all_nine_verifiable_quotes
+    ai::recovery_tests::missing_sources_recover_through_real_protocols_and_remain_explicitly_adopted
+    ai::recovery_tests::retry_retains_completed_chunks_without_publishing_an_incomplete_preview
+    ai::recovery_tests::structure_repair_does_not_spend_the_missing_source_repair_budget
+
+test result: FAILED. 1 passed; 4 failed; 0 ignored; 0 measured; 19 filtered out; finished in 12.04s
+
+error: test failed, to rerun pass `--bin noterion`

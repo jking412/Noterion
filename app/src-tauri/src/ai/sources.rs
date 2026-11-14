@@ -130,26 +130,8 @@ fn source_issues(evidence: &[Quote], chunk: &str) -> Vec<String> {
     issues
 }
 
-fn output(content: &str) -> Result<Output, String> {
-    let output: Output =
-        serde_json::from_str(content).map_err(|_| "AI 输出不是约定的完整 Point JSON 结构。")?;
-    if output.points.len() > 80 || output.warnings.len() > 20 {
-        return Err("AI 返回的候选数量超出本段上限。".into());
-    }
-    let mut ids = HashSet::new();
-    for candidate in &output.points {
-        candidate.point.check()?;
-        let id = &candidate.point.id;
-        if !id.starts_with('n') || !id.chars().all(|c| c.is_ascii_alphanumeric()) || !ids.insert(id)
-        {
-            return Err("AI 返回重复或非法的候选身份。".into());
-        }
-    }
-    Ok(output)
-}
-
 pub(super) fn source_plan(content: &str, chunk: &str) -> Result<Option<Value>, String> {
-    let output = output(content)?;
+    let output = Output::parse(content)?;
     let candidates: Vec<_> = output
         .points
         .iter()
@@ -191,7 +173,7 @@ pub(super) fn apply_source_repairs(
     repair_response: &str,
     chunk: &str,
 ) -> Result<String, String> {
-    let output = output(content)?;
+    let output = Output::parse(content)?;
     let expected: HashSet<_> = output
         .points
         .iter()
