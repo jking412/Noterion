@@ -1,7 +1,7 @@
 import { computed, onBeforeUnmount, ref } from 'vue'
 import type { AiEvent, AiRequest, AiResult, AiSettings } from '../domain/ai'
 import { providerLabels } from '../domain/ai'
-import { channel, errorText, invoke } from '../desktop'
+import { channel, errorText, invoke, spaceContext } from '../desktop'
 
 export function useAiTasks() {
   const settings = ref<AiSettings | null>(null)
@@ -24,11 +24,13 @@ export function useAiTasks() {
   async function start(value: AiRequest) {
     if (busy.value) return
     const epoch = ++generation
+    const context = spaceContext()
+    const current = () => { const value = spaceContext(); return value.spaceId === context.spaceId && value.epoch === context.epoch }
     requestServiceLabel.value = activeServiceLabel.value
     busy.value = true; error.value = ''; result.value = null; phase.value = 'queued'; taskId.value = ''; request.value = { ...value, resourceIds: [...value.resourceIds] }
     try {
       const onEvent = channel<AiEvent>((event) => {
-        if (generation !== epoch || !busy.value) return
+        if (generation !== epoch || !busy.value || !current()) return
         if (taskId.value && event.taskId !== taskId.value) return
         taskId.value = event.taskId
         phase.value = event.phase
@@ -36,10 +38,10 @@ export function useAiTasks() {
         if (event.result) { result.value = event.result; busy.value = false; phase.value = 'completed'; if (event.result.kind === 'answer') sessionId.value = event.result.sessionId }
         if (['cancelled', 'failed', 'completed', 'complete'].includes(event.phase)) busy.value = false
       })
-      const id = await invoke<string>('ai_start', { request: value, onEvent })
-      if (generation !== epoch) { void invoke('ai_cancel', { taskId: id }).catch(() => {}); return }
+      const id = await invoke<string>('ai_start', { request: value, onEvent, ...context })
+      if (generation !== epoch || !current()) { void invoke('ai_cancel', { taskId: id }).catch(() => {}); return }
       taskId.value = id
-    } catch (e) { if (generation === epoch && busy.value) { error.value = errorText(e); busy.value = false; phase.value = 'failed' } }
+    } catch (e) { if (generation === epoch && busy.value && current()) { error.value = errorText(e); busy.value = false; phase.value = 'failed' } }
   }
   async function cancel() {
     if (!busy.value) return

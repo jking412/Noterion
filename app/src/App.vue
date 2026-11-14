@@ -14,6 +14,7 @@ import ImportWorkspace from './components/ImportWorkspace.vue'
 import ImportRecords from './components/ImportRecords.vue'
 import AiSettingsPanel from './components/AiSettings.vue'
 import AiKnowledgePanel from './components/AiKnowledgePanel.vue'
+import SpaceSwitcher from './components/SpaceSwitcher.vue'
 import type { ResourceItem } from './domain/types'
 import type { AiAdoptInput, AiImportRecord } from './domain/ai'
 import { useNoterion } from './composables/useNoterion'
@@ -21,7 +22,7 @@ import type { Snapshot } from './composables/useNoterion'
 import { useAiTasks } from './composables/useAiTasks'
 import { invoke, errorText } from './desktop'
 
-const { data, loaded, error, busy, toast, query, keywords, matchMode, selectedId, editingPoint, creatingPoint, deletingId, deletingPoint, deleteImpact, graphState, graphKey, focusRequest, effectiveTerms, results, selectedPoint, graphReady, notify, run, load, accept, selectPoint, addKeyword, clearSearch, beginCreate, beginEdit, savePoint, requestDelete, confirmDelete, movePoint, restoreGraph, directorySelect } = useNoterion()
+const { data, loaded, error, busy, toast, query, keywords, matchMode, selectedId, editingPoint, creatingPoint, deletingId, deletingPoint, deleteImpact, graphState, graphKey, focusRequest, effectiveTerms, results, selectedPoint, graphReady, notify, run, load, accept, selectPoint, addKeyword, clearSearch, beginCreate, beginEdit, savePoint, requestDelete, confirmDelete, movePoint, restoreGraph, directorySelect, spaceSwitch, spaceCreate, spaceRename } = useNoterion()
 const { settings: aiSettings, activeConnection, serviceLabel: aiServiceLabel, busy: aiBusy, error: aiError, phaseLabel: aiPhase, result: aiResult, sessionId, request: lastAiRequest, refreshSettings, start: startAi, cancel: cancelAi, reset: resetAi } = useAiTasks()
 const extracting = computed(() => lastAiRequest.value?.action === 'extract')
 const aiSearchMode = ref(false)
@@ -34,6 +35,10 @@ const previewResource = ref<ResourceItem | null>(null)
 const importSource = ref<ResourceItem | null>(null)
 const originalRecord = ref<AiImportRecord | null>(null)
 const importGeneration = ref(0)
+const importDirty = ref(false)
+const resourceDirty = ref(false)
+const pendingSpaceChange = ref<{ kind: 'switch' | 'create'; value: string } | null>(null)
+const spaceKey = computed(() => data.value.root + ':' + data.value.spaceId + ':' + data.value.epoch)
 const records = ref<AiImportRecord[]>([])
 const recordsLoading = ref(false)
 const recordsError = ref('')
@@ -52,30 +57,49 @@ function locate(id: string) { navigate('graph'); void nextTick(() => selectPoint
 function showKnowledgeTask() { aiSearchMode.value = true; selectedId.value = null; navigate('graph') }
 async function freshImport() {
   if (busy.value) return
+  const key = spaceKey.value
   await cancelAi()
+  if (spaceKey.value !== key) return
   resetAi(); importSource.value = null; originalRecord.value = null; previewResource.value = null
   clearAdoption(); importGeneration.value++; navigate('import')
 }
 async function startImport(resource?: ResourceItem) {
   if (busy.value) return
   if (!resource) { navigate('import'); return }
+  const key = spaceKey.value
   await freshImport()
-  importSource.value = resource
+  if (spaceKey.value === key) importSource.value = resource
 }
-async function refreshRecords() { if (!loaded.value) return; recordsLoading.value = true; recordsError.value = ''; const root = data.value.root; try { const value = await invoke<AiImportRecord[]>('ai_records'); if (data.value.root === root) records.value = value } catch (e) { recordsError.value = errorText(e) } finally { recordsLoading.value = false } }
+async function refreshRecords() { if (!loaded.value) return; recordsLoading.value = true; recordsError.value = ''; const key = spaceKey.value; try { const value = await invoke<AiImportRecord[]>('ai_records'); if (spaceKey.value === key) records.value = value } catch (e) { if (spaceKey.value === key) recordsError.value = errorText(e) } finally { if (spaceKey.value === key) recordsLoading.value = false } }
 function updateRecord(record: AiImportRecord) { if (busy.value || aiBusy.value) return; originalRecord.value = { ...record }; importSource.value = null; adopted.value = null; adoptError.value = ''; navigate('import') }
 async function adoptCandidates(input: AiAdoptInput) {
   if (busy.value || adopting.value) return
   adopting.value = true; busy.value = true; adoptError.value = ''; toast.value = ''
-  try { const response = await invoke<{snapshot: Snapshot; record: AiImportRecord; duplicate: boolean}>('ai_adopt', { input }); accept(response.snapshot); adopted.value = response.record; duplicateAdoption.value = response.duplicate; notify(response.duplicate ? '这份输入已经采用，本次没有重复写入' : '知识已保存到本机'); await refreshRecords() }
-  catch (e) { adoptError.value = errorText(e) }
+  const key = spaceKey.value
+  try { const response = await invoke<{snapshot: Snapshot; record: AiImportRecord; duplicate: boolean}>('ai_adopt', { input }); if (spaceKey.value !== key || !accept(response.snapshot)) return; adopted.value = response.record; duplicateAdoption.value = response.duplicate; notify(response.duplicate ? '这份输入已经采用，本次没有重复写入' : '知识已保存到本机'); await refreshRecords() }
+  catch (e) { if (spaceKey.value === key) adoptError.value = errorText(e) }
   finally { busy.value = false; adopting.value = false }
 }
 function clearAdoption() { adopted.value = null; duplicateAdoption.value = false; adoptError.value = '' }
+function clearWorkspace() { resetAi(); records.value = []; recordsError.value = ''; recordsLoading.value = false; importSource.value = null; originalRecord.value = null; clearAdoption(); previewResource.value = null; editingPoint.value = null; deletingId.value = null; selectedId.value = null; clearSearch(); importDirty.value = false; resourceDirty.value = false; importGeneration.value++; aiSearchMode.value = false }
+async function applySpaceChange(change: {kind: 'switch' | 'create'; value: string}) {
+  if (busy.value || modelSettingsBusy.value) return false
+  resetAi()
+  const ok = change.kind === 'switch' ? await spaceSwitch(change.value) : await spaceCreate(change.value)
+  if (ok) { clearWorkspace(); pendingSpaceChange.value = null }
+  return ok
+}
+async function requestSpaceChange(kind: 'switch' | 'create', value: string) {
+  if (kind === 'switch' && value === data.value.spaceId) return true
+  if (editingPoint.value || importDirty.value || resourceDirty.value || aiBusy.value) { pendingSpaceChange.value = { kind, value }; return true }
+  return applySpaceChange({ kind, value })
+}
+const switchSpace = (id: string) => requestSpaceChange('switch', id)
+const createSpace = (name: string) => requestSpaceChange('create', name)
 async function chooseDirectory() { try { const path = await invoke<string | null>('choose_directory'); if (path) directoryPath.value = path } catch (e) { error.value = errorText(e) } }
 function readablePath(path: string) { return path.startsWith('\\\\?\\UNC\\') ? '\\\\' + path.slice(8) : path.startsWith('\\\\?\\') ? path.slice(4) : path }
 function openDirectory() { directoryPath.value = readablePath(data.value.root); showDirectory.value = true }
-async function changeDirectory(create: boolean) { await cancelAi(); if (await directorySelect(directoryPath.value, create)) { resetAi(); records.value = []; importSource.value = null; originalRecord.value = null; clearAdoption(); previewResource.value = null; editingPoint.value = null; deletingId.value = null; selectedId.value = null; showDirectory.value = false; graphKey.value++; if (view.value === 'records') void refreshRecords() } }
+async function changeDirectory(create: boolean) { await cancelAi(); if (await directorySelect(directoryPath.value, create)) { clearWorkspace(); showDirectory.value = false; graphKey.value++ } }
 watch(() => Boolean(selectedPoint.value), async () => { await nextTick(); measurePanels() })
 watch(view, async () => { await nextTick(); if (view.value === 'graph') measurePanels(); if (view.value === 'records') void refreshRecords() })
 onMounted(async () => { loadHash(); window.addEventListener('hashchange', loadHash); panelObserver = new ResizeObserver(measurePanels); if (searchFloating.value) panelObserver.observe(searchFloating.value); if (detailsFloating.value) panelObserver.observe(detailsFloating.value); measurePanels(); if (!(await load())) showDirectory.value = true; else if (view.value === 'records') void refreshRecords(); void refreshSettings() })
@@ -88,22 +112,24 @@ onBeforeUnmount(() => { panelObserver?.disconnect(); window.removeEventListener(
       <div class="brand"><button :disabled="busy || modelSettingsBusy" class="wordmark" aria-label="Noterion 知识图谱" @click="navigate('graph')"><img class="brand-icon" src="/brand-icon.png" alt="" width="30" height="30" />Noterion</button><nav class="main-nav" aria-label="主导航"><button :disabled="busy || modelSettingsBusy" :class="{ active: view === 'graph' }" @click="navigate('graph')"><Icon name="layers" :size="16" />知识图谱</button><button :disabled="busy || modelSettingsBusy" :class="{ active: view === 'resources' }" @click="navigate('resources')"><Icon name="book" :size="16" />资料库</button><button :disabled="busy || modelSettingsBusy" :class="{ active: view === 'import' }" @click="startImport()"><Icon name="file" :size="16" />知识导入</button><button :disabled="busy || modelSettingsBusy" :class="{ active: view === 'records' }" @click="navigate('records')"><Icon name="clock" :size="16" />导入记录</button><button :disabled="busy || modelSettingsBusy" :class="{ active: view === 'models' }" aria-label="模型设置" data-testid="ai-settings" @click="navigate('models')"><Icon name="plug" :size="16" />模型设置</button></nav></div>
       <div class="header-actions"><button v-if="view === 'graph'" class="button button-primary" data-testid="create-point" :disabled="!loaded || busy" @click="beginCreate"><Icon name="plus" :size="15" />新建知识点</button><span class="save-indicator" role="status"><span v-if="busy" class="spinner small" /><Icon v-else :name="error ? 'alert' : 'check'" :size="15" />{{ busy ? '正在保存…' : error ? '操作失败，请查看错误' : loaded ? '已保存到本机' : '尚未打开数据' }}</span><button class="button" aria-label="数据目录设置" :disabled="busy || modelSettingsBusy" @click="openDirectory">数据目录</button></div>
     </header>
+    <SpaceSwitcher :spaces="data.spaces" :current-id="data.spaceId" :busy="busy || modelSettingsBusy" :switch-space="switchSpace" :create-space="createSpace" :rename-space="spaceRename" />
     <div v-if="error" class="storage-error" role="alert" data-testid="storage-error"><Icon name="alert" :size="17" /><span>{{ error }}</span><button class="button" :disabled="busy" @click="load">重新读取</button><button class="button" @click="showDirectory = true">选择目录</button></div>
 
     <div v-show="view === 'graph'" class="canvas-workspace">
       <GraphBoundary :key="graphKey" @failure="graphState = 'unavailable'"><GraphCanvas v-if="loaded" :points="data.points" :positions="data.positions" :selected-id="selectedId" :graph-state="graphState" :busy="busy" :focus-request="focusRequest" :viewport-insets="viewportInsets" @select="selectPoint" @move="movePoint" @edit="beginEdit" @delete="requestDelete" @restore="restoreGraph" /></GraphBoundary>
-      <div ref="searchFloating" class="search-floating"><SearchPanel v-if="loaded" v-model:ai-mode="aiSearchMode" v-model:query="query" :keywords="keywords" v-model:mode="matchMode" :results="results" :points="data.points" :selected-id="selectedId" :has-query="effectiveTerms.length > 0" @add="addKeyword" @remove="keywords.splice($event, 1)" @clear="clearSearch" @select="selectPoint"><template #ai><AiKnowledgePanel :key="data.root" :points="data.points" :resources="data.resources" :busy="aiBusy && !extracting" :blocked="aiBusy && extracting" :error="!extracting ? aiError : ''" :phase="!extracting ? aiPhase : ''" :result="aiResult" :session-id="sessionId" :configured="!!activeConnection?.configured" :service-label="aiServiceLabel" @start="startAi" @cancel="cancelAi" @reset="resetAi" @show-task="navigate('import')" @settings="navigate('models')" @locate="locate" @preview="previewResource=$event" /></template></SearchPanel><div v-else class="search-panel glass-panel unread-data" role="status">尚未读取本机知识。请先选择数据目录或重新读取。</div></div>
+      <div ref="searchFloating" class="search-floating"><SearchPanel v-if="loaded" v-model:ai-mode="aiSearchMode" v-model:query="query" :keywords="keywords" v-model:mode="matchMode" :results="results" :points="data.points" :selected-id="selectedId" :has-query="effectiveTerms.length > 0" @add="addKeyword" @remove="keywords.splice($event, 1)" @clear="clearSearch" @select="selectPoint"><template #ai><AiKnowledgePanel :key="spaceKey" :points="data.points" :resources="data.resources" :busy="aiBusy && !extracting" :blocked="aiBusy && extracting" :error="!extracting ? aiError : ''" :phase="!extracting ? aiPhase : ''" :result="aiResult" :session-id="sessionId" :configured="!!activeConnection?.configured" :service-label="aiServiceLabel" @start="startAi" @cancel="cancelAi" @reset="resetAi" @show-task="navigate('import')" @settings="navigate('models')" @locate="locate" @preview="previewResource=$event" /></template></SearchPanel><div v-else class="search-panel glass-panel unread-data" role="status">尚未读取本机知识。请先选择数据目录或重新读取。</div></div>
       <div ref="detailsFloating" v-show="selectedPoint" class="details-floating"><KnowledgeDetails :point="selectedPoint" :points="data.points" :resources="data.resources" :delete-disabled="!graphReady || busy" @select="selectPoint" @edit="beginEdit" @delete="requestDelete" @preview="previewResource = $event" @close="selectedId = null" /></div>
     </div>
-    <ResourceLibrary v-if="view === 'resources'" :resources="data.resources" :points="data.points" :busy="busy" :enabled="loaded" :operation-error="error" :run="run" @preview="previewResource = $event" @import="startImport" @locate="locate" @error="error = $event" />
-    <ImportWorkspace v-show="view === 'import'" :key="data.root + ':' + importGeneration" :points="data.points" :resources="data.resources" :source-resource="importSource" :original-record="originalRecord" :result="aiResult" :busy="aiBusy && extracting" :blocked="aiBusy && !extracting" :adopting="adopting" :error="adoptError || (lastAiRequest?.action === 'extract' ? aiError : '')" :phase="extracting ? aiPhase : ''" :configured="!!activeConnection?.configured" :service-label="aiServiceLabel" :adopted="adopted" :duplicate="duplicateAdoption" :enabled="loaded" @start="startAi" @cancel="cancelAi" @adopt="adoptCandidates" @settings="navigate('models')" @locate="locate" @records="navigate('records')" @clear-adoption="clearAdoption" @show-task="showKnowledgeTask" @fresh="freshImport" />
+    <ResourceLibrary v-if="view === 'resources'" :key="spaceKey" :resources="data.resources" :points="data.points" :busy="busy" :enabled="loaded" :operation-error="error" :run="run" @preview="previewResource = $event" @import="startImport" @locate="locate" @error="error = $event" @dirty="resourceDirty = $event" />
+    <ImportWorkspace v-show="view === 'import'" :key="spaceKey + ':' + importGeneration" :space-id="data.spaceId" :epoch="data.epoch" :points="data.points" :resources="data.resources" :source-resource="importSource" :original-record="originalRecord" :result="aiResult" :busy="aiBusy && extracting" :blocked="aiBusy && !extracting" :adopting="adopting" :error="adoptError || (lastAiRequest?.action === 'extract' ? aiError : '')" :phase="extracting ? aiPhase : ''" :configured="!!activeConnection?.configured" :service-label="aiServiceLabel" :adopted="adopted" :duplicate="duplicateAdoption" :enabled="loaded" @start="startAi" @cancel="cancelAi" @adopt="adoptCandidates" @settings="navigate('models')" @locate="locate" @records="navigate('records')" @clear-adoption="clearAdoption" @show-task="showKnowledgeTask" @fresh="freshImport" @snapshot="accept" @dirty="importDirty = $event" />
     <ImportRecords v-if="view === 'records'" :records="records" :points="data.points" :resources="data.resources" :loading="recordsLoading" :error="recordsError" @create="freshImport" @refresh="refreshRecords" @update="updateRecord" @locate="locate" />
     <AiSettingsPanel v-if="view === 'models'" :task-busy="aiBusy" @saved="aiSettings=$event" @busy="modelSettingsBusy=$event" />
     <Transition name="toast"><div v-if="toast" class="toast-message" role="status"><Icon name="check" :size="16" />{{ toast }}</div></Transition>
     <KnowledgeEditor v-if="editingPoint" :point="editingPoint" :points="data.points" :resources="data.resources" :creating="creatingPoint" :busy="busy" :operation-error="error" @save="savePoint" @close="!busy && (editingPoint = null)" />
     <DeleteConfirmation v-if="deletingPoint" :point="deletingPoint" :points="data.points" :resources="data.resources" :impact="deleteImpact" :busy="busy" :operation-error="error" @confirm="confirmDelete" @close="!busy && (deletingId = null)" />
-    <ResourcePreview v-if="previewResource" :resource="previewResource" @close="previewResource = null" @import="startImport" />
-    <ModalShell v-if="showDirectory" title="本机数据目录" @close="showDirectory = false"><p class="directory-copy">在这里打开已有数据，或选择空文件夹创建新的数据目录。</p><label for="data-directory">目录位置</label><div class="directory-row"><input id="data-directory" v-model="directoryPath" class="field" aria-label="数据目录" placeholder="例如 D:\Noterion 数据" /><button class="button" :disabled="busy" @click="chooseDirectory">选择本机目录</button></div><p v-if="error" class="validation-message" role="alert">{{ error }}</p><div class="dialog-actions"><button class="button" :disabled="busy || !directoryPath.trim()" @click="changeDirectory(true)">创建新数据目录</button><button class="button button-primary" :disabled="busy || !directoryPath.trim()" @click="changeDirectory(false)">打开已有数据目录</button></div></ModalShell>
+    <ResourcePreview v-if="previewResource" :key="spaceKey + previewResource.id" :space-id="data.spaceId" :epoch="data.epoch" :resource="previewResource" @close="previewResource = null" @import="startImport" />
+    <ModalShell v-if="pendingSpaceChange" title="切换空间" @close="pendingSpaceChange = null"><p>放弃未保存的编辑和候选，并取消当前任务？</p><footer class="dialog-actions"><button class="button" @click="pendingSpaceChange = null">继续当前工作</button><button class="button button-primary" data-testid="space-confirm-switch" :disabled="busy" @click="applySpaceChange(pendingSpaceChange)">放弃并切换</button></footer></ModalShell>
+    <ModalShell v-if="showDirectory" title="本机数据目录" @close="showDirectory = false"><label for="data-directory">目录位置</label><div class="directory-row"><input id="data-directory" v-model="directoryPath" class="field" aria-label="数据目录" placeholder="例如 D:\Noterion 数据" /><button class="button" :disabled="busy" @click="chooseDirectory">选择本机目录</button></div><p v-if="error" class="validation-message" role="alert">{{ error }}</p><div class="dialog-actions"><button class="button" :disabled="busy || !directoryPath.trim()" @click="changeDirectory(true)">创建新数据目录</button><button class="button button-primary" :disabled="busy || !directoryPath.trim()" @click="changeDirectory(false)">打开已有数据目录</button></div></ModalShell>
   </main>
 </template>
 <style scoped>

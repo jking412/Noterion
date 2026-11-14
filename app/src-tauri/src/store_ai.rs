@@ -24,6 +24,7 @@ pub struct AiBatch {
     pub draft_id: String,
     pub root: String,
     pub epoch: u64,
+    pub space_id: String,
     pub baseline_points: Vec<Point>,
     pub baseline_resources: Vec<Resource>,
     pub points: Vec<Point>,
@@ -65,55 +66,12 @@ pub struct AiAdoptResult {
     pub duplicate: bool,
 }
 
-pub(super) fn prepare_schema(connection: &mut Connection) -> Result<(), String> {
-    let version: i32 = connection
-        .query_row("PRAGMA user_version", [], |row| row.get(0))
-        .map_err(|e| disk_error("无法读取存储版本", e))?;
-    if version == 1 {
-        let transaction = connection
-            .transaction_with_behavior(TransactionBehavior::Immediate)
-            .map_err(|e| disk_error("无法开始存储升级，原有知识未修改", e))?;
-        // Recheck after acquiring the write transaction: another app process may
-        // have opened or upgraded the same data directory in the meantime.
-        let (application_id, current_version): (i32, i32) = (
-            transaction
-                .query_row("PRAGMA application_id", [], |row| row.get(0))
-                .map_err(|e| disk_error("无法识别正式存储", e))?,
-            transaction
-                .query_row("PRAGMA user_version", [], |row| row.get(0))
-                .map_err(|e| disk_error("无法读取存储版本", e))?,
-        );
-        if application_id != APPLICATION_ID || ![1, 2].contains(&current_version) {
-            return Err("存储版本已改变，未升级或覆盖原有数据。".into());
-        }
-        read_facts(&transaction)?;
-        if current_version == 1 {
-            transaction
-                .execute_batch(AI_SCHEMA)
-                .and_then(|_| transaction.execute_batch("PRAGMA user_version=2;"))
-                .map_err(|e| disk_error("存储升级失败，原有知识未修改", e))?;
-        }
-        transaction
-            .commit()
-            .map_err(|e| disk_error("存储升级未完成，请检查目录权限和磁盘", e))?;
-    }
-    // Missing or incompatible tables are an error, not permission to recreate
-    // records or replace the authoritative facts with an empty database.
-    connection
-        .prepare("SELECT id, record_json FROM ai_import_records LIMIT 0")
-        .and_then(|_| {
-            connection.prepare("SELECT operation_id, payload_hash, fingerprint, record_json FROM ai_adoption_receipts LIMIT 0")
-        })
-        .map_err(|e| disk_error("AI 采用记录无法读取，原有数据未重建", e))?;
-    Ok(())
-}
-
 impl Store {
     /// Validate a complete set of new candidates against today's official graph.
     /// Positions are deliberately outside the AI knowledge output contract.
     pub fn validate_candidate_points(&self, points: &[Point]) -> Result<(), String> {
         self.ensure_available()?;
-        let (mut facts, _) = read_facts(self.connection.as_ref().unwrap())?;
+        let (mut facts, _) = read_facts(self.connection.as_ref().unwrap(), &self.space_id)?;
         facts.points.extend_from_slice(points);
         validate_facts(&facts)
     }
@@ -126,8 +84,8 @@ impl Store {
             .as_ref()
             .unwrap()
             .query_row(
-                "SELECT record_json FROM ai_adoption_receipts WHERE fingerprint=?1 ORDER BY rowid LIMIT 1",
-                [fingerprint],
+                "SELECT record_json FROM ai_adoption_receipts WHERE space_id=?1 AND fingerprint=?2 ORDER BY rowid LIMIT 1",
+                params![self.space_id, fingerprint],
                 |row| row.get::<_, String>(0),
             )
             .optional()
@@ -142,10 +100,12 @@ impl Store {
             .connection
             .as_ref()
             .unwrap()
-            .prepare("SELECT record_json FROM ai_import_records ORDER BY rowid DESC")
+            .prepare(
+                "SELECT record_json FROM ai_import_records WHERE space_id=?1 ORDER BY rowid DESC",
+            )
             .map_err(|e| disk_error("无法读取导入记录", e))?;
         let rows = statement
-            .query_map([], |row| row.get::<_, String>(0))
+            .query_map([&self.space_id], |row| row.get::<_, String>(0))
             .map_err(|e| disk_error("无法读取导入记录", e))?;
         rows.map(|row| {
             let json = row.map_err(|e| disk_error("无法读取导入记录", e))?;
@@ -170,6 +130,7 @@ impl Store {
         if batch.root != self.root.to_string_lossy() {
             return Err("数据目录已切换，请在当前目录重新整理知识。".into());
         }
+        self.check_context(&batch.space_id, batch.epoch)?;
         // The digest binds the operation to the server-owned draft AND all user
         // choices. The database never keeps the complete original input text.
         let payload = serde_json::to_vec(&(&batch, &choices))
@@ -177,20 +138,22 @@ impl Store {
         let payload_hash = format!("{:x}", Sha256::digest(payload));
         let root = self.root.clone();
         let epoch = self.epoch;
+        let space_id = self.space_id.clone();
         let transaction = self
             .connection
             .as_mut()
             .unwrap()
             .transaction_with_behavior(TransactionBehavior::Immediate)
             .map_err(|e| disk_error("无法开始采用，原有知识未修改", e))?;
-        let (mut facts, revision) = read_facts(&transaction)?;
+        let (mut facts, revision) = read_facts(&transaction, &space_id)?;
 
         // A successful commit may have lost its UI response. Check its receipt
-        // before any stale-draft test so retrying never recreates or overwrites.
+        // before checking changed knowledge so retrying within this context
+        // never recreates or overwrites an already committed adoption.
         if let Some((saved_hash, json)) = transaction
             .query_row(
-                "SELECT payload_hash, record_json FROM ai_adoption_receipts WHERE operation_id=?1",
-                [&operation_id],
+                "SELECT payload_hash, record_json FROM ai_adoption_receipts WHERE space_id=?1 AND operation_id=?2",
+                params![space_id,operation_id],
                 |row| Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?)),
             )
             .optional()
@@ -200,13 +163,10 @@ impl Store {
                 return Err("同一次采用请求的内容已经改变，请重新确认并发起新的采用。".into());
             }
             return Ok(AiAdoptResult {
-                snapshot: make_snapshot(&root, facts, revision),
+                snapshot: make_snapshot(&root, facts, revision, &space_id, epoch, &transaction)?,
                 record: decode_record(&json)?,
                 duplicate: true,
             });
-        }
-        if epoch != batch.epoch {
-            return Err("数据目录已重新打开，请重新核对当前目录的候选知识。".into());
         }
         if batch.fingerprint.is_empty() || batch.fingerprint.len() > 256 {
             return Err("输入指纹无效，请重新整理知识。".into());
@@ -216,27 +176,28 @@ impl Store {
         // repeated input reports its prior adoption without reviving deleted IDs.
         if let Some(json) = transaction
             .query_row(
-                "SELECT record_json FROM ai_adoption_receipts WHERE fingerprint=?1 ORDER BY rowid LIMIT 1",
-                [&batch.fingerprint],
+                "SELECT record_json FROM ai_adoption_receipts WHERE space_id=?1 AND fingerprint=?2 ORDER BY rowid LIMIT 1",
+                params![space_id,batch.fingerprint],
                 |row| row.get::<_, String>(0),
             )
             .optional()
             .map_err(|e| disk_error("无法核对重复输入", e))?
         {
             let record = decode_record(&json)?;
-            save_receipt(&transaction, &operation_id, &payload_hash, &batch.fingerprint, &record)?;
+            save_receipt(&transaction, &space_id, &operation_id, &payload_hash, &batch.fingerprint, &record)?;
             transaction
                 .commit()
                 .map_err(|e| disk_error("重复输入回执未保存，请重试", e))?;
             return Ok(AiAdoptResult {
-                snapshot: make_snapshot(&root, facts, revision),
+                snapshot: make_snapshot(&root, facts, revision, &space_id, epoch, self.connection.as_ref().unwrap())?,
                 record,
                 duplicate: true,
             });
         }
         let original_record = match &batch.original_record_id {
             Some(id) => Some(
-                read_record(&transaction, id)?.ok_or("原导入记录已不存在，请重新选择更新记录。")?,
+                read_record(&transaction, &space_id, id)?
+                    .ok_or("原导入记录已不存在，请重新选择更新记录。")?,
             ),
             None => None,
         };
@@ -404,17 +365,18 @@ impl Store {
             serde_json::to_string(&facts).map_err(|e| disk_error("无法整理待采用知识", e))?;
         transaction
             .execute(
-                "UPDATE noterion_state SET revision=?1, facts=?2 WHERE singleton=1",
-                params![sqlite_revision, serialized],
+                "UPDATE noterion_spaces SET revision=?1, facts=?2 WHERE id=?3",
+                params![sqlite_revision, serialized, space_id],
             )
             .map_err(|e| disk_error("整批知识保存失败，原有内容未修改", e))?;
         let record_json =
             serde_json::to_string(&record).map_err(|e| disk_error("无法整理导入记录", e))?;
         transaction
-            .execute("INSERT INTO ai_import_records(id,record_json) VALUES(?1,?2) ON CONFLICT(id) DO UPDATE SET record_json=excluded.record_json", params![record.id, record_json])
+            .execute("INSERT INTO ai_import_records(space_id,id,record_json) VALUES(?1,?2,?3) ON CONFLICT(space_id,id) DO UPDATE SET record_json=excluded.record_json", params![space_id,record.id, record_json])
             .map_err(|e| disk_error("导入记录保存失败，整批知识未采用", e))?;
         save_receipt(
             &transaction,
+            &space_id,
             &operation_id,
             &payload_hash,
             &batch.fingerprint,
@@ -424,7 +386,14 @@ impl Store {
             .commit()
             .map_err(|e| disk_error("整批采用未确认提交，请保留当前候选并重试", e))?;
         Ok(AiAdoptResult {
-            snapshot: make_snapshot(&root, facts, next_revision),
+            snapshot: make_snapshot(
+                &root,
+                facts,
+                next_revision,
+                &space_id,
+                epoch,
+                self.connection.as_ref().unwrap(),
+            )?,
             record,
             duplicate: false,
         })
@@ -470,11 +439,15 @@ fn decode_record(json: &str) -> Result<AiRecord, String> {
     serde_json::from_str(json).map_err(|e| disk_error("导入记录内容无法读取，未替换原有记录", e))
 }
 
-fn read_record(connection: &Connection, id: &str) -> Result<Option<AiRecord>, String> {
+fn read_record(
+    connection: &Connection,
+    space_id: &str,
+    id: &str,
+) -> Result<Option<AiRecord>, String> {
     connection
         .query_row(
-            "SELECT record_json FROM ai_import_records WHERE id=?1",
-            [id],
+            "SELECT record_json FROM ai_import_records WHERE space_id=?1 AND id=?2",
+            params![space_id, id],
             |row| row.get::<_, String>(0),
         )
         .optional()
@@ -485,13 +458,14 @@ fn read_record(connection: &Connection, id: &str) -> Result<Option<AiRecord>, St
 
 fn save_receipt(
     connection: &Connection,
+    space_id: &str,
     operation_id: &str,
     payload_hash: &str,
     fingerprint: &str,
     record: &AiRecord,
 ) -> Result<(), String> {
     let json = serde_json::to_string(record).map_err(|e| disk_error("无法整理采用回执", e))?;
-    connection.execute("INSERT INTO ai_adoption_receipts(operation_id,payload_hash,fingerprint,record_json) VALUES(?1,?2,?3,?4)", params![operation_id, payload_hash, fingerprint, json])
+    connection.execute("INSERT INTO ai_adoption_receipts(space_id,operation_id,payload_hash,fingerprint,record_json) VALUES(?1,?2,?3,?4,?5)", params![space_id,operation_id, payload_hash, fingerprint, json])
         .map_err(|e| disk_error("采用回执保存失败，整批知识未采用", e))?;
     Ok(())
 }
