@@ -59,7 +59,7 @@ function toggleSearch() {
 function navigate(target: View) { if (busy.value || modelSettingsBusy.value) return; view.value = target; if (location.hash !== '#' + target) history.pushState(null, '', '#' + target) }
 function loadHash() { const hash = location.hash.slice(1); view.value = ['graph','resources','import','models','data'].includes(hash) ? hash as View : 'graph'; if (hash !== view.value) history.replaceState(null, '', '#' + view.value) }
 function locate(id: string) { navigate('graph'); void nextTick(() => selectPoint(id)) }
-function showKnowledgeTask() { aiSearchMode.value = true; selectedId.value = null; navigate('graph') }
+function showKnowledgeTask() { aiSearchMode.value = true; selectedId.value = null; searchOpen.value = true; navigate('graph') }
 async function freshImport() {
   if (busy.value) return
   await cancelAi()

@@ -15,7 +15,7 @@ const args = Object.fromEntries(process.argv.slice(2).map(argument => { const in
 assert.ok(Object.keys(args).every(key => ['run', 'exe', 'driver', 'port', 'scenario'].includes(key)), 'Unknown acceptance option');
 assert.match(args.run ?? '', /^issue-(31|33)-[a-z0-9-]+$/);
 const scenario = args.scenario ?? 'contracts';
-assert.ok(['contracts', 'release-smoke'].includes(scenario));
+assert.ok(['contracts', 'release-smoke', 'task-return'].includes(scenario));
 assert.equal(process.platform, 'win32', 'Desktop acceptance requires Windows');
 const out = path.join(repo, '.scratch/model-settings/runs', args.run), config = path.join(out, 'config');
 const exe = path.resolve(args.exe ?? path.join(app, 'dist-desktop/noterion.exe'));
@@ -381,10 +381,27 @@ async function releaseSmoke() {
   checks.push({ name: 'release connection selection and credentials persist without paid network calls', verdict: 'PASS' });
 }
 
+async function hiddenTaskReturn() {
+  await configure('openai', fixture.baseUrl('openai', 'gated'), 'openai/return-task:v33');
+  await check('view task reopens a deliberately collapsed search panel and permits cancellation', async () => {
+    await startQuestion('怎样找回我正在处理的问题？', true);
+    await until(() => fixture.requests.some(request => request.mode === 'gated'), 'task is in flight');
+    await click('[aria-controls="knowledge-search"]');
+    assert.equal(await observe('return document.querySelector("[aria-controls=knowledge-search]").getAttribute("aria-expanded");'), 'false');
+    await clickText('知识导入'); await click('[data-testid="ai-view-task"]');
+    await until(() => observe('return location.hash === "#graph";'), 'returned to graph');
+    assert.equal(await observe('return document.querySelector("[aria-controls=knowledge-search]").getAttribute("aria-expanded");'), 'true', 'View task must reopen its panel');
+    assert.equal(await wd('GET', `/element/${await find('[data-testid="ai-cancel"]')}/displayed`), true);
+    await capture('09-returned-busy-task'); await click('[data-testid="ai-cancel"]'); fixture.release();
+    await expectText('[aria-label="AI 知识助手"]', '已取消');
+  });
+}
+
 try {
-  if (scenario === 'contracts') fixture = await startModelFixture();
+  if (scenario !== 'release-smoke') fixture = await startModelFixture();
   await launch(); await migration();
   if (scenario === 'contracts') { await settingsContracts(); await connectionFeedbackContracts(); await businessContracts(); await failureContracts(); assert.ok(fixture.requests.length > 25); assert.equal(fixture.requests.flatMap(request => request.violations).length, 0, 'All native requests satisfy protocol contracts'); }
+  else if (scenario === 'task-return') await hiddenTaskReturn();
   else await releaseSmoke();
   await check('pre-existing knowledge and managed resources remain available after all settings operations', async () => { await selectKnowledge('迁移前的知识'); await expectText('[data-testid="knowledge-details"]', '升级必须保留'); await clickText('资料库'); await expectText('.library-list', '迁移前的资料'); });
   passed = true;
@@ -394,10 +411,10 @@ try {
 } finally {
   let desktopCleanup = true;
   try { await stop(); } catch { desktopCleanup = false; }
-  if (fixture) { await save('fixture-requests.json', fixture.requests); await fixture.close(); }
+  if (fixture) { fixture.release(); await save('fixture-requests.json', fixture.requests); await fixture.close(); }
   let credentialCleanup = true;
   for (const target of credentialTargets) try { credential('delete', target); } catch { credentialCleanup = false; }
   await save('checks.json', checks);
-  await save('result.json', { run: args.run, scenario, passed: passed && credentialCleanup && desktopCleanup, assertionCount: checks.length, executable: exe, executableSha256, driverSha256, launches, credentialCleanup, desktopCleanup, providerTesting: scenario === 'contracts' ? 'Local deterministic HTTP/SSE fixtures through the actual Windows desktop; not live official API tests.' : 'Release UI/storage/HTTPS policy only; no external API calls.', liveApiCoverage: { deepseek: false, openai: false, anthropic: false } });
+  await save('result.json', { run: args.run, scenario, passed: passed && credentialCleanup && desktopCleanup, assertionCount: checks.length, executable: exe, executableSha256, driverSha256, launches, credentialCleanup, desktopCleanup, providerTesting: scenario !== 'release-smoke' ? 'Local deterministic HTTP/SSE fixtures through the actual Windows desktop; not live official API tests.' : 'Release UI/storage/HTTPS policy only; no external API calls.', liveApiCoverage: { deepseek: false, openai: false, anthropic: false } });
   process.exitCode = passed && credentialCleanup && desktopCleanup ? 0 : 1;
 }

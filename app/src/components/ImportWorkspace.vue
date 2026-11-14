@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import type { AiAdoptInput, AiCandidate, AiChoice, AiDraft, AiImportRecord, AiRequest, AiResult } from '../domain/ai'
 import type { KnowledgePoint, ResourceItem } from '../domain/types'
 import { errorText, invoke } from '../desktop'
@@ -14,6 +14,12 @@ const selected = computed(() => choices.value[selectedIndex.value])
 const candidate = computed<AiCandidate | undefined>(() => draft.value?.points[selectedIndex.value])
 const target = computed(() => props.points.find(p => p.id === selected.value?.targetId))
 const adoptedPoints = computed(() => (props.adopted?.pointIds || []).flatMap(id => props.points.find(p => p.id === id) || []))
+const adoptionNotice = ref<HTMLElement | null>(null)
+watch(() => props.adopted, async adopted => {
+  if (!adopted) return
+  await nextTick()
+  adoptionNotice.value?.scrollIntoView({ block: 'start' })
+})
 const themes = computed(() => {
   const all = new Map(props.points.filter(p => p.isTheme).map(p => [p.id, p]))
   choices.value.filter(c => c.point.isTheme && c.action !== 'skip').forEach(c => all.set(c.point.id, c.point))
@@ -85,7 +91,7 @@ function newInput() { draft.value = null; choices.value = []; source.value = '';
     <div v-if="blocked" class="ai-context-banner" role="status">AI 助手正在处理问题。<button class="button compact-button" data-testid="ai-view-task" @click="emit('showTask')">查看任务</button></div>
     <div v-if="busy" class="ai-task-status" role="status"><span class="spinner small" />{{phase}}<button class="button compact-button" data-testid="ai-import-cancel" @click="emit('cancel')">取消解析</button></div>
     <p v-else-if="phase==='已取消'" class="ai-help" role="status">解析已取消，可重新整理。</p>
-    <div v-if="adopted" class="ai-adopted" role="status" data-testid="ai-adopted">
+    <div v-if="adopted" ref="adoptionNotice" class="ai-adopted" role="status" data-testid="ai-adopted">
       <Icon name="check" :size="23" />
       <div class="ai-adopted-content">
         <h2>{{duplicate?'这份输入已经采用':'知识已保存到本机'}}</h2>

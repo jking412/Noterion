@@ -92,6 +92,11 @@ async function capture(name) {
   assert.ok(!key || !source.includes(key), 'Credential must not appear in captured markup');
   await fs.writeFile(path.join(out, name + '.html'), source);
 }
+async function revealSavedResult() {
+  // A normal WebDriver click scrolls the result heading into view for review.
+  const heading = await find('[data-testid="ai-adopted"] h2');
+  await wd('POST', `/element/${heading}/click`, {});
+}
 async function check(name, action) {
   const detail = await action();
   checks.push({ name, verdict: 'PASS', detail });
@@ -249,13 +254,14 @@ async function faultScenario() {
       await expectText('[data-testid="ai-import-error"]', '尚未配置');
       assert.equal(await observe('return document.querySelector("[data-testid=ai-source]").value;'), AI_FIXTURE_TEXT);
     });
-    for (const [mode, expected] of [['blank','空白'], ['truncated','截断'], ['bad-color','颜色'], ['bad-theme','主题'], ['extra-field','结构'], ['bad-quote','依据'], ['duplicate-id','身份'], ['self-reference','自己'], ['unknown-reference','主题'], ['cycle','循环'], ['empty','没有'], ['unauthorized','鉴权'], ['rate-limit','受限'], ['server-error','服务'], ['network-drop','连接']]) {
+    for (const [mode, expected] of [['blank','空结果'], ['truncated','截断'], ['bad-color','颜色'], ['bad-theme','主题'], ['extra-field','结构'], ['bad-quote','依据'], ['duplicate-id','身份'], ['self-reference','自己'], ['unknown-reference','主题'], ['cycle','循环'], ['empty','没有'], ['unauthorized','鉴权'], ['rate-limit','受限'], ['server-error','服务'], ['network-drop','连接']]) {
       await settings(fixture.baseUrl(mode), 'fixture-only-key');
       await extract(AI_FIXTURE_TEXT);
       await check(`${mode} fails honestly and preserves input without creating a partial batch`, async () => {
         await expectText('[data-testid="ai-import-error"]', expected, 30000);
         assert.equal(await observe('return document.querySelector("[data-testid=ai-source]").value;'), AI_FIXTURE_TEXT);
         assert.equal((await all('.ai-candidate-list button')).length, 0);
+        await capture(`02-failure-${mode}`);
         await localSearch('进入容器终端');
         assert.equal((await all('.result-list .result-item')).length, 0);
         assert.equal((await all('[data-testid="storage-error"]')).length, 0);
@@ -273,15 +279,17 @@ async function faultScenario() {
     await extract(AI_FIXTURE_TEXT);
     await check('pending native AI request leaves local browsing and saving available; cancel preserves input', async () => {
       await until(async () => fixture.requests.some(r => r.mode === 'slow'), 'native Rust request reached fixture');
+      await capture('03-import-waiting');
       await manualPoint('网络等待期间保存的知识');
       await clickText('知识导入');
       await click('[data-testid="ai-import-cancel"]');
       await expectText('[aria-label="AI 知识整理"]', '解析已取消');
+      await capture('03-import-canceled');
       assert.equal(await observe('return document.querySelector("[data-testid=ai-source]").value;'), AI_FIXTURE_TEXT);
       await until(async () => fixture.requests.some(r => r.mode === 'slow' && r.aborted), 'cancel aborts the native HTTP request');
     });
     await settings(fixture.baseUrl('good'), 'fixture-only-key');
-    await check('failed configuration replacement restores the original system credential', async () => {
+    await check('failed configuration replacement preserves saved configuration and leaves native extraction usable', async () => {
       const configPath = path.join(config, 'model-connections.json');
       const original = await fs.readFile(configPath, 'utf8');
       const lockScript = path.join(out, 'hold-model-config.ps1');
@@ -306,11 +314,10 @@ try{[IO.File]::WriteAllText($Ready,'ready');$deadline=[DateTime]::UtcNow.AddMinu
         await fs.writeFile(finish, 'stop');
         await until(() => locker.exitCode !== null, 'configuration lock releases');
       }
-      await click('[data-testid="ai-check"]');
-      await expectText('[data-testid="model-check-success"]', '连接正常');
       await clickText('知识图谱');
+      await extract(AI_FIXTURE_TEXT);
+      assert.equal(await candidates(), 3);
     });
-    await extract(AI_FIXTURE_TEXT); await candidates();
     await check('invalid edited cycle rejects the whole batch and permits correction', async () => {
       await selectCandidate('Docker');
       await click("//fieldset[contains(@class,'ai-candidate-topics')][legend='所属主题']//label[normalize-space(.)='Linux']/input", 'xpath');
@@ -334,6 +341,8 @@ try{[IO.File]::WriteAllText($Ready,'ready');$deadline=[DateTime]::UtcNow.AddMinu
       await fill('[aria-label="候选知识点描述"]', '使用 docker exec -it demo sh。用户核对后的说明。');
       await click('[data-testid="ai-adopt"]');
       await expectText('[data-testid="ai-adopted"]', '知识已保存到本机');
+      await revealSavedResult();
+      await capture('04-adopted-result');
       await selectKnowledge('进入容器终端');
       const detail = await text('[data-testid="knowledge-details"]');
       assert.ok(detail.includes('Docker') && detail.includes('Linux') && detail.includes('用户核对后的说明'));
@@ -344,8 +353,10 @@ try{[IO.File]::WriteAllText($Ready,'ready');$deadline=[DateTime]::UtcNow.AddMinu
         await extract(AI_FIXTURE_TEXT);
         assert.equal(await candidates(), 0);
         await expectText('[data-testid="ai-duplicate"]', '这份文本已采用');
+        if (attempt === 0) await capture('04-known-duplicate');
         await click('[data-testid="ai-adopt"]');
         await expectText('[data-testid="ai-adopted"]', '这份输入已经采用');
+        if (attempt === 0) { await revealSavedResult(); await capture('04-duplicate-saved-result'); }
         await click("//div[@data-testid='ai-adopted']//button[normalize-space(.)='进入容器终端']", 'xpath');
         await expectText('[data-testid="knowledge-details"]', '用户核对后的说明');
         await localSearch('进入容器终端');
@@ -449,6 +460,46 @@ async function feedbackScenario() {
     });
   } finally { await fixture.close(); }
 }
+async function adoptionFeedbackScenario() {
+  const { startAiFixture, AI_FIXTURE_TEXT } = await import('./ai-fixture-server.mjs');
+  const fixture = await startAiFixture();
+  async function savedResultVisible() {
+    await until(() => observe(`
+      const result = document.querySelector('[data-testid="ai-adopted"]');
+      if (!result) return false;
+      const rect = result.getBoundingClientRect();
+      const actions = [...result.querySelectorAll('.ai-result-actions button')];
+      return rect.top >= 0 && rect.bottom <= innerHeight && actions.length === 2
+        && actions.every(element => { const r = element.getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight && r.left >= 0 && r.right <= innerWidth; });
+    `), 'saved result and its next actions automatically enter the viewport');
+  }
+  try {
+    await settings(fixture.baseUrl('good'), 'fixture-only-key');
+    await check('adoption automatically reveals its saved result and offers graph navigation and a clean next import', async () => {
+      await extract(AI_FIXTURE_TEXT); assert.equal(await candidates(), 3);
+      await selectCandidate('进入容器终端');
+      await click('[data-testid="ai-adopt"]');
+      await expectText('[data-testid="ai-adopted"]', '知识已保存到本机');
+      await savedResultVisible(); await capture('02-adoption-visible');
+      await clickText('进入图谱'); assert.equal(await observe('return location.hash;'), '#graph');
+      await clickText('知识导入'); await clickText('继续导入');
+      assert.equal(await observe('return document.querySelector("[data-testid=ai-source]").value;'), '');
+      assert.equal((await all('.ai-candidate-list button, [data-testid="ai-adopted"]')).length, 0);
+    });
+    await check('duplicate input automatically reveals existing knowledge and can continue with an empty input', async () => {
+      const requestsBeforeRepeat = fixture.requests.length;
+      await extract(AI_FIXTURE_TEXT); assert.equal(await candidates(), 0);
+      await click('[data-testid="ai-adopt"]');
+      await expectText('[data-testid="ai-adopted"]', '这份输入已经采用');
+      await savedResultVisible(); await capture('03-duplicate-visible');
+      assert.equal(fixture.requests.length, requestsBeforeRepeat);
+      await clickText('进入图谱'); assert.equal(await observe('return location.hash;'), '#graph');
+      await clickText('知识导入'); await clickText('继续导入');
+      assert.equal(await observe('return document.querySelector("[data-testid=ai-source]").value;'), '');
+      assert.equal((await all('.ai-candidate-list button, [data-testid="ai-adopted"]')).length, 0);
+    });
+  } finally { await fixture.close(); }
+}
 try {
   if (scenario === 'migration') activeExe = path.resolve(args['legacy-exe']);
   await launch();
@@ -464,6 +515,7 @@ try {
     if (scenario === 'live') await liveScenario();
     else if (scenario === 'faults') await faultScenario();
     else if (scenario === 'feedback') await feedbackScenario();
+    else if (scenario === 'adoption-feedback') await adoptionFeedbackScenario();
     else if (scenario === 'resources') {
       const { runResourceScenario } = await import('./ai-resource-scenarios.mjs');
       await runResourceScenario({ app, repo, out, assert, fs, click, clickText, fill, text, observe, all, until, expectText, capture, check, settings, extract, candidates, selectKnowledge, localSearch, selectCandidate, openSearch });

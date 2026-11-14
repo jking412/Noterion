@@ -92,6 +92,13 @@ try {
     await check('real graph boundary recovers after a debug-only render fault',async()=>{await expectText('.graph-boundary-message','图谱暂时无法显示');await capture('graph-failure');await clickText('重新读取图谱');await until(async()=>!(await all('.graph-boundary-message')).length,'graph restored');await capture('graph-recovered');});
   } else {
     await check('empty graph and shell',async()=>{await capture('01-empty-graph');assert.equal((await all('.desktop-navigation button')).length,3);assert.equal((await all('[data-testid="import-records"]')).length,0);});
+    await check('keyboard focus enters the editor, stays inside and returns after Escape',async()=>{
+      await click('[data-testid="create-point"]');await until(()=>observe('return document.activeElement?.id === "knowledge-name";'),'editor autofocus');
+      await wd('POST','/actions',{actions:[{type:'key',id:'keyboard',actions:Array.from({length:24},()=>[{type:'keyDown',value:'\uE004'},{type:'keyUp',value:'\uE004'}]).flat()}]});await wd('DELETE','/actions');
+      assert.equal(await observe('return !!document.activeElement?.closest("dialog");'),true);
+      await wd('POST','/actions',{actions:[{type:'key',id:'keyboard',actions:[{type:'keyDown',value:'\uE00C'},{type:'keyUp',value:'\uE00C'}]}]});await wd('DELETE','/actions');
+      await until(async()=>!(await all('dialog')).length,'Escape closes editor');assert.equal(await observe('return document.activeElement?.getAttribute("data-testid");'),'create-point');
+    });
     await check('resource empty, add form and validation',async()=>{
       await clickText('资料库');await capture('02-empty-resources');await clickText('添加资料');await capture('03-add-resource');await clickText('保存资料');await expectText('.resource-add-form','请选择');await capture('04-resource-validation');await clickText('取消');
     });
@@ -104,11 +111,15 @@ try {
       await fill('#knowledge-name',longName);await fill('#knowledge-description','## 命令\n\n`docker exec -it my-container /bin/sh`\n\n## 个人理解\n\n从保存的知识进入容器终端。');await fill('#knowledge-color-code','#bd485d');await capture('09-editor-filled');await click('[data-testid="save-point"]');
       await until(async()=>!(await all('#knowledge-name')).length,'created');await expectText('[data-testid="knowledge-details"]',longName);await capture('10-long-details');
       await click('[data-testid="edit-point"]');assert.equal(await observe('return document.querySelector("#knowledge-color-code").value;'),'#bd485d');await capture('11-editor-saved-color');await clickText('取消');
+      await click('[aria-label="知识点操作"]');await click('[data-testid="delete-point"]');await expectText('dialog','删除后无法撤销');await capture('11b-delete-impact');await clickText('取消');
     });
     await check('search, focus, zoom and graph drag',async()=>{
       await search('容器');await expectText('.result-list',longName);await capture('12-search');await click('.result-list .result-item');await expectText('[data-testid="knowledge-details"]',longName);
-      const before=await text('.zoom-value');await click('[aria-label="放大图谱"]');assert.notEqual(await text('.zoom-value'),before);await click('[aria-label="缩小图谱"]');await clickText('适应全图');
-      const node=await find('.graph-node');await wd('POST','/actions',{actions:[{type:'pointer',id:'mouse',parameters:{pointerType:'mouse'},actions:[{type:'pointerMove',duration:0,origin:{[key]:node},x:0,y:0},{type:'pointerDown',button:0},{type:'pointerMove',duration:400,origin:'pointer',x:38,y:20},{type:'pointerUp',button:0}]}]});await wd('DELETE','/actions');await pause(500);await capture('13-graph-interaction');
+      const before=await text('.zoom-value');await click('[aria-label="放大图谱"]');await until(async()=>await text('.zoom-value')!==before,'zoom updates its displayed value');await click('[aria-label="缩小图谱"]');await clickText('适应全图');
+      await click('[aria-label="关闭知识详情"]');await click('[aria-controls="knowledge-search"]');await clickText('适应全图');
+      const positionBefore=await observe('return document.querySelector(".graph-node").getAttribute("transform");');
+      const node=await find('.graph-node .node-body');await wd('POST','/actions',{actions:[{type:'pointer',id:'mouse',parameters:{pointerType:'mouse'},actions:[{type:'pointerMove',duration:0,origin:{[key]:node},x:0,y:0},{type:'pointerDown',button:0},{type:'pointerMove',duration:400,origin:'pointer',x:38,y:20},{type:'pointerUp',button:0}]}]});await wd('DELETE','/actions');
+      await until(async()=>await observe('return document.querySelector(".graph-node").getAttribute("transform");')!==positionBefore,'drag changes the actual node position');await pause(500);await capture('13-graph-interaction');
     });
     await check('resource copy and text preview',async()=>{
       const file=path.join(out,'learning-material.md');await fs.writeFile(file,'# 容器终端\n\n资料库中的正文预览。');
@@ -124,6 +135,7 @@ try {
     });
     await check('native maximize, restore and persistent knowledge',async()=>{
       const rect=await wd('GET','/window/rect');await wd('POST','/window/maximize',{});await capture('24-maximized');await wd('POST','/window/rect',{width:rect.width,height:rect.height});
+      await wd('POST','/window/minimize',{});await until(()=>observe('return document.visibilityState === "hidden";'),'native minimized');await wd('POST','/window/rect',{x:rect.x,y:rect.y,width:rect.width,height:rect.height});await until(()=>observe('return document.visibilityState === "visible";'),'native restored');
       await stop();await launch();await search('容器');await expectText('.result-list',longName);await click('.result-list .result-item');await click('[data-testid="edit-point"]');assert.equal(await observe('return document.querySelector("#knowledge-color-code").value;'),'#bd485d');await clickText('取消');await capture('25-restarted');
     });
   }

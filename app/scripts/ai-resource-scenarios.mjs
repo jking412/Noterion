@@ -48,6 +48,7 @@ export async function runResourceScenario(h) {
       await clickText('添加资料');
       await fill('[aria-label="资料文件路径"]', sourceFile);
       await fill('[aria-label="资料名称"]', title);
+      await capture('06-resource-add-dialog');
       await clickText('保存资料');
       await until(async () => !(await all('.resource-add-form')).length, 'native resource copy and record finish');
       await expectText('.library-list', title);
@@ -124,6 +125,7 @@ export async function runResourceScenario(h) {
       await expectText('dialog', '将保留');
       await expectText('dialog', '资料及其文件均保留');
       await expectText('dialog', '删除后无法撤销');
+      await capture('10b-adopted-knowledge-delete-dialog');
       await click("//dialog//button[starts-with(normalize-space(.),'确认删除')]", 'xpath');
       await until(async () => !(await all('dialog')).length, 'confirmed knowledge deletion completes');
       await localSearch('进入容器终端');
