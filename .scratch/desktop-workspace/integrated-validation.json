@@ -1,0 +1,95 @@
+{
+  "date": "2026-11-16",
+  "sourceCommit": "fcf6bd4",
+  "executableSha256": "85cd43278bf47b27007e9cb5596e2b8577f22f2eb22d46f997ed3cb0457dece2",
+  "desktop200": {
+    "verdict": "PASS",
+    "checks": 9
+  },
+  "spaces": {
+    "run": "issue-33-integrated-spaces-02",
+    "scenario": "spaces",
+    "requestedScale": null,
+    "passed": true,
+    "assertionCount": 7,
+    "executable": "C:\\Users\\skynesser\\.codex\\worktrees\\noterion-issue-33-desktop\\knowledgeGraph\\app\\dist-desktop\\noterion.exe",
+    "executableSha256": "85cd43278bf47b27007e9cb5596e2b8577f22f2eb22d46f997ed3cb0457dece2",
+    "driverSha256": "76f549b492a89dbacee027ac6a726836944f04645ecaa5fa9a2045c84303d6ed",
+    "launches": 2,
+    "desktopCleanup": true,
+    "credentialCleanup": true,
+    "folderUiCoverage": false,
+    "liveApiCoverage": false,
+    "providerTesting": "Deterministic local HTTP/SSE fixture through actual Windows Tauri; no paid model key or live provider call."
+  },
+  "folders": {
+    "run": "issue-33-integrated-folders-01",
+    "scenario": "folders",
+    "requestedScale": null,
+    "passed": true,
+    "assertionCount": 3,
+    "executable": "C:\\Users\\skynesser\\.codex\\worktrees\\noterion-issue-33-desktop\\knowledgeGraph\\app\\dist-desktop\\noterion.exe",
+    "executableSha256": "85cd43278bf47b27007e9cb5596e2b8577f22f2eb22d46f997ed3cb0457dece2",
+    "driverSha256": "76f549b492a89dbacee027ac6a726836944f04645ecaa5fa9a2045c84303d6ed",
+    "launches": 2,
+    "desktopCleanup": true,
+    "credentialCleanup": true,
+    "folderUiCoverage": true,
+    "liveApiCoverage": false,
+    "providerTesting": "Deterministic local HTTP/SSE fixture through actual Windows Tauri; no paid model key or live provider call."
+  },
+  "nativeCaption": {
+    "method": "CUA Windows: own executable selected from returned window inventory; actual screenshot coordinates and current screenshot IDs; no application state injection",
+    "checks": [
+      {
+        "name": "title-bar drag",
+        "result": "PASS",
+        "observation": "Window moved visibly after caption drag."
+      },
+      {
+        "name": "maximize button",
+        "result": "PASS",
+        "observation": "Native button changed from 最大化 to 还原 and window filled the work area."
+      },
+      {
+        "name": "restore button",
+        "result": "PASS",
+        "observation": "Native button changed back to 最大化 and window returned to its previous size."
+      },
+      {
+        "name": "minimize button and restore",
+        "result": "PASS",
+        "observation": "Capture returned window is minimized; targeted keyboard input activated/restored the same client."
+      },
+      {
+        "name": "close button",
+        "result": "PASS",
+        "observation": "Clicking native close removed the own executable window from the returned inventory; runner then completed cleanup."
+      }
+    ],
+    "limits": [
+      "Edge resizing was attempted but visual evidence was not conclusive; resizing is verified separately by actual WebDriver window operations.",
+      "CUA native caption screenshots are retained in the conversation; committed PNGs are WebView client-area captures."
+    ]
+  },
+  "visualReview": {
+    "independentScreenshots": 23,
+    "mustFixFindings": 0,
+    "rootExtraStates": [
+      "folder cancellation",
+      "duplicate retry",
+      "native caption operations"
+    ]
+  },
+  "failedRuns": [
+    {
+      "run": "issue-33-integrated-spaces-01",
+      "reason": "Client window disappeared during interrupted task; 4 groups passed; not counted as success."
+    },
+    {
+      "run": "issue-33-integrated-full-01",
+      "reason": "Native picker timed out after 6 groups; a transient 15x15 caret image was initially mistaken for the whole picker screenshot. Resumed folders-only with the matching full image ID; no product workaround."
+    }
+  ],
+  "validationScope": "Actual Windows Tauri/Rust, independent synthetic data/config/credentials and local HTTP/SSE fixtures; no paid official service or remote CI."
+}

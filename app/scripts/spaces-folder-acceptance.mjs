@@ -15,7 +15,7 @@ const args = Object.fromEntries(process.argv.slice(2).map(argument => { const in
 assert.ok(Object.keys(args).every(key => ['run', 'exe', 'driver', 'port', 'scenario', 'scale'].includes(key)), 'Unknown acceptance option');
 assert.match(args.run ?? '', /^issue-(32|33)-[a-z0-9-]+$/);
 assert.equal(process.platform, 'win32', 'Requires the Windows desktop client');
-const scenario = args.scenario ?? 'spaces'; assert.ok(['spaces', 'full'].includes(scenario));
+const scenario = args.scenario ?? 'spaces'; assert.ok(['spaces', 'full', 'folders'].includes(scenario));
 const scale = args.scale === undefined ? undefined : Number(args.scale);
 assert.ok(scale === undefined || [1, 1.5, 2].includes(scale), 'Scale must be 1, 1.5 or 2');
 const out = path.join(repo, '.scratch/spaces-folder-import/runs', args.run), config = path.join(out, 'config');
@@ -111,7 +111,7 @@ async function fixtureFolderPicker(folder, label) {
   // The real native picker is intentionally completed through computer use, not a fake DOM path.
   const clicking = click('[data-testid="folder-select"]');
   await until(() => observe(`return document.querySelector('[data-testid="folder-select"]')?.disabled === true;`), 'native folder selection entered waiting state');
-  await until(() => observe(`const button = document.querySelector('[data-testid="folder-select"]'); return button && !button.disabled && !!document.querySelector('[data-testid="folder-count"], [data-testid="folder-empty"]');`), 'native selected folder inventory (computer use must finish the picker)', 180000);
+  await until(() => observe(`const button = document.querySelector('[data-testid="folder-select"]'); return button && !button.disabled && !!document.querySelector('[data-testid="folder-count"], [data-testid="folder-empty"]');`), 'native selected folder inventory (computer use must finish the picker)', 300000);
   await clicking;
   await save('native-picker.json', { status: 'selected', folder, label });
 }
@@ -143,6 +143,7 @@ async function processFolderFile(relativePath) {
 
 try {
   fixture = await startModelFixture(); await launch();
+  if (scenario !== 'folders') {
   await check('legacy single graph migrates with identities, relationships, positions, colors and readable managed files', async () => {
     assert.equal(await selectedSpace(), '默认空间');
     const rendered = await observe(`return [...document.querySelectorAll('[data-node-id]')].map(e => ({id:e.getAttribute('data-node-id'),position:e.getAttribute('transform'),color:e.querySelector('.node-body')?.getAttribute('stroke')}));`);
@@ -197,10 +198,18 @@ try {
     await configure('slow'); await clickText('知识导入'); await continueImport(); await fill('[data-testid="ai-source"]', learningText + '\n未采用的任务。'); await click('[data-testid="ai-extract"]'); await until(async () => (await all('[data-testid="ai-import-cancel"]')).length, 'running extraction');
     await capture('08-active-extraction'); await selectSpace('研究乙（重命名）'); await pause(500); await clickText('知识导入'); assert.equal((await all('.ai-candidate-list button')).length, 0); assert.equal(await observe('return document.querySelector("[data-testid=ai-source]")?.value;'), ''); await capture('09-switch-cleared'); await configure();
   });
-  if (scenario === 'full') {
+  }
+  if (scenario === 'full' || scenario === 'folders') {
+    if (scenario === 'folders') await configure();
     await check('native folder selection scans every nested Markdown/TXT path and keeps individual outcomes', async () => {
       await createSpace('文件夹导入'); await clickText('知识导入'); await fixtureFolderPicker(notes, 'nested-mixed-case'); await expectText('[data-testid="folder-count"]', '6 份文件');
       const paths = await observe('return [...document.querySelectorAll("[data-file-path]")].map(e=>e.getAttribute("data-file-path"));'); assert.deepEqual(paths.sort(), ['bad.md', 'empty.txt', 'large.TXT', 'nested/notes.TXT', 'other/notes.MD', 'root.md'].sort()); await capture('10-folder-inventory');
+      const folderRect = await wd('GET', '/window/rect'); await wd('POST', '/window/rect', { width: 1000, height: 700 });
+      await capture('10b-folder-minimum');
+      const folderBounds = await observe('const table=document.querySelector(".folder-files").getBoundingClientRect(); const workspace=document.querySelector(".ai-import-workspace"); return {left:table.left,right:table.right,width:innerWidth,bodyWidth:document.body.scrollWidth,workspaceWidth:workspace.clientWidth,workspaceContentWidth:workspace.scrollWidth};');
+      assert.ok(folderBounds.left >= 0 && folderBounds.right <= folderBounds.width && folderBounds.bodyWidth <= folderBounds.width + 1, 'Folder inventory stays inside the minimum window');
+      assert.ok(folderBounds.workspaceContentWidth <= folderBounds.workspaceWidth + 1, 'Folder controls do not create horizontal workspace overflow');
+      await wd('POST', '/window/rect', folderRect);
       await processFolderFile('root.md'); await until(async () => (await all('.ai-candidate-list button')).length === 3, 'folder candidate review', 60000);
       const editedDescription = '人工核对修正：在容器中打开终端前，先确认容器处于运行状态。';
       await click(`//nav[@aria-label='候选知识点']//button[.//span[starts-with(normalize-space(.),'进入容器终端')]]`, 'xpath');
@@ -212,17 +221,23 @@ try {
       for (const relativePath of ['bad.md', 'empty.txt', 'large.TXT']) { await processFolderFile(relativePath); await expectText(`[data-file-path="${relativePath}"]`, '失败'); }
       await expectText('[data-testid="folder-progress"]', '已保存 3'); await expectText('[data-testid="folder-progress"]', '失败 3');
       await capture('12-folder-results'); await clickText('资料库'); await expectText('.library-list', 'nested/notes.TXT'); await expectText('.library-list', 'other/notes.MD'); await expectText('.library-list', 'root.md');
-      return { paths, editedKnowledgeDescription: editedDescription, originalSourceOpened: true };
+      return { paths, folderBounds, editedKnowledgeDescription: editedDescription, originalSourceOpened: true };
     });
     await check('empty-folder and cancelled batch states stay actionable and retain saved work', async () => {
       await clickText('知识导入'); await fixtureFolderPicker(emptyFolder, 'empty'); await expectText('[data-testid="folder-empty"]', '未找到'); await capture('13-folder-empty');
       await fixtureFolderPicker(notes, 'cancel-retry'); await click('[data-testid="folder-cancel"]'); await expectText('[data-testid="folder-progress"]', '已取消'); await capture('14-folder-cancelled'); await processFolderFile('root.md'); await expectText('[data-testid="ai-duplicate"]', '已采用'); await capture('15-folder-retry');
     });
   }
-  await check('recent space, all names, independent knowledge, colors and resources survive desktop restart', async () => {
+  if (scenario !== 'folders') await check('recent space, all names, independent knowledge, colors and resources survive desktop restart', async () => {
     await selectSpace('研究乙（重命名）'); await stop(); await launch(); assert.equal(await selectedSpace(), '研究乙（重命名）'); await selectKnowledge('进入容器终端'); await expectText('[data-testid="knowledge-details"]', '乙空间独有说明');
     await clickText('资料库'); await expectText('.library-list', '乙空间资料'); assert.ok(!(await text('.library-list')).includes('甲空间')); await selectSpace('研究甲'); await selectKnowledge('进入容器终端'); await expectText('[data-testid="knowledge-details"]', '甲空间独有说明'); await capture('16-restarted-space-a');
     await selectSpace('默认空间'); await selectKnowledge('共享知识'); await expectText('[data-testid="knowledge-details"]', '默认空间的个人理解'); await capture('17-restarted-legacy');
+  });
+  else await check('folder knowledge edits and original sources survive desktop restart', async () => {
+    await stop(); await launch(); assert.equal(await selectedSpace(), '文件夹导入');
+    await selectKnowledge('进入容器终端'); await expectText('[data-testid="knowledge-details"]', '人工核对修正：在容器中打开终端前，先确认容器处于运行状态。');
+    await clickText('资料库'); for (const name of ['root.md', 'nested/notes.TXT', 'other/notes.MD']) await expectText('.library-list', name);
+    await capture('16-restarted-folder-resources');
   });
   assert.equal(fixture.requests.flatMap(request => request.violations).length, 0); passed = true;
 } catch (error) { await save('failure.json', { message: error.message }); console.error(error.message); if (session) try { await capture('failure'); } catch {} }
@@ -244,6 +259,6 @@ finally {
   }
   for (const target of credentialTargets) { const result = spawnSync('cmdkey.exe', ['/delete:' + target], { windowsHide: true, stdio: 'ignore' }); if (result.status !== 0) credentialCleanup = false; }
   await save('checks.json', checks);
-  await save('result.json', { run: args.run, scenario, requestedScale: scale ?? null, passed: passed && desktopCleanup && credentialCleanup, assertionCount: checks.length, executable: exe, executableSha256, driverSha256, launches, desktopCleanup, credentialCleanup, folderUiCoverage: scenario === 'full', liveApiCoverage: false, providerTesting: 'Deterministic local HTTP/SSE fixture through actual Windows Tauri; no paid model key or live provider call.' });
+  await save('result.json', { run: args.run, scenario, requestedScale: scale ?? null, passed: passed && desktopCleanup && credentialCleanup, assertionCount: checks.length, executable: exe, executableSha256, driverSha256, launches, desktopCleanup, credentialCleanup, folderUiCoverage: scenario === 'full' || scenario === 'folders', liveApiCoverage: false, providerTesting: 'Deterministic local HTTP/SSE fixture through actual Windows Tauri; no paid model key or live provider call.' });
   process.exitCode = passed && desktopCleanup && credentialCleanup ? 0 : 1;
 }

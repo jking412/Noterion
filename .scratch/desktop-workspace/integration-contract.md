@@ -16,7 +16,7 @@
 
 文件夹入口、扫描、逐文件处理、采用/跳过/重试与当前批次反馈属于 #32 的 `ImportWorkspace` 功能。该组件必需 `spaceId/epoch`，保留 `start/adopt/cancel` 并发出 `snapshot/dirty`。#33 保留按可用容器宽度重排的输入、候选、编辑和批次清单；采用后提供进入图谱、处理下一份或继续导入，不恢复长期导入历史页面。
 
-#32 已提供 `f63048b550a9e8619148065d6f34c0732011ba74`（`feat: isolate knowledge spaces and import note folders (#32)`）。当前进入接合，真实空间切换、长空间名、跨空间任务/候选清理及批量导入布局仍需在集成客户端验收。只合并明确提交，不复制另一会话未提交代码。
+#32 的 `f63048b550a9e8619148065d6f34c0732011ba74` 已通过双父合并提交 `fcf6bd4` 接合；没有复制另一会话未提交代码。2026-11-16 在同一真实 Windows 客户端（SHA256 `85cd4327…`）完成 `issue-33-integrated-spaces-02` 7 组及 `issue-33-integrated-folders-01` 3 组验收，覆盖长名、收起入口、取消/确认切换、忙碌任务、迟到结果隔离及批量导入最小窗口。高缩放桌面回归 9 项通过，原生标题栏操作补验完成；详见 [implementation-report.md](implementation-report.md) 与 [integrated-validation.json](integrated-validation.json)。
 
 ## UI 交付规则
 
