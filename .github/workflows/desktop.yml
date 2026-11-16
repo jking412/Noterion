@@ -84,6 +84,9 @@ jobs:
       - name: Test model settings and native protocols on the desktop
         shell: pwsh
         run: node app/scripts/model-settings-acceptance.mjs --run=issue-31-ci-${{ github.run_id }}-${{ github.run_attempt }} --exe=app/src-tauri/target/x86_64-pc-windows-msvc/debug/noterion.exe --driver="$env:RUNNER_TEMP/webdriver/msedgedriver.exe"
+      - name: Test space migration and isolation on the desktop
+        shell: pwsh
+        run: node app/scripts/spaces-folder-acceptance.mjs --run=issue-32-ci-${{ github.run_id }}-${{ github.run_attempt }} --scenario=spaces --exe=app/src-tauri/target/x86_64-pc-windows-msvc/debug/noterion.exe --driver="$env:RUNNER_TEMP/webdriver/msedgedriver.exe"
       - name: Package release candidate
         env:
           SOURCE_SHA: ${{ github.sha }}
@@ -110,6 +113,12 @@ jobs:
             .scratch/model-settings/runs/issue-31-ci-${{ github.run_id }}-${{ github.run_attempt }}/failure.json
             .scratch/model-settings/runs/issue-31-ci-${{ github.run_id }}-${{ github.run_attempt }}/fixture-requests.json
             .scratch/model-settings/runs/issue-31-ci-${{ github.run_id }}-${{ github.run_attempt }}/*.png
+            .scratch/spaces-folder-import/runs/issue-32-ci-${{ github.run_id }}-${{ github.run_attempt }}/checks.json
+            .scratch/spaces-folder-import/runs/issue-32-ci-${{ github.run_id }}-${{ github.run_attempt }}/result.json
+            .scratch/spaces-folder-import/runs/issue-32-ci-${{ github.run_id }}-${{ github.run_attempt }}/failure.json
+            .scratch/spaces-folder-import/runs/issue-32-ci-${{ github.run_id }}-${{ github.run_attempt }}/fixture-requests.json
+            .scratch/spaces-folder-import/runs/issue-32-ci-${{ github.run_id }}-${{ github.run_attempt }}/fixture-summary.json
+            .scratch/spaces-folder-import/runs/issue-32-ci-${{ github.run_id }}-${{ github.run_attempt }}/*.png
           if-no-files-found: warn
           retention-days: 14
       - name: Preserve checked release candidate

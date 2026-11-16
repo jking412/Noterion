@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import type { KnowledgePoint, ResourceItem } from '../domain/types'
 import { formatBytes, resourceLabel, validResourceUrl } from '../domain/resources'
 import { errorText, invoke } from '../desktop'
 import Icon from './Icon.vue'
 import ModalShell from './ModalShell.vue'
 const props = defineProps<{ resources: ResourceItem[]; points: KnowledgePoint[]; busy: boolean; enabled: boolean; operationError?: string; run: (command: string, args?: Record<string, unknown>, message?: string) => Promise<boolean> }>()
-const emit = defineEmits<{ preview: [resource: ResourceItem]; import: [resource: ResourceItem]; locate: [id: string]; error: [message: string] }>()
+const emit = defineEmits<{ preview: [resource: ResourceItem]; import: [resource: ResourceItem]; locate: [id: string]; error: [message: string]; dirty: [value: boolean] }>()
 const query = ref('')
 const filter = ref('all')
 const showAdd = ref(false)
@@ -21,6 +21,7 @@ const copying = ref(false)
 const jobId = ref('')
 const associating = ref<ResourceItem | null>(null)
 const removing = ref<ResourceItem | null>(null)
+watch(() => showAdd.value || !!associating.value || !!removing.value || copying.value, value => emit('dirty', value))
 const filtered = computed(() => props.resources.filter(r => (filter.value === 'all' || r.kind === filter.value) && `${r.title}\n${r.filename ?? ''}`.toLowerCase().includes(query.value.trim().toLowerCase())))
 const kinds = computed(() => [...new Set(props.resources.map(r => r.kind))])
 const filteredPoints = computed(() => props.points.filter(p => p.name.toLowerCase().includes(pointQuery.value.trim().toLowerCase())))

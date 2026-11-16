@@ -13,6 +13,14 @@ use uuid::Uuid;
 #[path = "store_ai.rs"]
 mod ai_support;
 pub use ai_support::{AiAdoptResult, AiBatch, AiChoice, AiRecord};
+#[path = "store_spaces.rs"]
+mod spaces;
+pub use spaces::Space;
+use spaces::{active_space, read_spaces};
+
+#[cfg(test)]
+#[path = "store_spaces_tests.rs"]
+mod spaces_tests;
 
 pub type SharedStore = Arc<Mutex<Store>>;
 const DATABASE: &str = "noterion.sqlite3";
@@ -72,6 +80,9 @@ pub struct Snapshot {
     pub positions: HashMap<String, Position>,
     pub root: String,
     pub revision: u64,
+    pub space_id: String,
+    pub epoch: u64,
+    pub spaces: Vec<Space>,
 }
 
 #[derive(Serialize)]
@@ -101,6 +112,7 @@ pub struct Store {
     connection: Option<Connection>,
     error: Option<String>,
     epoch: u64,
+    space_id: String,
 }
 
 fn disk_error(action: &str, error: impl std::fmt::Display) -> String {
@@ -148,6 +160,7 @@ impl Store {
             connection: None,
             error: None,
             epoch: 0,
+            space_id: String::new(),
         };
         if let Err(error) = store.initialize(true) {
             store.error = Some(error);
@@ -187,6 +200,7 @@ impl Store {
             }
             Err(error) => return Err(disk_error("数据目录配置无法读取", error)),
         }
+        self.space_id = active_space(self.connection.as_ref().unwrap())?;
         self.snapshot()?;
         self.epoch = self.epoch.wrapping_add(1);
         Ok(())
@@ -224,8 +238,15 @@ impl Store {
 
     pub fn snapshot(&self) -> Result<Snapshot, String> {
         self.ensure_available()?;
-        let (facts, revision) = read_facts(self.connection.as_ref().unwrap())?;
-        Ok(make_snapshot(&self.root, facts, revision))
+        let (facts, revision) = read_facts(self.connection.as_ref().unwrap(), &self.space_id)?;
+        make_snapshot(
+            &self.root,
+            facts,
+            revision,
+            &self.space_id,
+            self.epoch,
+            self.connection.as_ref().unwrap(),
+        )
     }
 
     pub fn config_dir(&self) -> &Path {
@@ -242,13 +263,15 @@ impl Store {
     ) -> Result<Snapshot, String> {
         self.ensure_available()?;
         let root = self.root.clone();
+        let space_id = self.space_id.clone();
+        let epoch = self.epoch;
         let transaction = self
             .connection
             .as_mut()
             .unwrap()
             .transaction_with_behavior(TransactionBehavior::Immediate)
             .map_err(|e| disk_error("无法开始保存，原有内容未修改", e))?;
-        let (mut facts, revision) = read_facts(&transaction)?;
+        let (mut facts, revision) = read_facts(&transaction, &space_id)?;
         edit(&mut facts, revision)?;
         validate_facts(&facts)?;
         let next_revision = revision
@@ -260,26 +283,51 @@ impl Store {
             serde_json::to_string(&facts).map_err(|e| disk_error("无法整理待保存内容", e))?;
         transaction
             .execute(
-                "UPDATE noterion_state SET revision=?1, facts=?2 WHERE singleton=1",
-                params![sqlite_revision, serialized],
+                "UPDATE noterion_spaces SET revision=?1, facts=?2 WHERE id=?3",
+                params![sqlite_revision, serialized, space_id],
             )
             .map_err(|e| disk_error("正式保存失败，原有内容未修改", e))?;
         transaction
             .commit()
             .map_err(|e| disk_error("正式提交失败，请检查磁盘和目录权限", e))?;
-        Ok(make_snapshot(&root, facts, next_revision))
+        make_snapshot(
+            &root,
+            facts,
+            next_revision,
+            &space_id,
+            epoch,
+            self.connection.as_ref().unwrap(),
+        )
     }
 
-    fn select_directory(&mut self, path: &Path, create: bool) -> Result<Snapshot, String> {
+    pub fn select_directory(
+        &mut self,
+        path: &Path,
+        create: bool,
+        space_id: &str,
+        epoch: u64,
+    ) -> Result<Snapshot, String> {
+        // Reconnecting cannot require the old directory to remain available.
+        // Keep stale visit protection before inspecting or changing the target.
+        self.check_context_identity(space_id, epoch)?;
         let (root, connection) = open_store(path, create)?;
-        let (facts, revision) = read_facts(&connection)?;
+        let space_id = active_space(&connection)?;
+        let (facts, revision) = read_facts(&connection, &space_id)?;
         // Persist the choice before replacing the active connection and facts.
         save_config(&self.config_dir, &root)?;
         self.root = root;
         self.connection = Some(connection);
         self.error = None;
+        self.space_id = space_id;
         self.epoch = self.epoch.wrapping_add(1);
-        Ok(make_snapshot(&self.root, facts, revision))
+        make_snapshot(
+            &self.root,
+            facts,
+            revision,
+            &self.space_id,
+            self.epoch,
+            self.connection.as_ref().unwrap(),
+        )
     }
 
     pub fn resolve_file(&self, id: &str) -> Result<(PathBuf, String, u64), String> {
@@ -365,7 +413,7 @@ impl Store {
     }
 }
 
-fn read_facts(connection: &Connection) -> Result<(Facts, u64), String> {
+fn read_legacy_facts(connection: &Connection) -> Result<(Facts, u64), String> {
     let (serialized, sqlite_revision): (String, i64) = connection
         .query_row(
             "SELECT facts, revision FROM noterion_state WHERE singleton=1",
@@ -381,7 +429,30 @@ fn read_facts(connection: &Connection) -> Result<(Facts, u64), String> {
     Ok((facts, revision))
 }
 
-fn make_snapshot(root: &Path, mut facts: Facts, revision: u64) -> Snapshot {
+fn read_facts(connection: &Connection, space_id: &str) -> Result<(Facts, u64), String> {
+    let (serialized, sqlite_revision): (String, i64) = connection
+        .query_row(
+            "SELECT facts, revision FROM noterion_spaces WHERE id=?1",
+            [space_id],
+            |row| Ok((row.get(0)?, row.get(1)?)),
+        )
+        .map_err(|e| disk_error("正式存储读取失败，未显示为空库", e))?;
+    let revision =
+        u64::try_from(sqlite_revision).map_err(|_| "正式数据版本无效，未显示为空库。")?;
+    let facts: Facts = serde_json::from_str(&serialized)
+        .map_err(|e| disk_error("正式数据内容损坏，未显示为空库", e))?;
+    validate_facts(&facts)?;
+    Ok((facts, revision))
+}
+
+fn make_snapshot(
+    root: &Path,
+    mut facts: Facts,
+    revision: u64,
+    space_id: &str,
+    epoch: u64,
+    connection: &Connection,
+) -> Result<Snapshot, String> {
     for resource in &mut facts.resources {
         let ready = resource.kind == "link"
             || resource.filename.as_ref().is_some_and(|name| {
@@ -392,13 +463,16 @@ fn make_snapshot(root: &Path, mut facts: Facts, revision: u64) -> Snapshot {
             });
         resource.status = Some(if ready { "ready" } else { "missing" }.into());
     }
-    Snapshot {
+    Ok(Snapshot {
         points: facts.points,
         resources: facts.resources,
         positions: facts.positions,
         root: root.to_string_lossy().into_owned(),
         revision,
-    }
+        space_id: space_id.to_owned(),
+        epoch,
+        spaces: read_spaces(connection)?,
+    })
 }
 
 fn valid_point_color(color: &str) -> bool {
@@ -656,7 +730,7 @@ fn open_store(path: &Path, create: bool) -> Result<(PathBuf, Connection), String
     let version: i32 = connection
         .query_row("PRAGMA user_version", [], |row| row.get(0))
         .map_err(|e| disk_error("无法读取存储版本", e))?;
-    if application_id != APPLICATION_ID || ![1, 2].contains(&version) {
+    if application_id != APPLICATION_ID || ![1, 2, 3].contains(&version) {
         return Err("此数据库不属于当前版本的 Noterion，未修改内容。".into());
     }
     let files = root.join("files");
@@ -666,8 +740,7 @@ fn open_store(path: &Path, create: bool) -> Result<(PathBuf, Connection), String
     }
     // Validate the old authoritative content and file directory before any migration
     // or journal-mode change. An unrelated or corrupt database is never upgraded.
-    read_facts(&connection)?;
-    ai_support::prepare_schema(&mut connection)?;
+    spaces::prepare_spaces(&mut connection)?;
     connection
         .execute_batch("PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL; PRAGMA foreign_keys=ON;")
         .map_err(|e| disk_error("数据目录不可写或不能可靠提交，请选择可写位置", e))?;
@@ -741,24 +814,40 @@ pub fn app_load(state: tauri::State<'_, SharedStore>) -> Result<Snapshot, String
 }
 
 #[tauri::command]
-pub fn ai_records(state: tauri::State<'_, SharedStore>) -> Result<Vec<AiRecord>, String> {
-    lock_store(&state)?.ai_records()
+pub fn ai_records(
+    space_id: String,
+    epoch: u64,
+    state: tauri::State<'_, SharedStore>,
+) -> Result<Vec<AiRecord>, String> {
+    let store = lock_store(&state)?;
+    store.check_context(&space_id, epoch)?;
+    store.ai_records()
 }
 #[tauri::command]
 pub fn directory_select(
     path: String,
     create: bool,
+    space_id: String,
+    epoch: u64,
+    host: tauri::State<'_, crate::ai::AiHost>,
     state: tauri::State<'_, SharedStore>,
 ) -> Result<Snapshot, String> {
-    lock_store(&state)?.select_directory(Path::new(&path), create)
+    let mut store = lock_store(&state)?;
+    let snapshot = store.select_directory(Path::new(&path), create, &space_id, epoch)?;
+    host.invalidate_context();
+    drop(store);
+    Ok(snapshot)
 }
 #[tauri::command]
 pub fn point_save(
     mut point: Point,
     creating: bool,
+    space_id: String,
+    epoch: u64,
     state: tauri::State<'_, SharedStore>,
 ) -> Result<Snapshot, String> {
     let mut store = lock_store(&state)?;
+    store.check_context(&space_id, epoch)?;
     point.name = point.name.trim().to_owned();
     unique(&mut point.topic_ids);
     unique(&mut point.resource_ids);
@@ -780,20 +869,27 @@ pub fn point_save(
 #[tauri::command]
 pub fn delete_preview(
     id: String,
+    space_id: String,
+    epoch: u64,
     state: tauri::State<'_, SharedStore>,
 ) -> Result<DeleteImpact, String> {
     let store = lock_store(&state)?;
+    store.check_context(&space_id, epoch)?;
     store.ensure_available()?;
-    let (facts, _) = read_facts(store.connection.as_ref().unwrap())?;
+    let (facts, _) = read_facts(store.connection.as_ref().unwrap(), &store.space_id)?;
     deletion_impact(&facts, &id)
 }
 #[tauri::command]
 pub fn point_delete(
     id: String,
     revision: u64,
+    space_id: String,
+    epoch: u64,
     state: tauri::State<'_, SharedStore>,
 ) -> Result<Snapshot, String> {
-    lock_store(&state)?.mutate(move |facts, current_revision| {
+    let mut store = lock_store(&state)?;
+    store.check_context(&space_id, epoch)?;
+    store.mutate(move |facts, current_revision| {
         if revision != current_revision {
             return Err("知识内容已改变，请关闭并重新查看删除影响后再确认。".into());
         }
@@ -815,6 +911,8 @@ pub fn resource_add_link(
     title: String,
     url: String,
     point_ids: Vec<String>,
+    space_id: String,
+    epoch: u64,
     state: tauri::State<'_, SharedStore>,
 ) -> Result<Snapshot, String> {
     let url = validate_url(&url)?;
@@ -828,7 +926,9 @@ pub fn resource_add_link(
         size: None,
         status: None,
     };
-    lock_store(&state)?.mutate(move |facts, _| {
+    let mut store = lock_store(&state)?;
+    store.check_context(&space_id, epoch)?;
+    store.mutate(move |facts, _| {
         ensure_point_ids(facts, &point_ids)?;
         associate_new(facts, &resource.id, &point_ids);
         facts.resources.push(resource);
@@ -839,9 +939,13 @@ pub fn resource_add_link(
 pub fn resource_associate(
     id: String,
     point_ids: Vec<String>,
+    space_id: String,
+    epoch: u64,
     state: tauri::State<'_, SharedStore>,
 ) -> Result<Snapshot, String> {
-    lock_store(&state)?.mutate(move |facts, _| {
+    let mut store = lock_store(&state)?;
+    store.check_context(&space_id, epoch)?;
+    store.mutate(move |facts, _| {
         if !facts.resources.iter().any(|resource| resource.id == id) {
             return Err("这份资料已移除，请刷新资料库。".into());
         }
@@ -858,9 +962,13 @@ pub fn resource_associate(
 #[tauri::command]
 pub fn resource_remove(
     id: String,
+    space_id: String,
+    epoch: u64,
     state: tauri::State<'_, SharedStore>,
 ) -> Result<Snapshot, String> {
-    lock_store(&state)?.mutate(move |facts, _| {
+    let mut store = lock_store(&state)?;
+    store.check_context(&space_id, epoch)?;
+    store.mutate(move |facts, _| {
         if !facts.resources.iter().any(|resource| resource.id == id) {
             return Err("这份资料已移除，请刷新资料库。".into());
         }
@@ -875,13 +983,60 @@ pub fn resource_remove(
 pub fn point_move(
     id: String,
     position: Position,
+    space_id: String,
+    epoch: u64,
     state: tauri::State<'_, SharedStore>,
 ) -> Result<Snapshot, String> {
-    lock_store(&state)?.mutate(move |facts, _| {
+    let mut store = lock_store(&state)?;
+    store.check_context(&space_id, epoch)?;
+    store.mutate(move |facts, _| {
         if !facts.points.iter().any(|point| point.id == id) {
             return Err("知识点已移除，位置未保存。".into());
         }
         facts.positions.insert(id, position);
         Ok(())
     })
+}
+
+#[tauri::command]
+pub fn space_create(
+    name: String,
+    space_id: String,
+    epoch: u64,
+    host: tauri::State<'_, crate::ai::AiHost>,
+    state: tauri::State<'_, SharedStore>,
+) -> Result<Snapshot, String> {
+    let mut store = lock_store(&state)?;
+    store.check_context(&space_id, epoch)?;
+    let snapshot = store.create_space(name)?;
+    host.invalidate_context();
+    drop(store);
+    Ok(snapshot)
+}
+#[tauri::command]
+pub fn space_switch(
+    id: String,
+    space_id: String,
+    epoch: u64,
+    host: tauri::State<'_, crate::ai::AiHost>,
+    state: tauri::State<'_, SharedStore>,
+) -> Result<Snapshot, String> {
+    let mut store = lock_store(&state)?;
+    store.check_context(&space_id, epoch)?;
+    let snapshot = store.switch_space(&id)?;
+    host.invalidate_context();
+    drop(store);
+    Ok(snapshot)
+}
+#[tauri::command]
+pub fn space_rename(
+    id: String,
+    name: String,
+    space_id: String,
+    epoch: u64,
+    state: tauri::State<'_, SharedStore>,
+) -> Result<Snapshot, String> {
+    let mut store = lock_store(&state)?;
+    store.check_context(&space_id, epoch)?;
+    store.rename_space(&id, name)
 }

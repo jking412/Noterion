@@ -40,6 +40,7 @@ impl StoredDraft {
         AiBatch {
             draft_id: b.draft_id.clone(),
             root: b.root.clone(),
+            space_id: b.space_id.clone(),
             epoch: b.epoch,
             baseline_points: b.baseline_points.clone(),
             baseline_resources: b.baseline_resources.clone(),

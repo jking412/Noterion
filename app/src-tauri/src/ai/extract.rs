@@ -59,6 +59,7 @@ pub async fn run(
             .store
             .lock()
             .map_err(|_| "本地存储暂时不可用。".to_owned())?;
+        store.check_context(&task.space_id, task.epoch)?;
         store.ai_duplicate(&fingerprint)?
     };
     if let Some(record) = duplicate {
@@ -80,6 +81,7 @@ pub async fn run(
         let batch = AiBatch {
             draft_id: id,
             root: snapshot.root,
+            space_id: snapshot.space_id,
             epoch,
             baseline_points: snapshot.points,
             baseline_resources: snapshot.resources,
@@ -158,6 +160,7 @@ pub async fn run(
                     .store
                     .lock()
                     .map_err(|_| "本地存储暂时不可用。".to_owned())?;
+                store.check_context(&task.space_id, task.epoch)?;
                 store.validate_candidate_points(&points)?;
                 Ok(value)
             });
@@ -240,6 +243,7 @@ pub async fn run(
     let batch = AiBatch {
         draft_id,
         root: snapshot.root,
+        space_id: snapshot.space_id,
         epoch,
         baseline_points: snapshot.points,
         baseline_resources: snapshot.resources,

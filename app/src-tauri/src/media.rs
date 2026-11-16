@@ -28,6 +28,18 @@ struct StreamFile {
     mime: String,
     size: u64,
     cancelled: AtomicBool,
+    store: SharedStore,
+    space_id: String,
+    epoch: u64,
+}
+impl StreamFile {
+    fn available(&self) -> bool {
+        !self.cancelled.load(Ordering::SeqCst)
+            && self
+                .store
+                .lock()
+                .is_ok_and(|store| store.check_context(&self.space_id, self.epoch).is_ok())
+    }
 }
 impl MediaHost {
     pub fn new() -> Result<Self, String> {
@@ -95,7 +107,7 @@ fn serve(host: &MediaHost, mut socket: TcpStream) -> std::io::Result<()> {
     let path = words.get(1).copied().unwrap_or("");
     let token = path.strip_prefix('/').unwrap_or("");
     let file = host.0.streams.lock().unwrap().get(token).cloned();
-    let Some(file) = file.filter(|f| !f.cancelled.load(Ordering::SeqCst)) else {
+    let Some(file) = file.filter(|f| f.available()) else {
         socket.write_all(
             b"HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\nConnection: close\r\n\r\n",
         )?;
@@ -154,7 +166,7 @@ fn serve(host: &MediaHost, mut socket: TcpStream) -> std::io::Result<()> {
         }
         source.seek(SeekFrom::Start(start))?;
         let mut buffer = [0u8; 65536];
-        while written < length && !file.cancelled.load(Ordering::SeqCst) {
+        while written < length && file.available() {
             let take = (length - written).min(buffer.len() as u64) as usize;
             let n = source.read(&mut buffer[..take])?;
             if n == 0 {
@@ -280,16 +292,23 @@ fn ensure_copy_space(directory: &std::path::Path, required: u64) -> Result<(), S
     Ok(())
 }
 #[tauri::command]
+#[allow(clippy::too_many_arguments)]
 pub async fn resource_add_file(
     path: String,
     title: String,
     point_ids: Vec<String>,
     job_id: String,
+    space_id: String,
+    epoch: u64,
     state: tauri::State<'_, SharedStore>,
     media: tauri::State<'_, MediaHost>,
     app: tauri::AppHandle,
 ) -> Result<Snapshot, String> {
     let store = state.inner().clone();
+    store
+        .lock()
+        .map_err(|_| "数据忙，请重启后重试。")?
+        .check_context(&space_id, epoch)?;
     let host = media.inner().clone();
     let cancel = Arc::new(AtomicBool::new(false));
     {
@@ -307,7 +326,7 @@ pub async fn resource_add_file(
         let mut source=File::open(&source_path).map_err(|e|format!("无法读取源文件：{e}"))?;
         let original=source.metadata().map_err(|e|e.to_string())?;
         if !original.is_file(){return Err("请选择文件，而不是文件夹。".into());}
-        let directory=store.lock().map_err(|_|"数据忙，请重启后重试。")?.files_dir()?;
+        let directory={let data=store.lock().map_err(|_|"数据忙，请重启后重试。")?; data.check_context(&space_id,epoch)?; data.files_dir()?};
         ensure_copy_space(&directory, original.len())?;
         let id=uuid::Uuid::new_v4().to_string();
         let partial=directory.join(format!("{id}.partial"));
@@ -317,6 +336,7 @@ pub async fn resource_add_file(
             let mut buffer=[0u8;131072];let mut total=0u64;let mut last_progress=0;
             loop{
                 if cancel.load(Ordering::SeqCst){return Err("复制已取消，未添加资料。".into());}
+                store.lock().map_err(|_|"数据忙，请重启后重试。")?.check_context(&space_id,epoch)?;
                 let count=source.read(&mut buffer).map_err(|e|format!("读取源文件失败：{e}"))?;
                 if count==0{break;}
                 destination.write_all(&buffer[..count]).map_err(|e|format!("保存副本失败，请检查权限和磁盘空间：{e}"))?;
@@ -327,6 +347,7 @@ pub async fn resource_add_file(
             if total!=original.len() || after.len()!=original.len() || after.modified().ok()!=original.modified().ok(){return Err("复制过程中源文件发生变化，请重试。".into());}
             destination.sync_all().map_err(|e|format!("副本未完整写入磁盘：{e}"))?;drop(destination);
             let mut data=store.lock().map_err(|_|"数据忙，请重启后重试。")?;
+            data.check_context(&space_id,epoch)?;
             if data.files_dir()?!=directory{return Err("数据目录已切换，本次复制未提交。".into());}
             if cancel.load(Ordering::SeqCst){return Err("复制已取消，未添加资料。".into());}
             std::fs::rename(&partial,&final_path).map_err(|e|format!("完成副本失败：{e}"))?;
@@ -353,13 +374,14 @@ pub struct MediaReply {
 #[tauri::command]
 pub fn media_open(
     id: String,
+    space_id: String,
+    epoch: u64,
     state: tauri::State<'_, SharedStore>,
     media: tauri::State<'_, MediaHost>,
 ) -> Result<MediaReply, String> {
-    let (path, mime, size) = state
-        .lock()
-        .map_err(|_| "数据忙，请重启后重试。")?
-        .resolve_file(&id)?;
+    let data = state.lock().map_err(|_| "数据忙，请重启后重试。")?;
+    data.check_context(&space_id, epoch)?;
+    let (path, mime, size) = data.resolve_file(&id)?;
     let token = uuid::Uuid::new_v4().to_string();
     media.0.streams.lock().unwrap().insert(
         token.clone(),
@@ -368,6 +390,9 @@ pub fn media_open(
             mime: mime.clone(),
             size,
             cancelled: AtomicBool::new(false),
+            store: state.inner().clone(),
+            space_id,
+            epoch,
         }),
     );
     Ok(MediaReply {
@@ -387,10 +412,13 @@ pub fn media_close(url: String, state: tauri::State<'_, MediaHost>) {
 #[tauri::command]
 pub fn resource_external(
     id: String,
+    space_id: String,
+    epoch: u64,
     state: tauri::State<'_, SharedStore>,
     media: tauri::State<'_, MediaHost>,
 ) -> Result<(), String> {
     let data = state.lock().map_err(|_| "数据忙，请重启后重试。")?;
+    data.check_context(&space_id, epoch)?;
     let snapshot = data.snapshot()?;
     let resource = snapshot
         .resources
