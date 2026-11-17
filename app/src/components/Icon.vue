@@ -14,6 +14,8 @@ const paths: Record<string, string> = {
   refresh: 'M20 7v5h-5 M20 12a8 8 0 1 0-2 6',
   alert: 'm12 3 10 18H2L12 3 M12 9v4 M12 17h.01',
   plug: 'm9 3 1 5 M15 3l-1 5 M7 8h10v3a5 5 0 0 1-10 0V8 M12 16v6',
+  sidebar: 'M3 4h18v16H3z M8 4v16 M12 9l-3 3 3 3',
+  settings: 'M10 3h4l1 3 3 1 3 3v4l-3 1-1 3-3 3h-4l-1-3-3-1-3-3v-4l3-1 1-3 3-3 M15 12a3 3 0 1 0-6 0 3 3 0 0 0 6 0',
   book: 'M12 5v16 M12 5C8 2 3 3 3 3v16s5-1 9 2 M12 5c4-3 9-2 9-2v16s-5-1-9 2',
   arrow: 'M19 12H5 m6-6-6 6 6 6',
   layers: 'm12 3 10 5-10 5L2 8l10-5 M2 12l10 5 10-5 M2 16l10 5 10-5',

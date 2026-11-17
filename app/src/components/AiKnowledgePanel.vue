@@ -38,7 +38,6 @@ const textResources = computed(() => props.resources.filter(r => ['text', 'markd
       <textarea id="ai-question" v-model="question" class="field ai-question" :readonly="busy || blocked" aria-label="自然语言问题" data-testid="ai-question" :placeholder="action==='search'?'例如：进入 Docker 容器终端，但我忘了命令':'例如：怎么进入运行中的 Docker 容器？'" rows="3" @keydown.ctrl.enter.prevent="submit" />
       <details v-if="textResources.length" class="ai-text-context">
         <summary>附加文本资料<span v-if="selectedResources.length">（{{selectedResources.length}}）</span></summary>
-        <p>所选正文会随问题发送至 {{ serviceLabel }}。</p>
         <label v-for="resource in textResources" :key="resource.id"><input v-model="selectedResources" type="checkbox" :value="resource.id" :disabled="busy || blocked" />{{resource.title}}</label>
       </details>
       <label v-if="action==='answer'" class="ai-check"><input v-model="supplement" type="checkbox" :disabled="busy || blocked" aria-label="允许 AI 补充通用知识" />允许 AI 补充通用知识</label>
@@ -95,7 +94,6 @@ const textResources = computed(() => props.resources.filter(r => ['text', 'markd
 .ai-check input{flex-shrink:0;margin-top:3px}
 .ai-text-context{font-size:13px;color:#555;line-height:1.8;margin:14px 0}
 .ai-text-context summary{cursor:pointer}
-.ai-text-context p{color:var(--muted);margin:8px 0}
 .ai-text-context label{display:flex;gap:8px;align-items:flex-start;padding:6px 0;overflow-wrap:anywhere}
 .ai-text-context input{flex-shrink:0;margin-top:4px}
 .ai-other-task{display:flex;flex-wrap:wrap;align-items:center;gap:8px}

@@ -222,10 +222,11 @@ export async function startAiFixture() {
 
 function requestStage(body) {
   if (body.messages.some(message => typeof message?.content === 'string' && message.content.includes('个人知识图谱整理器'))) return 'extract';
-  if (Array.isArray(body.tools) && body.tools.length) return 'retrieve';
   const latestContract = [...body.messages].reverse().find(message => message?.role === 'user' && typeof message.content === 'string' && (message.content.includes('"blocks"') || message.content.includes('"hits"')))?.content ?? '';
   if (latestContract.includes('"blocks"')) return 'answer';
   if (latestContract.includes('"hits"')) return 'search';
+  if (body.tools?.some(tool => tool?.function?.name === 'check_connection')) return 'connection';
+  if (Array.isArray(body.tools) && body.tools.length) return 'retrieve';
   return 'connection';
 }
 
@@ -233,6 +234,10 @@ function fixtureCompletion(mode, body, sequence) {
   if (mode === 'blank') return { content: '   ', finish: 'stop' };
   if (mode === 'truncated') return { content: '{"points":[', finish: 'length' };
   const stage = requestStage(body);
+  if (stage === 'connection' && body.tool_choice !== 'none' && body.tools?.some(tool => tool?.function?.name === 'check_connection')) return {
+    tool: { id: `fixture-check-${sequence}`, type: 'function', function: { name: 'check_connection', arguments: '{"value":1}' } },
+    finish: 'tool_calls',
+  };
   if (stage === 'extract') {
     const input = body.messages.map(message => parseObject(message?.content)).find(value => typeof value?.text === 'string') ?? {};
     const text = input.text ?? AI_FIXTURE_TEXT;

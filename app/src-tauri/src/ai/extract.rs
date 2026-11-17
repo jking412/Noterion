@@ -59,13 +59,11 @@ pub async fn run(
             .store
             .lock()
             .map_err(|_| "本地存储暂时不可用。".to_owned())?;
+        store.check_context(&task.space_id, task.epoch)?;
         store.ai_duplicate(&fingerprint)?
     };
     if let Some(record) = duplicate {
-        task.phase(
-            "validating",
-            "本机采用回执已识别完全相同的输入，无需再次调用 AI。",
-        )?;
+        task.phase("validating", "正在查找已保存知识…")?;
         let id = Uuid::new_v4().to_string();
         let source_name = clip(
             request.source_name.as_deref().unwrap_or("粘贴的学习文本"),
@@ -76,13 +74,14 @@ pub async fn run(
             points: vec![],
             source_name: source_name.clone(),
             source_resource_ids: sources.clone(),
-            warnings: vec!["本机采用记录已处理完全相同的输入。本次未调用 AI，也未生成新候选；查看已有结果不会重复写入或恢复已删除的知识。".into()],
+            warnings: vec![],
             duplicate_record_id: Some(record.id),
             original_record_id: request.original_record_id.clone(),
         };
         let batch = AiBatch {
             draft_id: id,
             root: snapshot.root,
+            space_id: snapshot.space_id,
             epoch,
             baseline_points: snapshot.points,
             baseline_resources: snapshot.resources,
@@ -161,6 +160,7 @@ pub async fn run(
                     .store
                     .lock()
                     .map_err(|_| "本地存储暂时不可用。".to_owned())?;
+                store.check_context(&task.space_id, task.epoch)?;
                 store.validate_candidate_points(&points)?;
                 Ok(value)
             });
@@ -224,7 +224,7 @@ pub async fn run(
         }
     }
     if chunks.len() > 1 {
-        warnings.push("长文已分段理解；跨段的同名候选仍需核对，不会自动合并已有知识。".into());
+        warnings.push("请核对不同段落中的同名候选。".into());
     }
     let draft_id = Uuid::new_v4().to_string();
     let source_name = clip(
@@ -243,6 +243,7 @@ pub async fn run(
     let batch = AiBatch {
         draft_id,
         root: snapshot.root,
+        space_id: snapshot.space_id,
         epoch,
         baseline_points: snapshot.points,
         baseline_resources: snapshot.resources,

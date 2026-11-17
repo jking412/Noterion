@@ -65,13 +65,11 @@ function save() {
           <label class="editor-label" for="knowledge-description">描述</label>
           <span>Markdown</span>
         </div>
-        <textarea id="knowledge-description" v-model="draft.description" class="field description-input" spellcheck="false" aria-describedby="description-help" />
-        <p id="description-help" class="field-help">支持 Markdown，可用“## 命令”“## 个人理解”分段。</p>
+        <textarea id="knowledge-description" v-model="draft.description" class="field description-input" spellcheck="false" />
       </div>
       <div class="editor-side">
         <fieldset>
           <legend>所属主题</legend>
-          <p class="field-help">可多选；留空为独立知识点。</p>
           <div class="option-list">
             <label v-for="theme in themes" :key="theme.id" class="check-option">
               <input v-model="draft.topicIds" type="checkbox" :value="theme.id" :aria-label="'所属主题 ' + theme.name" />

@@ -15,13 +15,13 @@ const args = Object.fromEntries(process.argv.slice(2).map(item => {
   return [item.slice(2, at), item.slice(at + 1)];
 }));
 const run = args.run;
-assert.match(run ?? '', /^issue-22-[a-z0-9-]+$/);
+assert.match(run ?? '', /^issue-(22|33)-[a-z0-9-]+$/);
 const scenario = args.scenario ?? 'smoke';
 const out = path.join(app, 'validation/runs', run);
 const config = path.join(out, 'config');
 const exe = path.resolve(args.exe ?? path.join(app, 'dist-desktop/noterion.exe'));
 let activeExe = exe;
-const driverExe = path.join(repo, '.scratch/personal-knowledge-graph/validation/windows-desktop/.tools/issue3-webdriver/msedgedriver.exe');
+const driverExe = path.resolve(args.driver ?? path.join(repo, '.scratch/personal-knowledge-graph/validation/windows-desktop/.tools/issue3-webdriver/msedgedriver.exe'));
 const port = Number(args.port ?? 33231);
 const endpoint = `http://127.0.0.1:${port}`;
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -92,6 +92,11 @@ async function capture(name) {
   assert.ok(!key || !source.includes(key), 'Credential must not appear in captured markup');
   await fs.writeFile(path.join(out, name + '.html'), source);
 }
+async function revealSavedResult() {
+  // A normal WebDriver click scrolls the result heading into view for review.
+  const heading = await find('[data-testid="ai-adopted"] h2');
+  await wd('POST', `/element/${heading}/click`, {});
+}
 async function check(name, action) {
   const detail = await action();
   checks.push({ name, verdict: 'PASS', detail });
@@ -110,7 +115,7 @@ async function launch() {
       webviewOptions: { userDataFolder: path.join(out, 'profile') } },
   } } });
   session = result.sessionId;
-  await until(async () => await observe('return location.href === "http://tauri.localhost/" && document.visibilityState === "visible";'), 'visible embedded app');
+  await until(async () => await observe('return location.origin === "http://tauri.localhost" && location.pathname === "/" && document.visibilityState === "visible";'), 'visible embedded app');
   await until(async () => {
     const id = await find('[data-testid="create-point"]');
     return wd('GET', `/element/${id}/enabled`);
@@ -122,24 +127,25 @@ async function stop() {
 }
 async function settings(url, credential, validate = false) {
   await click('[data-testid="ai-settings"]');
-  await until(async () => (await all('.ai-config-status')).length > 0, 'native connection settings finish loading');
-  if (url && await observe('return document.querySelector("#deepseek-url").value;') !== url) {
-    const remove = await find("//button[normalize-space(.)='移除密钥']", 'xpath');
+  await until(async () => (await all('[data-testid="model-base-url"]')).length > 0, 'native connection settings finish loading');
+  await click('[data-testid="provider-deepseek"]');
+  if (url && await observe('return document.querySelector("#model-base-url").value;') !== url) {
+    const remove = await find('[data-testid="model-remove-key"]');
     if (await wd('GET', `/element/${remove}/enabled`)) {
       await wd('POST', `/element/${remove}/click`, {});
-      await expectText('dialog', '已移除密钥');
+      await expectText('[data-testid="model-save-success"]', '已移除这个连接的密钥');
     }
   }
-  if (url) await fill('#deepseek-url', url);
-  if (credential) await fill('#deepseek-key', credential);
-  await click('[data-testid="ai-settings-save"]');
-  await expectText('dialog', '配置已保存');
-  assert.equal(await observe('return document.querySelector("#deepseek-key").value;'), '', 'Key input clears after save');
+  if (url) await fill('#model-base-url', url);
+  if (credential) await fill('#model-api-key', credential);
+  await click('[data-testid="model-activate"]');
+  await expectText('[data-testid="model-save-success"]', '配置已保存并启用');
+  assert.equal(await observe('return document.querySelector("#model-api-key").value;'), '', 'Key input clears after save');
   if (validate) {
     await click('[data-testid="ai-check"]');
-    await expectText('dialog', '结构化输出可用', 90000);
+    await expectText('[data-testid="model-check-success"]', '连接正常', 90000);
   }
-  await click('[aria-label="关闭弹窗"]');
+  await clickText('知识图谱');
 }
 async function extract(source) {
   await clickText('知识导入');
@@ -157,8 +163,15 @@ async function selectCandidate(name) {
 async function selectOption(selector, labelPrefix) {
   await click(`${selector}/option[starts-with(normalize-space(.),${literal(labelPrefix)})]`, 'xpath');
 }
-async function localSearch(query) {
+async function openSearch() {
   await clickText('知识图谱');
+  if ((await all('[aria-controls="knowledge-search"]')).length
+      && await observe('return document.querySelector("[aria-controls=knowledge-search]").getAttribute("aria-expanded");') === 'false') {
+    await click('[aria-controls="knowledge-search"]');
+  }
+}
+async function localSearch(query) {
+  await openSearch();
   await clickText('片段搜索');
   await fill('[data-testid="search-input"]', query);
   await pause(180);
@@ -169,7 +182,7 @@ async function selectKnowledge(name) {
   await expectText('[data-testid="knowledge-details"] h1', name);
 }
 async function ask(question, answer = false) {
-  await clickText('知识图谱');
+  await openSearch();
   await click('[data-testid="ai-search-mode"]');
   await clickText(answer ? '回答问题' : '查找知识');
   await fill('[data-testid="ai-question"]', question);
@@ -241,13 +254,14 @@ async function faultScenario() {
       await expectText('[data-testid="ai-import-error"]', '尚未配置');
       assert.equal(await observe('return document.querySelector("[data-testid=ai-source]").value;'), AI_FIXTURE_TEXT);
     });
-    for (const [mode, expected] of [['blank','空白'], ['truncated','截断'], ['bad-color','颜色'], ['bad-theme','主题'], ['extra-field','结构'], ['bad-quote','依据'], ['duplicate-id','身份'], ['self-reference','自己'], ['unknown-reference','主题'], ['cycle','循环'], ['empty','没有'], ['unauthorized','鉴权'], ['rate-limit','受限'], ['server-error','服务'], ['network-drop','连接']]) {
+    for (const [mode, expected] of [['blank','空结果'], ['truncated','截断'], ['bad-color','颜色'], ['bad-theme','主题'], ['extra-field','结构'], ['bad-quote','依据'], ['duplicate-id','身份'], ['self-reference','自己'], ['unknown-reference','主题'], ['cycle','循环'], ['empty','没有'], ['unauthorized','鉴权'], ['rate-limit','受限'], ['server-error','服务'], ['network-drop','连接']]) {
       await settings(fixture.baseUrl(mode), 'fixture-only-key');
       await extract(AI_FIXTURE_TEXT);
       await check(`${mode} fails honestly and preserves input without creating a partial batch`, async () => {
         await expectText('[data-testid="ai-import-error"]', expected, 30000);
         assert.equal(await observe('return document.querySelector("[data-testid=ai-source]").value;'), AI_FIXTURE_TEXT);
         assert.equal((await all('.ai-candidate-list button')).length, 0);
+        await capture(`02-failure-${mode}`);
         await localSearch('进入容器终端');
         assert.equal((await all('.result-list .result-item')).length, 0);
         assert.equal((await all('[data-testid="storage-error"]')).length, 0);
@@ -265,32 +279,45 @@ async function faultScenario() {
     await extract(AI_FIXTURE_TEXT);
     await check('pending native AI request leaves local browsing and saving available; cancel preserves input', async () => {
       await until(async () => fixture.requests.some(r => r.mode === 'slow'), 'native Rust request reached fixture');
+      await capture('03-import-waiting');
       await manualPoint('网络等待期间保存的知识');
       await clickText('知识导入');
       await click('[data-testid="ai-import-cancel"]');
       await expectText('[aria-label="AI 知识整理"]', '解析已取消');
+      await capture('03-import-canceled');
       assert.equal(await observe('return document.querySelector("[data-testid=ai-source]").value;'), AI_FIXTURE_TEXT);
       await until(async () => fixture.requests.some(r => r.mode === 'slow' && r.aborted), 'cancel aborts the native HTTP request');
     });
     await settings(fixture.baseUrl('good'), 'fixture-only-key');
-    await check('failed configuration replacement restores the original system credential', async () => {
-      const locker = spawn('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', path.join(app, 'validation/hold-ai-config.ps1'), '-RunDirectory', out], { windowsHide: true, stdio: 'ignore' });
+    await check('failed configuration replacement preserves saved configuration and leaves native extraction usable', async () => {
+      const configPath = path.join(config, 'model-connections.json');
+      const original = await fs.readFile(configPath, 'utf8');
+      const lockScript = path.join(out, 'hold-model-config.ps1');
+      const ready = path.join(out, 'config-lock-ready'), finish = path.join(out, 'config-lock-stop');
+      await fs.writeFile(lockScript, `param([string]$Config,[string]$Ready,[string]$Finish)
+$ErrorActionPreference='Stop'
+$stream=[IO.File]::Open($Config,[IO.FileMode]::Open,[IO.FileAccess]::Read,[IO.FileShare]::Read)
+try{[IO.File]::WriteAllText($Ready,'ready');$deadline=[DateTime]::UtcNow.AddMinutes(2);while(!(Test-Path -LiteralPath $Finish) -and [DateTime]::UtcNow -lt $deadline){Start-Sleep -Milliseconds 100}}finally{$stream.Dispose()}
+`);
+      const locker = spawn('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', lockScript, '-Config', configPath, '-Ready', ready, '-Finish', finish], { windowsHide: true, stdio: 'ignore' });
       try {
-        await until(async () => fs.access(path.join(out, 'config-lock-ready')).then(() => true).catch(() => false), 'configuration replacement lock');
+        await until(async () => fs.access(ready).then(() => true).catch(() => false), 'configuration replacement lock');
         await click('[data-testid="ai-settings"]');
-        await fill('#deepseek-key', 'changed-test-key-DIFF');
+        await until(async () => (await all('[data-testid="model-api-key"]')).length, 'model settings loaded');
+        await fill('#model-api-key', 'changed-test-key-DIFF');
         await click('[data-testid="ai-settings-save"]');
-        await expectText('dialog [role="alert"]', '原系统凭据已恢复');
-        await click('[aria-label="关闭弹窗"]');
-        await click('[data-testid="ai-settings"]');
-        await expectText('.ai-config-status', '••••-key');
-        await click('[aria-label="关闭弹窗"]');
+        await expectText('[data-testid="model-save-error"]', '原配置与凭据已保留');
+        assert.equal(await observe('return document.querySelector("#model-api-key").value;'), '');
+        assert.equal(await fs.readFile(configPath, 'utf8'), original);
+        await expectText('[data-testid="model-key-state"]', '已保存密钥');
       } finally {
-        await fs.writeFile(path.join(out, 'config-lock-stop'), 'stop');
+        await fs.writeFile(finish, 'stop');
         await until(() => locker.exitCode !== null, 'configuration lock releases');
       }
+      await clickText('知识图谱');
+      await extract(AI_FIXTURE_TEXT);
+      assert.equal(await candidates(), 3);
     });
-    await extract(AI_FIXTURE_TEXT); await candidates();
     await check('invalid edited cycle rejects the whole batch and permits correction', async () => {
       await selectCandidate('Docker');
       await click("//fieldset[contains(@class,'ai-candidate-topics')][legend='所属主题']//label[normalize-space(.)='Linux']/input", 'xpath');
@@ -314,39 +341,53 @@ async function faultScenario() {
       await fill('[aria-label="候选知识点描述"]', '使用 docker exec -it demo sh。用户核对后的说明。');
       await click('[data-testid="ai-adopt"]');
       await expectText('[data-testid="ai-adopted"]', '知识已保存到本机');
+      await revealSavedResult();
+      await capture('04-adopted-result');
       await selectKnowledge('进入容器终端');
       const detail = await text('[data-testid="knowledge-details"]');
       assert.ok(detail.includes('Docker') && detail.includes('Linux') && detail.includes('用户核对后的说明'));
     });
-    await check('explicit original-record update preserves identity and updates the same record', async () => {
-      await clickText('导入记录');
-      await expectText('.ai-record-details', '粘贴的学习笔记');
-      assert.equal((await all('.ai-record-list button')).length, 1);
-      await click('[data-testid="ai-record-update"]');
-      await fill('[data-testid="ai-source"]', AI_FIXTURE_TEXT + '\n这是对原记录的明确修改。');
-      await click('[data-testid="ai-extract"]'); await candidates();
+    await check('repeated input and retry reopen saved knowledge without another provider request or duplicate points', async () => {
+      const requestsBeforeRepeat = fixture.requests.length;
+      for (let attempt = 0; attempt < 2; attempt++) {
+        await extract(AI_FIXTURE_TEXT);
+        assert.equal(await candidates(), 0);
+        await expectText('[data-testid="ai-duplicate"]', '这份文本已采用');
+        if (attempt === 0) await capture('04-known-duplicate');
+        await click('[data-testid="ai-adopt"]');
+        await expectText('[data-testid="ai-adopted"]', '这份输入已经采用');
+        if (attempt === 0) { await revealSavedResult(); await capture('04-duplicate-saved-result'); }
+        await click("//div[@data-testid='ai-adopted']//button[normalize-space(.)='进入容器终端']", 'xpath');
+        await expectText('[data-testid="knowledge-details"]', '用户核对后的说明');
+        await localSearch('进入容器终端');
+        assert.equal((await all('.result-list .result-item')).length, 1);
+      }
+      assert.equal(fixture.requests.length, requestsBeforeRepeat);
+    });
+    await check('revised text updates saved knowledge only through explicit candidate targets', async () => {
+      await extract(AI_FIXTURE_TEXT + '\n这是对知识说明的明确修改。'); await candidates();
       for (const name of ['Docker', 'Linux', '进入容器终端']) {
         await selectCandidate(name);
         await selectOption("//select[@aria-label='候选采用方式']", '明确更新');
         await click(`//select[@aria-label='选择已有知识点']/option[contains(normalize-space(.),${literal('建议核对：' + name)})]`, 'xpath');
       }
-      await fill('[aria-label="候选知识点描述"]', 'docker exec -it demo sh。原记录更新后的说明。');
+      await fill('[aria-label="候选知识点描述"]', 'docker exec -it demo sh。候选更新后的说明。');
       await click('[data-testid="ai-adopt"]');
       await expectText('[data-testid="ai-adopted"]', '更新 3 个');
       await selectKnowledge('进入容器终端');
-      await expectText('[data-testid="knowledge-details"]', '原记录更新后的说明');
+      await expectText('[data-testid="knowledge-details"]', '候选更新后的说明');
       assert.equal((await all('.result-list .result-item')).length, 1);
-      await clickText('导入记录');
-      assert.equal((await all('.ai-record-list button')).length, 1);
     });
-    await check('starting new text after an update draft cannot silently update the old record', async () => {
-      await click('[data-testid="ai-record-update"]');
-      await fill('[data-testid="ai-source"]', AI_FIXTURE_TEXT + '\n尚未采用的原记录修改。');
-      await click('[data-testid="ai-extract"]'); await candidates();
-      await clickText('导入记录'); await clickText('整理新文本');
+    await check('saved results navigate to the graph and continue with a clean import', async () => {
+      await clickText('知识导入');
+      await expectText('[data-testid="ai-adopted"]', '知识已保存到本机');
+      await clickText('进入图谱');
+      assert.equal(await observe('return location.hash;'), '#graph');
+      await clickText('知识导入'); await clickText('继续导入');
       assert.equal((await all('.ai-candidate-list button')).length, 0);
+      assert.equal((await all('[data-testid="ai-adopted"]')).length, 0);
       assert.equal(await observe('return document.querySelector("[data-testid=ai-source]").value;'), '');
-      assert.ok(!(await text('[aria-label="AI 知识整理"]')).includes('正在更新“'));
+      assert.equal((await all('[data-testid="ai-record-update"], .ai-record-list')).length, 0);
     });
     await check('same-name knowledge stays separate until an explicit reuse decision', async () => {
       await extract(AI_FIXTURE_TEXT + '\n这是一条独立学习记录。'); await candidates();
@@ -365,7 +406,7 @@ async function faultScenario() {
     });
     for (const mode of ['bad-citation', 'bad-tool']) {
       await settings(fixture.baseUrl(mode), 'fixture-only-key');
-      await clickText('知识图谱'); await click('[data-testid="ai-search-mode"]'); await clickText('回答问题');
+      await openSearch(); await click('[data-testid="ai-search-mode"]'); await clickText('回答问题');
       await fill('[data-testid="ai-question"]', '如何进入容器终端？'); await click('[data-testid="ai-submit"]');
       await check(`${mode} cannot be displayed as a completed grounded answer`, async () => {
         await until(async () => (await all('[data-testid="ai-error"]')).length, 'invalid tool/source produces explicit failure', 30000);
@@ -378,7 +419,7 @@ async function faultScenario() {
       assert.ok(Buffer.byteLength(longText) > 12000, 'Fixture must exceed the native chunk size');
       await extract(longText);
       assert.ok(await candidates() > 3);
-      await expectText('[aria-label="AI 候选预览"]', '长文已分段');
+      assert.ok(fixture.requests.filter(request => request.mode === 'good-wide' && request.stage === 'extract').length > 1, 'Native extraction made multiple requests for the long source');
       await localSearch('进入容器终端');
       assert.equal((await all('.result-list .result-item')).length, 2);
     });
@@ -393,8 +434,9 @@ async function migrationScenario() {
   await check('v1 data opens in the AI client with existing knowledge intact', async () => {
     await selectKnowledge('升级前保存的知识');
     await expectText('[data-testid="knowledge-details"]', '网络请求期间本地保存仍然可用');
-    await clickText('导入记录');
-    await expectText('[aria-label="导入记录"]', '还没有已采用的知识');
+    await clickText('知识导入');
+    await expectText('[aria-label="AI 知识整理"]', '学习文本');
+    assert.equal((await all('.ai-record-list, [data-testid="ai-record-update"]')).length, 0);
     await capture('06-migrated-data');
   });
 }
@@ -418,6 +460,46 @@ async function feedbackScenario() {
     });
   } finally { await fixture.close(); }
 }
+async function adoptionFeedbackScenario() {
+  const { startAiFixture, AI_FIXTURE_TEXT } = await import('./ai-fixture-server.mjs');
+  const fixture = await startAiFixture();
+  async function savedResultVisible() {
+    await until(() => observe(`
+      const result = document.querySelector('[data-testid="ai-adopted"]');
+      if (!result) return false;
+      const rect = result.getBoundingClientRect();
+      const actions = [...result.querySelectorAll('.ai-result-actions button')];
+      return rect.top >= 0 && rect.bottom <= innerHeight && actions.length === 2
+        && actions.every(element => { const r = element.getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight && r.left >= 0 && r.right <= innerWidth; });
+    `), 'saved result and its next actions automatically enter the viewport');
+  }
+  try {
+    await settings(fixture.baseUrl('good'), 'fixture-only-key');
+    await check('adoption automatically reveals its saved result and offers graph navigation and a clean next import', async () => {
+      await extract(AI_FIXTURE_TEXT); assert.equal(await candidates(), 3);
+      await selectCandidate('进入容器终端');
+      await click('[data-testid="ai-adopt"]');
+      await expectText('[data-testid="ai-adopted"]', '知识已保存到本机');
+      await savedResultVisible(); await capture('02-adoption-visible');
+      await clickText('进入图谱'); assert.equal(await observe('return location.hash;'), '#graph');
+      await clickText('知识导入'); await clickText('继续导入');
+      assert.equal(await observe('return document.querySelector("[data-testid=ai-source]").value;'), '');
+      assert.equal((await all('.ai-candidate-list button, [data-testid="ai-adopted"]')).length, 0);
+    });
+    await check('duplicate input automatically reveals existing knowledge and can continue with an empty input', async () => {
+      const requestsBeforeRepeat = fixture.requests.length;
+      await extract(AI_FIXTURE_TEXT); assert.equal(await candidates(), 0);
+      await click('[data-testid="ai-adopt"]');
+      await expectText('[data-testid="ai-adopted"]', '这份输入已经采用');
+      await savedResultVisible(); await capture('03-duplicate-visible');
+      assert.equal(fixture.requests.length, requestsBeforeRepeat);
+      await clickText('进入图谱'); assert.equal(await observe('return location.hash;'), '#graph');
+      await clickText('知识导入'); await clickText('继续导入');
+      assert.equal(await observe('return document.querySelector("[data-testid=ai-source]").value;'), '');
+      assert.equal((await all('.ai-candidate-list button, [data-testid="ai-adopted"]')).length, 0);
+    });
+  } finally { await fixture.close(); }
+}
 try {
   if (scenario === 'migration') activeExe = path.resolve(args['legacy-exe']);
   await launch();
@@ -425,16 +507,18 @@ try {
   else {
     await check('AI configuration is available in the real desktop client', async () => {
       await click('[data-testid="ai-settings"]');
-      await expectText('dialog', 'DeepSeek');
+      await expectText('[data-testid="model-settings-page"]', 'DeepSeek');
+      await until(async () => (await all('[data-testid="model-base-url"]')).length > 0, 'model settings loaded');
     });
     await capture('01-ai-settings');
-    await click('[aria-label="关闭弹窗"]');
+    await clickText('知识图谱');
     if (scenario === 'live') await liveScenario();
     else if (scenario === 'faults') await faultScenario();
     else if (scenario === 'feedback') await feedbackScenario();
+    else if (scenario === 'adoption-feedback') await adoptionFeedbackScenario();
     else if (scenario === 'resources') {
       const { runResourceScenario } = await import('./ai-resource-scenarios.mjs');
-      await runResourceScenario({ app, repo, out, assert, fs, click, clickText, fill, text, observe, all, until, expectText, capture, check, settings, extract, candidates, selectKnowledge, localSearch, selectCandidate });
+      await runResourceScenario({ app, repo, out, assert, fs, click, clickText, fill, text, observe, all, until, expectText, capture, check, settings, extract, candidates, selectKnowledge, localSearch, selectCandidate, openSearch });
     }
     else assert.equal(scenario, 'smoke');
   }
@@ -450,10 +534,12 @@ try {
       // Every run uses a new config scope, so only this test's credential is removed.
       if ((await all('dialog')).length) await click('[aria-label="关闭弹窗"]');
       await click('[data-testid="ai-settings"]');
-      const remove = await find("//button[normalize-space(.)='移除密钥']", 'xpath');
+      await until(async () => (await all('[data-testid="provider-deepseek"]')).length, 'settings available for cleanup');
+      await click('[data-testid="provider-deepseek"]');
+      const remove = await find('[data-testid="model-remove-key"]');
       if (await wd('GET', `/element/${remove}/enabled`)) {
         await wd('POST', `/element/${remove}/click`, {});
-        await expectText('dialog', '已移除密钥');
+        await expectText('[data-testid="model-save-success"]', '已移除这个连接的密钥');
       }
     } catch {}
   }

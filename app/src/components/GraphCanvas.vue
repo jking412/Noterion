@@ -618,7 +618,6 @@ defineExpose({ fitAll, focusNode })
     <div v-if="!points.length && ready" class="graph-empty" :style="messagePosition">
       <svg viewBox="0 0 48 48" fill="none" aria-hidden="true"><circle cx="24" cy="14" r="5"/><circle cx="13" cy="33" r="5"/><circle cx="35" cy="33" r="5"/><path d="m21.5 18.3-6 10M26.5 18.3l6 10M18 33h12"/></svg>
       <p>图谱里还没有知识点</p>
-      <span>点击顶部“新建知识点”，开始建立图谱。</span>
     </div>
 
     <div class="graph-controls" aria-label="图谱视图操作" @pointerdown.stop>
@@ -669,7 +668,6 @@ defineExpose({ fitAll, focusNode })
           <path d="m13 23 14 14m0-14L13 37" />
         </svg>
         <h3>{{ graphState === 'updating' ? '图谱更新中' : '图谱暂时无法显示' }}</h3>
-        <p>{{ graphState === 'updating' ? '正在更新已保存的知识，稍后恢复图操作。' : '搜索、描述和关联资料仍可使用。' }}</p>
         <button v-if="graphState === 'unavailable'" class="graph-restore" type="button" @click="emit('restore')">重新读取图谱</button>
       </div>
     </div>
@@ -750,7 +748,6 @@ defineExpose({ fitAll, focusNode })
 .graph-empty { position: absolute; transform: translate(-50%, -50%); text-align: center; pointer-events: none; }
 .graph-empty svg { width: 44px; height: 44px; stroke: #989898; stroke-width: 1.4; margin-bottom: 10px; }
 .graph-empty p { color: #646464; font-size: 16px; margin: 0 0 8px; }
-.graph-empty span { font-size: 12px; color: #858585; }
 @keyframes graph-loading { to { transform: rotate(360deg); } }
 @media (max-width: 1200px) {
   .graph-controls { right: 12px; bottom: 12px; gap: 7px; }
