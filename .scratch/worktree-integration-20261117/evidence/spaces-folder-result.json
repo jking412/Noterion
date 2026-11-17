@@ -1,0 +1,16 @@
+{
+  "run": "issue-33-integration-full-20261117-01",
+  "scenario": "full",
+  "requestedScale": null,
+  "passed": true,
+  "assertionCount": 9,
+  "executable": "C:\\Users\\skynesser\\.codex\\worktrees\\noterion-consolidate-20261117\\knowledgeGraph\\app\\src-tauri\\target\\x86_64-pc-windows-msvc\\debug\\noterion.exe",
+  "executableSha256": "2917b4846846803206d3fb9bb2459fb7fd6541e1e5573671624a802d038aafcc",
+  "driverSha256": "76f549b492a89dbacee027ac6a726836944f04645ecaa5fa9a2045c84303d6ed",
+  "launches": 2,
+  "desktopCleanup": true,
+  "credentialCleanup": true,
+  "folderUiCoverage": true,
+  "liveApiCoverage": false,
+  "providerTesting": "Deterministic local HTTP/SSE fixture through actual Windows Tauri; no paid model key or live provider call."
+}

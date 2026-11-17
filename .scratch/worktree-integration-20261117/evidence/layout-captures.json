@@ -1,0 +1,935 @@
+[
+  {
+    "name": "01-empty-graph",
+    "page": {
+      "height": 800,
+      "width": 1280
+    },
+    "panels": [
+      {
+        "clientWidth": 207,
+        "height": 800,
+        "name": "desktop-sidebar",
+        "scrollWidth": 207,
+        "width": 208,
+        "x": 0,
+        "y": 0
+      },
+      {
+        "clientWidth": 300,
+        "height": 634,
+        "name": "search-floating",
+        "scrollWidth": 300,
+        "width": 300,
+        "x": 228,
+        "y": 90
+      }
+    ],
+    "viewport": {
+      "dpr": 1.5,
+      "height": 800,
+      "width": 1280
+    },
+    "visibleText": "Noterion\n默认空间\n知识图谱\n资料库\n知识导入\n应用设置\n收起导航\n知识图谱\n已保存\n收起搜索\n新建知识点\n\n图谱里还没有知识点\n\n重新读取图谱\n100%\n适应全图\n片段搜索\nAI 查找与问答\n添加关键词\n全部匹配\n任意匹配\n先添加你的知识\n0 个知识点"
+  },
+  {
+    "name": "02-empty-resources",
+    "page": {
+      "height": 800,
+      "width": 1280
+    },
+    "panels": [
+      {
+        "clientWidth": 207,
+        "height": 800,
+        "name": "desktop-sidebar",
+        "scrollWidth": 207,
+        "width": 208,
+        "x": 0,
+        "y": 0
+      },
+      {
+        "clientWidth": 991,
+        "height": 549,
+        "name": "library-list",
+        "scrollWidth": 991,
+        "width": 990.6666870117188,
+        "x": 248.6666717529297,
+        "y": 234.33334350585938
+      }
+    ],
+    "viewport": {
+      "dpr": 1.5,
+      "height": 800,
+      "width": 1280
+    },
+    "visibleText": "Noterion\n默认空间\n知识图谱\n资料库\n知识导入\n应用设置\n收起导航\n资料库\n已保存\n资料库 0\n添加资料\n全部类型\n0 份资料\n添加第一份学习资料"
+  },
+  {
+    "name": "03-add-resource",
+    "page": {
+      "height": 800,
+      "width": 1280
+    },
+    "panels": [
+      {
+        "clientWidth": 207,
+        "height": 800,
+        "name": "desktop-sidebar",
+        "scrollWidth": 207,
+        "width": 208,
+        "x": 0,
+        "y": 0
+      },
+      {
+        "clientWidth": 991,
+        "height": 549,
+        "name": "library-list",
+        "scrollWidth": 991,
+        "width": 990.6666870117188,
+        "x": 248.6666717529297,
+        "y": 234.33334350585938
+      }
+    ],
+    "viewport": {
+      "dpr": 1.5,
+      "height": 800,
+      "width": 1280
+    },
+    "visibleText": "Noterion\n默认空间\n知识图谱\n资料库\n知识导入\n应用设置\n收起导航\n资料库\n已保存\n资料库 0\n添加资料\n全部类型\n0 份资料\n添加第一份学习资料\n添加学习资料\n本地文件\n网页链接\n本机文件\n选择文件\n资料名称（可选，默认文件名）\n关联已有知识点（可选）\n\n暂无知识点\n\n取消\n保存资料"
+  },
+  {
+    "name": "04-resource-validation",
+    "page": {
+      "height": 800,
+      "width": 1280
+    },
+    "panels": [
+      {
+        "clientWidth": 207,
+        "height": 800,
+        "name": "desktop-sidebar",
+        "scrollWidth": 207,
+        "width": 208,
+        "x": 0,
+        "y": 0
+      },
+      {
+        "clientWidth": 991,
+        "height": 549,
+        "name": "library-list",
+        "scrollWidth": 991,
+        "width": 990.6666870117188,
+        "x": 248.6666717529297,
+        "y": 234.33334350585938
+      }
+    ],
+    "viewport": {
+      "dpr": 1.5,
+      "height": 800,
+      "width": 1280
+    },
+    "visibleText": "Noterion\n默认空间\n知识图谱\n资料库\n知识导入\n应用设置\n收起导航\n资料库\n已保存\n资料库 0\n添加资料\n全部类型\n0 份资料\n添加第一份学习资料\n添加学习资料\n本地文件\n网页链接\n本机文件\n选择文件\n资料名称（可选，默认文件名）\n\n请选择一个本机文件。\n\n关联已有知识点（可选）\n\n暂无知识点\n\n取消\n保存资料"
+  },
+  {
+    "name": "05-empty-import",
+    "page": {
+      "height": 800,
+      "width": 1280
+    },
+    "panels": [
+      {
+        "clientWidth": 207,
+        "height": 800,
+        "name": "desktop-sidebar",
+        "scrollWidth": 207,
+        "width": 208,
+        "x": 0,
+        "y": 0
+      }
+    ],
+    "viewport": {
+      "dpr": 1.5,
+      "height": 800,
+      "width": 1280
+    },
+    "visibleText": "Noterion\n默认空间\n知识图谱\n资料库\n知识导入\n应用设置\n收起导航\n知识导入\n已保存\n整理学习笔记\n文本 / 单文件\n选择文件夹\n学习文本\n选择 TXT / Markdown\n配置模型\n整理知识"
+  },
+  {
+    "name": "06-unconfigured-deepseek",
+    "page": {
+      "height": 800,
+      "width": 1280
+    },
+    "panels": [
+      {
+        "clientWidth": 207,
+        "height": 800,
+        "name": "desktop-sidebar",
+        "scrollWidth": 207,
+        "width": 208,
+        "x": 0,
+        "y": 0
+      },
+      {
+        "clientWidth": 1039,
+        "height": 646.6666870117188,
+        "name": "model-settings-page glass-panel",
+        "scrollWidth": 1039,
+        "width": 1040,
+        "x": 224,
+        "y": 137.33334350585938
+      }
+    ],
+    "viewport": {
+      "dpr": 1.5,
+      "height": 800,
+      "width": 1280
+    },
+    "visibleText": "Noterion\n默认空间\n知识图谱\n资料库\n知识导入\n应用设置\n收起导航\n应用设置\n已保存\n模型设置\n数据位置\n模型设置\n未配置密钥\nDeepSeek · deepseek-flash\nDeepSeek\n当前启用\nOpenAI 兼容\n未配置\nAnthropic 兼容\n未配置\nDeepSeek\n连接地址\nAPI 密钥\n未配置密钥\n移除密钥\n模型名称\n检查连接\n保存配置\n保存并启用"
+  },
+  {
+    "name": "06-unconfigured-openai",
+    "page": {
+      "height": 800,
+      "width": 1280
+    },
+    "panels": [
+      {
+        "clientWidth": 207,
+        "height": 800,
+        "name": "desktop-sidebar",
+        "scrollWidth": 207,
+        "width": 208,
+        "x": 0,
+        "y": 0
+      },
+      {
+        "clientWidth": 1039,
+        "height": 646.6666870117188,
+        "name": "model-settings-page glass-panel",
+        "scrollWidth": 1039,
+        "width": 1040,
+        "x": 224,
+        "y": 137.33334350585938
+      }
+    ],
+    "viewport": {
+      "dpr": 1.5,
+      "height": 800,
+      "width": 1280
+    },
+    "visibleText": "Noterion\n默认空间\n知识图谱\n资料库\n知识导入\n应用设置\n收起导航\n应用设置\n已保存\n模型设置\n数据位置\n模型设置\n未配置密钥\nDeepSeek · deepseek-flash\nDeepSeek\n当前启用\nOpenAI 兼容\n未配置\nAnthropic 兼容\n未配置\nOpenAI 兼容\n连接地址\nAPI 密钥\n未配置密钥\n移除密钥\n模型名称\n检查连接\n保存配置\n保存并启用"
+  },
+  {
+    "name": "06-unconfigured-anthropic",
+    "page": {
+      "height": 800,
+      "width": 1280
+    },
+    "panels": [
+      {
+        "clientWidth": 207,
+        "height": 800,
+        "name": "desktop-sidebar",
+        "scrollWidth": 207,
+        "width": 208,
+        "x": 0,
+        "y": 0
+      },
+      {
+        "clientWidth": 1039,
+        "height": 646.6666870117188,
+        "name": "model-settings-page glass-panel",
+        "scrollWidth": 1039,
+        "width": 1040,
+        "x": 224,
+        "y": 137.33334350585938
+      }
+    ],
+    "viewport": {
+      "dpr": 1.5,
+      "height": 800,
+      "width": 1280
+    },
+    "visibleText": "Noterion\n默认空间\n知识图谱\n资料库\n知识导入\n应用设置\n收起导航\n应用设置\n已保存\n模型设置\n数据位置\n模型设置\n未配置密钥\nDeepSeek · deepseek-flash\nDeepSeek\n当前启用\nOpenAI 兼容\n未配置\nAnthropic 兼容\n未配置\nAnthropic 兼容\n连接地址\nAPI 密钥\n未配置密钥\n移除密钥\n模型名称\n检查连接\n保存配置\n保存并启用"
+  },
+  {
+    "name": "07-editor-empty",
+    "page": {
+      "height": 800,
+      "width": 1280
+    },
+    "panels": [
+      {
+        "clientWidth": 207,
+        "height": 800,
+        "name": "desktop-sidebar",
+        "scrollWidth": 207,
+        "width": 208,
+        "x": 0,
+        "y": 0
+      },
+      {
+        "clientWidth": 300,
+        "height": 634,
+        "name": "search-floating",
+        "scrollWidth": 300,
+        "width": 300,
+        "x": 228,
+        "y": 90
+      }
+    ],
+    "viewport": {
+      "dpr": 1.5,
+      "height": 800,
+      "width": 1280
+    },
+    "visibleText": "Noterion\n默认空间\n知识图谱\n资料库\n知识导入\n应用设置\n收起导航\n知识图谱\n已保存\n收起搜索\n新建知识点\n\n图谱里还没有知识点\n\n重新读取图谱\n100%\n适应全图\n片段搜索\nAI 查找与问答\n添加关键词\n全部匹配\n任意匹配\n先添加你的知识\n0 个知识点\n新建知识点\n名称\n可作为主题组织其他知识点\n节点颜色\n蓝色\n绿色\n金色\n紫色\n灰色\n自定义\n描述\nMarkdown\n所属主题\n\n暂无其他主题。\n\n关联资料\n\n暂无可关联资料。\n\n取消\n创建知识点"
+  },
+  {
+    "name": "08-editor-validation",
+    "page": {
+      "height": 800,
+      "width": 1280
+    },
+    "panels": [
+      {
+        "clientWidth": 207,
+        "height": 800,
+        "name": "desktop-sidebar",
+        "scrollWidth": 207,
+        "width": 208,
+        "x": 0,
+        "y": 0
+      },
+      {
+        "clientWidth": 300,
+        "height": 634,
+        "name": "search-floating",
+        "scrollWidth": 300,
+        "width": 300,
+        "x": 228,
+        "y": 90
+      }
+    ],
+    "viewport": {
+      "dpr": 1.5,
+      "height": 800,
+      "width": 1280
+    },
+    "visibleText": "Noterion\n默认空间\n知识图谱\n资料库\n知识导入\n应用设置\n收起导航\n知识图谱\n已保存\n收起搜索\n新建知识点\n\n图谱里还没有知识点\n\n重新读取图谱\n100%\n适应全图\n片段搜索\nAI 查找与问答\n添加关键词\n全部匹配\n任意匹配\n先添加你的知识\n0 个知识点\n新建知识点\n名称\n可作为主题组织其他知识点\n节点颜色\n蓝色\n绿色\n金色\n紫色\n灰色\n自定义\n描述\nMarkdown\n所属主题\n\n暂无其他主题。\n\n关联资料\n\n暂无可关联资料。\n\n知识点名称不能为空。\n\n取消\n创建知识点"
+  },
+  {
+    "name": "09-editor-filled",
+    "page": {
+      "height": 800,
+      "width": 1280
+    },
+    "panels": [
+      {
+        "clientWidth": 207,
+        "height": 800,
+        "name": "desktop-sidebar",
+        "scrollWidth": 207,
+        "width": 208,
+        "x": 0,
+        "y": 0
+      },
+      {
+        "clientWidth": 300,
+        "height": 634,
+        "name": "search-floating",
+        "scrollWidth": 300,
+        "width": 300,
+        "x": 228,
+        "y": 90
+      }
+    ],
+    "viewport": {
+      "dpr": 1.5,
+      "height": 800,
+      "width": 1280
+    },
+    "visibleText": "Noterion\n默认空间\n知识图谱\n资料库\n知识导入\n应用设置\n收起导航\n知识图谱\n已保存\n收起搜索\n新建知识点\n\n图谱里还没有知识点\n\n重新读取图谱\n100%\n适应全图\n片段搜索\nAI 查找与问答\n添加关键词\n全部匹配\n任意匹配\n先添加你的知识\n0 个知识点\n新建知识点\n名称\n可作为主题组织其他知识点\n节点颜色\n蓝色\n绿色\n金色\n紫色\n灰色\n自定义\n描述\nMarkdown\n所属主题\n\n暂无其他主题。\n\n关联资料\n\n暂无可关联资料。\n\n取消\n创建知识点"
+  },
+  {
+    "name": "10-long-details",
+    "page": {
+      "height": 800,
+      "width": 1280
+    },
+    "panels": [
+      {
+        "clientWidth": 207,
+        "height": 800,
+        "name": "desktop-sidebar",
+        "scrollWidth": 207,
+        "width": 208,
+        "x": 0,
+        "y": 0
+      },
+      {
+        "clientWidth": 300,
+        "height": 634,
+        "name": "search-floating",
+        "scrollWidth": 300,
+        "width": 300,
+        "x": 228,
+        "y": 90
+      },
+      {
+        "clientWidth": 360,
+        "height": 634,
+        "name": "details-floating",
+        "scrollWidth": 360,
+        "width": 360,
+        "x": 900,
+        "y": 90
+      }
+    ],
+    "viewport": {
+      "dpr": 1.5,
+      "height": 800,
+      "width": 1280
+    },
+    "visibleText": "Noterion\n默认空间\n知识图谱\n资料库\n知识导入\n应用设置\n收起导航\n知识图谱\n已保存\n收起搜索\n新建知识点\nDocker 容器终端与本地知识工作区的长名称可读性检查 · 进入正在运行的容器\n重新读取图谱\n100%\n适应全图\n片段搜索\nAI 查找与问答\n添加关键词\n全部匹配\n任意匹配\n从记得的片段开始\n1 个知识点\nDocker 容器终端与本地知识工作区的长名称可读性检查 · 进入正在运行的容器\n编辑\n描述\n还没有描述，编辑后写下你的理解。\n命令与步骤\n复制\n`docker exec -it my-container /bin/sh`\n个人理解\n\n从保存的知识进入容器终端。\n\n关联资料 0\n\n还没有关联资料。\n\n知识点已保存到本机"
+  },
+  {
+    "name": "11-editor-saved-color",
+    "page": {
+      "height": 800,
+      "width": 1280
+    },
+    "panels": [
+      {
+        "clientWidth": 207,
+        "height": 800,
+        "name": "desktop-sidebar",
+        "scrollWidth": 207,
+        "width": 208,
+        "x": 0,
+        "y": 0
+      },
+      {
+        "clientWidth": 300,
+        "height": 634,
+        "name": "search-floating",
+        "scrollWidth": 300,
+        "width": 300,
+        "x": 228,
+        "y": 90
+      },
+      {
+        "clientWidth": 360,
+        "height": 634,
+        "name": "details-floating",
+        "scrollWidth": 360,
+        "width": 360,
+        "x": 900,
+        "y": 90
+      }
+    ],
+    "viewport": {
+      "dpr": 1.5,
+      "height": 800,
+      "width": 1280
+    },
+    "visibleText": "Noterion\n默认空间\n知识图谱\n资料库\n知识导入\n应用设置\n收起导航\n知识图谱\n已保存\n收起搜索\n新建知识点\nDocker 容器终端与本地知识工作区的长名称可读性检查 · 进入正在运行的容器\n重新读取图谱\n100%\n适应全图\n片段搜索\nAI 查找与问答\n添加关键词\n全部匹配\n任意匹配\n从记得的片段开始\n1 个知识点\nDocker 容器终端与本地知识工作区的长名称可读性检查 · 进入正在运行的容器\n编辑\n描述\n还没有描述，编辑后写下你的理解。\n命令与步骤\n复制\n`docker exec -it my-container /bin/sh`\n个人理解\n\n从保存的知识进入容器终端。\n\n关联资料 0\n\n还没有关联资料。\n\n知识点已保存到本机\n编辑知识点\n名称\n可作为主题组织其他知识点\n节点颜色\n蓝色\n绿色\n金色\n紫色\n灰色\n自定义\n描述\nMarkdown\n所属主题\n\n暂无其他主题。\n\n关联资料\n\n暂无可关联资料。\n\n取消\n保存修改"
+  },
+  {
+    "name": "11b-delete-impact",
+    "page": {
+      "height": 800,
+      "width": 1280
+    },
+    "panels": [
+      {
+        "clientWidth": 207,
+        "height": 800,
+        "name": "desktop-sidebar",
+        "scrollWidth": 207,
+        "width": 208,
+        "x": 0,
+        "y": 0
+      },
+      {
+        "clientWidth": 300,
+        "height": 634,
+        "name": "search-floating",
+        "scrollWidth": 300,
+        "width": 300,
+        "x": 228,
+        "y": 90
+      },
+      {
+        "clientWidth": 360,
+        "height": 634,
+        "name": "details-floating",
+        "scrollWidth": 360,
+        "width": 360,
+        "x": 900,
+        "y": 90
+      }
+    ],
+    "viewport": {
+      "dpr": 1.5,
+      "height": 800,
+      "width": 1280
+    },
+    "visibleText": "Noterion\n默认空间\n知识图谱\n资料库\n知识导入\n应用设置\n收起导航\n知识图谱\n已保存\n收起搜索\n新建知识点\nDocker 容器终端与本地知识工作区的长名称可读性检查 · 进入正在运行的容器\n重新读取图谱\n100%\n适应全图\n片段搜索\nAI 查找与问答\n添加关键词\n全部匹配\n任意匹配\n从记得的片段开始\n1 个知识点\nDocker 容器终端与本地知识工作区的长名称可读性检查 · 进入正在运行的容器\n编辑\n描述\n还没有描述，编辑后写下你的理解。\n命令与步骤\n复制\n`docker exec -it my-container /bin/sh`\n个人理解\n\n从保存的知识进入容器终端。\n\n关联资料 0\n\n还没有关联资料。\n\n确认从图谱删除\n\n删除“Docker 容器终端与本地知识工作区的长名称可读性检查 · 进入正在运行的容器”后，以下变化将立即生效。\n\n将删除\n1\nDocker 容器终端与本地知识工作区的长名称可读性检查 · 进入正在运行的容器\n知识点\n保留的相关知识\n0\n\n无\n\n全部 0 份资料及其文件均保留。\n\n删除后无法撤销。\n\n取消\n确认删除 1 个知识点"
+  },
+  {
+    "name": "12-search",
+    "page": {
+      "height": 800,
+      "width": 1280
+    },
+    "panels": [
+      {
+        "clientWidth": 207,
+        "height": 800,
+        "name": "desktop-sidebar",
+        "scrollWidth": 207,
+        "width": 208,
+        "x": 0,
+        "y": 0
+      },
+      {
+        "clientWidth": 300,
+        "height": 634,
+        "name": "search-floating",
+        "scrollWidth": 300,
+        "width": 300,
+        "x": 228,
+        "y": 90
+      },
+      {
+        "clientWidth": 360,
+        "height": 634,
+        "name": "details-floating",
+        "scrollWidth": 360,
+        "width": 360,
+        "x": 900,
+        "y": 90
+      }
+    ],
+    "viewport": {
+      "dpr": 1.5,
+      "height": 800,
+      "width": 1280
+    },
+    "visibleText": "Noterion\n默认空间\n知识图谱\n资料库\n知识导入\n应用设置\n收起导航\n知识图谱\n已保存\n收起搜索\n新建知识点\nDocker 容器终端与本地知识工作区的长名称可读性检查 · 进入正在运行的容器\n重新读取图谱\n100%\n适应全图\n片段搜索\nAI 查找与问答\n添加关键词\n全部匹配\n任意匹配\n1 个结果\n清空搜索\nDocker 容器终端与本地知识工作区的长名称可读性检查 · 进入正在运行的容器\n## 命令 `docker exec -it my-container /bin/sh` ## 个人理解 从保存的知识进入容器终端。\n独立知识点\n1 个知识点\nDocker 容器终端与本地知识工作区的长名称可读性检查 · 进入正在运行的容器\n编辑\n描述\n还没有描述，编辑后写下你的理解。\n命令与步骤\n复制\n`docker exec -it my-container /bin/sh`\n个人理解\n\n从保存的知识进入容器终端。\n\n关联资料 0\n\n还没有关联资料。"
+  },
+  {
+    "name": "13-graph-interaction",
+    "page": {
+      "height": 800,
+      "width": 1280
+    },
+    "panels": [
+      {
+        "clientWidth": 207,
+        "height": 800,
+        "name": "desktop-sidebar",
+        "scrollWidth": 207,
+        "width": 208,
+        "x": 0,
+        "y": 0
+      },
+      {
+        "clientWidth": 360,
+        "height": 634,
+        "name": "details-floating",
+        "scrollWidth": 360,
+        "width": 360,
+        "x": 900,
+        "y": 90
+      }
+    ],
+    "viewport": {
+      "dpr": 1.5,
+      "height": 800,
+      "width": 1280
+    },
+    "visibleText": "Noterion\n默认空间\n知识图谱\n资料库\n知识导入\n应用设置\n收起导航\n知识图谱\n已保存\n查找知识\n新建知识点\nDocker 容器终端与本地知识工作区的长名称可读性检查 · 进入正在运行的容器\n重新读取图谱\n121%\n适应全图\nDocker 容器终端与本地知识工作区的长名称可读性检查 · 进入正在运行的容器\n编辑\n描述\n还没有描述，编辑后写下你的理解。\n命令与步骤\n复制\n`docker exec -it my-container /bin/sh`\n个人理解\n\n从保存的知识进入容器终端。\n\n关联资料 0\n\n还没有关联资料。"
+  },
+  {
+    "name": "14-resource-saved",
+    "page": {
+      "height": 800,
+      "width": 1280
+    },
+    "panels": [
+      {
+        "clientWidth": 207,
+        "height": 800,
+        "name": "desktop-sidebar",
+        "scrollWidth": 207,
+        "width": 208,
+        "x": 0,
+        "y": 0
+      },
+      {
+        "clientWidth": 991,
+        "height": 549,
+        "name": "library-list",
+        "scrollWidth": 991,
+        "width": 990.6666870117188,
+        "x": 248.6666717529297,
+        "y": 234.33334350585938
+      }
+    ],
+    "viewport": {
+      "dpr": 1.5,
+      "height": 800,
+      "width": 1280
+    },
+    "visibleText": "Noterion\n默认空间\n知识图谱\n资料库\n知识导入\n应用设置\n收起导航\n资料库\n已保存\n资料库 1\n添加资料\n全部类型\nMarkdown\n1 份资料\n容器终端的长名称学习资料 · 可预览的 Markdown 文档\n\nMarkdown 46 B 就绪\n\nlearning-material.md\n\n尚未关联知识点\n查看资料\n关联知识点\n导入知识\n移除资料\n资料已保存"
+  },
+  {
+    "name": "15-resource-preview",
+    "page": {
+      "height": 800,
+      "width": 1280
+    },
+    "panels": [
+      {
+        "clientWidth": 207,
+        "height": 800,
+        "name": "desktop-sidebar",
+        "scrollWidth": 207,
+        "width": 208,
+        "x": 0,
+        "y": 0
+      },
+      {
+        "clientWidth": 991,
+        "height": 549,
+        "name": "library-list",
+        "scrollWidth": 991,
+        "width": 990.6666870117188,
+        "x": 248.6666717529297,
+        "y": 234.33334350585938
+      }
+    ],
+    "viewport": {
+      "dpr": 1.5,
+      "height": 800,
+      "width": 1280
+    },
+    "visibleText": "Noterion\n默认空间\n知识图谱\n资料库\n知识导入\n应用设置\n收起导航\n资料库\n已保存\n资料库 1\n添加资料\n全部类型\nMarkdown\n1 份资料\n容器终端的长名称学习资料 · 可预览的 Markdown 文档\n\nMarkdown 46 B 就绪\n\nlearning-material.md\n\n尚未关联知识点\n查看资料\n关联知识点\n导入知识\n移除资料\n资料已保存\n容器终端的长名称学习资料 · 可预览的 Markdown 文档\nMarkdown\nlearning-material.md\n46 B\n# 容器终端\n\n资料库中的正文预览。\n使用系统应用打开\n关闭预览\n导入知识"
+  },
+  {
+    "name": "16-min-search",
+    "page": {
+      "height": 700,
+      "width": 1000
+    },
+    "panels": [
+      {
+        "clientWidth": 183,
+        "height": 700,
+        "name": "desktop-sidebar",
+        "scrollWidth": 183,
+        "width": 184,
+        "x": 0,
+        "y": 0
+      },
+      {
+        "clientWidth": 320,
+        "height": 534,
+        "name": "search-floating",
+        "scrollWidth": 320,
+        "width": 320,
+        "x": 204,
+        "y": 90
+      }
+    ],
+    "viewport": {
+      "dpr": 1.5,
+      "height": 700,
+      "width": 1000
+    },
+    "visibleText": "Noterion\n默认空间\n知识图谱\n资料库\n知识导入\n应用设置\n收起导航\n知识图谱\n已保存\n收起搜索\n新建知识点\nDocker 容器终端与本地知识工作区的长名称可读性检查 · 进入正在运行的容器\n重新读取图谱\n2000%\n适应全图\n片段搜索\nAI 查找与问答\n添加关键词\n全部匹配\n任意匹配\n1 个结果\n清空搜索\nDocker 容器终端与本地知识工作区的长名称可读性检查 · 进入正在运行的容器\n## 命令 `docker exec -it my-container /bin/sh` ## 个人理解 从保存的知识进入容器终端。\n独立知识点\n1 个知识点\n资料已保存"
+  },
+  {
+    "name": "17-min-details",
+    "page": {
+      "height": 700,
+      "width": 1000
+    },
+    "panels": [
+      {
+        "clientWidth": 183,
+        "height": 700,
+        "name": "desktop-sidebar",
+        "scrollWidth": 183,
+        "width": 184,
+        "x": 0,
+        "y": 0
+      },
+      {
+        "clientWidth": 360,
+        "height": 534,
+        "name": "details-floating",
+        "scrollWidth": 360,
+        "width": 360,
+        "x": 620,
+        "y": 90
+      }
+    ],
+    "viewport": {
+      "dpr": 1.5,
+      "height": 700,
+      "width": 1000
+    },
+    "visibleText": "Noterion\n默认空间\n知识图谱\n资料库\n知识导入\n应用设置\n收起导航\n知识图谱\n已保存\n查找知识\n新建知识点\nDocker 容器终端与本地知识工作区的长名称可读性检查 · 进入正在运行的容器\n重新读取图谱\n2000%\n适应全图\nDocker 容器终端与本地知识工作区的长名称可读性检查 · 进入正在运行的容器\n编辑\n描述\n还没有描述，编辑后写下你的理解。\n命令与步骤\n复制\n`docker exec -it my-container /bin/sh`\n个人理解\n\n从保存的知识进入容器终端。\n\n关联资料 0\n\n还没有关联资料。\n\n资料已保存"
+  },
+  {
+    "name": "18-min-models",
+    "page": {
+      "height": 700,
+      "width": 1000
+    },
+    "panels": [
+      {
+        "clientWidth": 183,
+        "height": 700,
+        "name": "desktop-sidebar",
+        "scrollWidth": 183,
+        "width": 184,
+        "x": 0,
+        "y": 0
+      },
+      {
+        "clientWidth": 778,
+        "height": 546.6666870117188,
+        "name": "model-settings-page glass-panel",
+        "scrollWidth": 778,
+        "width": 784,
+        "x": 200,
+        "y": 137.33334350585938
+      }
+    ],
+    "viewport": {
+      "dpr": 1.5,
+      "height": 700,
+      "width": 1000
+    },
+    "visibleText": "Noterion\n默认空间\n知识图谱\n资料库\n知识导入\n应用设置\n收起导航\n应用设置\n已保存\n模型设置\n数据位置\n模型设置\n未配置密钥\nDeepSeek · deepseek-flash\nDeepSeek\n当前启用\nOpenAI 兼容\n未配置\nAnthropic 兼容\n未配置\nDeepSeek\n连接地址\nAPI 密钥\n未配置密钥\n移除密钥\n模型名称\n检查连接\n保存配置\n保存并启用\n资料已保存"
+  },
+  {
+    "name": "19-data-settings",
+    "page": {
+      "height": 700,
+      "width": 1000
+    },
+    "panels": [
+      {
+        "clientWidth": 183,
+        "height": 700,
+        "name": "desktop-sidebar",
+        "scrollWidth": 183,
+        "width": 184,
+        "x": 0,
+        "y": 0
+      }
+    ],
+    "viewport": {
+      "dpr": 1.5,
+      "height": 700,
+      "width": 1000
+    },
+    "visibleText": "Noterion\n默认空间\n知识图谱\n资料库\n知识导入\n应用设置\n收起导航\n应用设置\n已保存\n模型设置\n数据位置\n数据位置\ndata\n更换数据目录\n资料已保存"
+  },
+  {
+    "name": "20-directory-dialog",
+    "page": {
+      "height": 700,
+      "width": 1000
+    },
+    "panels": [
+      {
+        "clientWidth": 183,
+        "height": 700,
+        "name": "desktop-sidebar",
+        "scrollWidth": 183,
+        "width": 184,
+        "x": 0,
+        "y": 0
+      }
+    ],
+    "viewport": {
+      "dpr": 1.5,
+      "height": 700,
+      "width": 1000
+    },
+    "visibleText": "Noterion\n默认空间\n知识图谱\n资料库\n知识导入\n应用设置\n收起导航\n应用设置\n已保存\n模型设置\n数据位置\n数据位置\ndata\n更换数据目录\n资料已保存\n本机数据目录\n目录位置\n选择本机目录\n创建新数据目录\n打开已有数据目录"
+  },
+  {
+    "name": "21-min-import",
+    "page": {
+      "height": 700,
+      "width": 1000
+    },
+    "panels": [
+      {
+        "clientWidth": 183,
+        "height": 700,
+        "name": "desktop-sidebar",
+        "scrollWidth": 183,
+        "width": 184,
+        "x": 0,
+        "y": 0
+      }
+    ],
+    "viewport": {
+      "dpr": 1.5,
+      "height": 700,
+      "width": 1000
+    },
+    "visibleText": "Noterion\n默认空间\n知识图谱\n资料库\n知识导入\n应用设置\n收起导航\n知识导入\n已保存\n整理学习笔记\n文本 / 单文件\n选择文件夹\n学习文本\n选择 TXT / Markdown\n配置模型\n整理知识\n关联来源\n资料已保存"
+  },
+  {
+    "name": "22-min-resources",
+    "page": {
+      "height": 700,
+      "width": 1000
+    },
+    "panels": [
+      {
+        "clientWidth": 183,
+        "height": 700,
+        "name": "desktop-sidebar",
+        "scrollWidth": 183,
+        "width": 184,
+        "x": 0,
+        "y": 0
+      },
+      {
+        "clientWidth": 735,
+        "height": 449,
+        "name": "library-list",
+        "scrollWidth": 735,
+        "width": 734.6666870117188,
+        "x": 224.6666717529297,
+        "y": 234.33334350585938
+      }
+    ],
+    "viewport": {
+      "dpr": 1.5,
+      "height": 700,
+      "width": 1000
+    },
+    "visibleText": "Noterion\n默认空间\n知识图谱\n资料库\n知识导入\n应用设置\n收起导航\n资料库\n已保存\n资料库 1\n添加资料\n全部类型\nMarkdown\n1 份资料\n容器终端的长名称学习资料 · 可预览的 Markdown 文档\n\nMarkdown 46 B 就绪\n\nlearning-material.md\n\n尚未关联知识点\n查看资料\n关联知识点\n导入知识\n移除资料\n资料已保存"
+  },
+  {
+    "name": "23-collapsed-navigation",
+    "page": {
+      "height": 700,
+      "width": 1000
+    },
+    "panels": [
+      {
+        "clientWidth": 71,
+        "height": 700,
+        "name": "desktop-sidebar",
+        "scrollWidth": 71,
+        "width": 72,
+        "x": 0,
+        "y": 0
+      },
+      {
+        "clientWidth": 847,
+        "height": 449,
+        "name": "library-list",
+        "scrollWidth": 847,
+        "width": 846.6666870117188,
+        "x": 112.66667175292969,
+        "y": 234.33334350585938
+      }
+    ],
+    "viewport": {
+      "dpr": 1.5,
+      "height": 700,
+      "width": 1000
+    },
+    "visibleText": "资料库\n已保存\n资料库 1\n添加资料\n全部类型\nMarkdown\n1 份资料\n容器终端的长名称学习资料 · 可预览的 Markdown 文档\n\nMarkdown 46 B 就绪\n\nlearning-material.md\n\n尚未关联知识点\n查看资料\n关联知识点\n导入知识\n移除资料\n资料已保存"
+  },
+  {
+    "name": "24-maximized",
+    "page": {
+      "height": 940,
+      "width": 1600
+    },
+    "panels": [
+      {
+        "clientWidth": 207,
+        "height": 940,
+        "name": "desktop-sidebar",
+        "scrollWidth": 207,
+        "width": 208,
+        "x": 0,
+        "y": 0
+      },
+      {
+        "clientWidth": 1311,
+        "height": 689,
+        "name": "library-list",
+        "scrollWidth": 1311,
+        "width": 1310.666748046875,
+        "x": 248.6666717529297,
+        "y": 234.33334350585938
+      }
+    ],
+    "viewport": {
+      "dpr": 1.5,
+      "height": 940,
+      "width": 1600
+    },
+    "visibleText": "Noterion\n默认空间\n知识图谱\n资料库\n知识导入\n应用设置\n收起导航\n资料库\n已保存\n资料库 1\n添加资料\n全部类型\nMarkdown\n1 份资料\n容器终端的长名称学习资料 · 可预览的 Markdown 文档\n\nMarkdown 46 B 就绪\n\nlearning-material.md\n\n尚未关联知识点\n查看资料\n关联知识点\n导入知识\n移除资料\n资料已保存"
+  },
+  {
+    "name": "25-restarted",
+    "page": {
+      "height": 800,
+      "width": 1280
+    },
+    "panels": [
+      {
+        "clientWidth": 207,
+        "height": 800,
+        "name": "desktop-sidebar",
+        "scrollWidth": 207,
+        "width": 208,
+        "x": 0,
+        "y": 0
+      },
+      {
+        "clientWidth": 300,
+        "height": 634,
+        "name": "search-floating",
+        "scrollWidth": 300,
+        "width": 300,
+        "x": 228,
+        "y": 90
+      },
+      {
+        "clientWidth": 360,
+        "height": 634,
+        "name": "details-floating",
+        "scrollWidth": 360,
+        "width": 360,
+        "x": 900,
+        "y": 90
+      }
+    ],
+    "viewport": {
+      "dpr": 1.5,
+      "height": 800,
+      "width": 1280
+    },
+    "visibleText": "Noterion\n默认空间\n知识图谱\n资料库\n知识导入\n应用设置\n收起导航\n知识图谱\n已保存\n收起搜索\n新建知识点\nDocker 容器终端与本地知识工作区的长名称可读性检查 · 进入正在运行的容器\n重新读取图谱\n1814%\n适应全图\n片段搜索\nAI 查找与问答\n添加关键词\n全部匹配\n任意匹配\n1 个结果\n清空搜索\nDocker 容器终端与本地知识工作区的长名称可读性检查 · 进入正在运行的容器\n## 命令 `docker exec -it my-container /bin/sh` ## 个人理解 从保存的知识进入容器终端。\n独立知识点\n1 个知识点\nDocker 容器终端与本地知识工作区的长名称可读性检查 · 进入正在运行的容器\n编辑\n描述\n还没有描述，编辑后写下你的理解。\n命令与步骤\n复制\n`docker exec -it my-container /bin/sh`\n个人理解\n\n从保存的知识进入容器终端。\n\n关联资料 0\n\n还没有关联资料。"
+  }
+]

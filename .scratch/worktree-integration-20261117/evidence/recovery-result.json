@@ -1,0 +1,18 @@
+{
+  "run": "issue-34-integration-20261117-01",
+  "scenario": "recovery",
+  "passed": true,
+  "assertionCount": 20,
+  "executableSha256": "2917b4846846803206d3fb9bb2459fb7fd6541e1e5573671624a802d038aafcc",
+  "driverSha256": "76f549b492a89dbacee027ac6a726836944f04645ecaa5fa9a2045c84303d6ed",
+  "launches": 2,
+  "desktopCleanup": true,
+  "credentialCleanup": true,
+  "fixtureRequests": 42,
+  "liveApiCoverage": {
+    "deepseek": false,
+    "openai": false,
+    "anthropic": false
+  },
+  "providerTesting": "Deterministic loopback HTTP/SSE fixtures through actual Windows Tauri client. No official live API calls."
+}
