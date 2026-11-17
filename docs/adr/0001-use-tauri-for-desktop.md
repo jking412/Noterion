@@ -5,3 +5,5 @@
 此前考虑过 Electron 的单一主要语言路线。本项目接受 Tauri 带来的 Rust/前端边界与系统 WebView 验证工作，以满足用户希望使用 Tauri 的技术偏好；这不是对所有项目的语言优劣排名。React/TypeScript 是当前界面推荐，具体前端工具链与数据库独立讨论，本决策不选定数据库，也不授权进入应用实现。
 
 确认日期：2026-11-07（Asia/Shanghai）。访谈依据见 [技术选择记录](../../.scratch/personal-knowledge-graph/technical-design.md)，技术事实见 [Tauri 官方进程模型](https://v2.tauri.app/concept/process-model/)。
+
+2026-11-17 整合补记：本决策继续约束 Tauri 与 Windows 优先路线；React/TypeScript 是当时的候选推荐。[Issue #21](https://github.com/jking412/Noterion/issues/21) 后续选择复用已认可的 Vue/TypeScript 原型，当前正式前端为 Vue/Vite。当前构建入口见[客户端说明](../../app/README.md)，不将早期推荐恢复为现行技术要求。

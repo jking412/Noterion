@@ -1,0 +1,12 @@
+   Compiling noterion v0.1.0 (C:\Users\skynesser\.codex\worktrees\noterion-issue-34-recovery\knowledgeGraph\app\src-tauri)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 7.05s
+     Running unittests src\main.rs (target\x86_64-pc-windows-msvc\debug\deps\noterion-f5ed510420b6ea87.exe)
+
+running 4 tests
+test ai::provider::tests::compatibility_request_does_not_guess_model_specific_options ... ok
+test ai::credentials::tests::validates_full_model_ids_and_rejects_unsafe_or_full_endpoint_urls ... ok
+test ai::recovery_tests::model_declared_omissions_are_reextracted_before_a_complete_preview ... ok
+test ai::recovery_tests::repeated_model_omissions_never_publish_or_cache_a_completed_segment ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 29 filtered out; finished in 0.05s
+

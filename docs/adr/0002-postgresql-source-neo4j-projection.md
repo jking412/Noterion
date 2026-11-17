@@ -1,4 +1,10 @@
+---
+status: superseded by ADR-0005
+---
+
 # PostgreSQL 保存正式业务数据，Neo4j 提供可重建图查询副本
+
+历史状态：用户于 2026-11-12 改为本地客户端并取消 PostgreSQL/Neo4j，本决策由补录的 [ADR 0005](0005-use-standalone-local-client.md) 取代。以下保存 2026-11-07 的选择与理由，不再构成当前部署、同步或验收要求；现行空间内存储与切换边界见 [ADR 0004](0004-space-scoped-local-store.md)。本状态说明于 2026-11-17 整合时补录。
 
 项目采用方案 A：PostgreSQL 保存完整的结构化业务事实，包括知识点、description、知识关系、资料信息与关联，以及必要的导入记录和图同步待办；Neo4j 保存由这些事实生成的图查询表示。正式业务修改以 PostgreSQL 为准，Neo4j 不保存无法从正式记录重建的独有业务事实。
 

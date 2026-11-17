@@ -1,0 +1,20 @@
+   Compiling noterion v0.1.0 (C:\Users\skynesser\.codex\worktrees\noterion-issue-34-recovery\knowledgeGraph\app\src-tauri)
+warning: hard linking files in the incremental compilation cache failed. copying files instead. consider moving the cache directory to a file system which supports hard linking in session dir `\\?\C:\Users\skynesser\.codex\worktrees\noterion-issue-34-recovery\knowledgeGraph\app\src-tauri\target\x86_64-pc-windows-msvc\debug\incremental\noterion-35w9hf9rc7qgp\s-ho51sn0sg8-0pfq7g3-working`
+
+warning: `noterion` (bin "noterion" test) generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.75s
+     Running unittests src\main.rs (target\x86_64-pc-windows-msvc\debug\deps\noterion-f5ed510420b6ea87.exe)
+
+running 9 tests
+test ai::extract::source_tests::source_recovery_requests_precise_sources_when_whitespace_mapping_is_ambiguous ... ok
+test ai::extract::source_tests::source_recovery_cannot_borrow_evidence_from_another_chunk_or_a_changed_original ... ok
+test ai::extract::source_tests::source_recovery_maps_whitespace_back_to_exact_chinese_emoji_and_utf16_source ... ok
+test ai::extract::source_tests::source_recovery_distinguishes_excess_source_count_from_missing_sources ... ok
+test ai::extract::source_tests::source_recovery_keeps_all_nine_verifiable_quotes ... ok
+test ai::extract::source_tests::source_recovery_never_fabricates_evidence_for_missing_sources ... ok
+test ai::extract::source_tests::source_recovery_preserves_the_selected_identity_of_identical_source_passages ... ok
+test ai::extract::source_tests::source_recovery_repairs_only_missing_sources_and_preserves_knowledge_relationships ... ok
+test ai::extract::source_tests::source_recovery_rejects_incomplete_unrelated_or_overbroad_repair_patches ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 22 filtered out; finished in 0.00s
+
