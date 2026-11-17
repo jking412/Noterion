@@ -16,6 +16,8 @@ app/release-output/
 app/release-extracted/
 app/smoke-output/
 app/.npm-cache/
+app/.playwright-cli/
+app/output/
 
 # Local execution artifacts
 .sandcastle/logs/

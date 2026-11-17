@@ -1,0 +1,197 @@
+[
+  {
+    "name": "deepseek: missing, excess and normalized evidence recover into preview and explicit adoption",
+    "verdict": "PASS",
+    "detail": {
+      "candidates": 3,
+      "exactQuotes": true,
+      "targetedSourceRepair": true,
+      "programSourceIds": true,
+      "explicitAdoption": true,
+      "sourceAssociated": true,
+      "calls": 2
+    }
+  },
+  {
+    "name": "openai: missing, excess and normalized evidence recover into preview and explicit adoption",
+    "verdict": "PASS",
+    "detail": {
+      "candidates": 3,
+      "exactQuotes": true,
+      "targetedSourceRepair": true,
+      "programSourceIds": true,
+      "explicitAdoption": true,
+      "sourceAssociated": true,
+      "calls": 2
+    }
+  },
+  {
+    "name": "anthropic: missing, excess and normalized evidence recover into preview and explicit adoption",
+    "verdict": "PASS",
+    "detail": {
+      "candidates": 3,
+      "exactQuotes": true,
+      "targetedSourceRepair": true,
+      "programSourceIds": true,
+      "explicitAdoption": true,
+      "sourceAssociated": true,
+      "calls": 2
+    }
+  },
+  {
+    "name": "deepseek: declared omissions retry the complete source before preview and adoption",
+    "verdict": "PASS",
+    "detail": {
+      "partialPreviewAbsentDuringRetry": true,
+      "completeOriginalRetried": true,
+      "candidates": 3,
+      "exactQuotes": true,
+      "explicitAdoption": true,
+      "calls": 2
+    }
+  },
+  {
+    "name": "deepseek: persistent omissions fail without preview or completed cache and same-input retry requests again",
+    "verdict": "PASS",
+    "detail": {
+      "callsBeforeFailure": 2,
+      "partialPreviewAbsent": true,
+      "adoptionAbsent": true,
+      "inputRetained": true,
+      "sameInputRetryCalls": 1,
+      "retryCandidates": 3
+    }
+  },
+  {
+    "name": "openai: declared omissions retry the complete source before preview and adoption",
+    "verdict": "PASS",
+    "detail": {
+      "partialPreviewAbsentDuringRetry": true,
+      "completeOriginalRetried": true,
+      "candidates": 3,
+      "exactQuotes": true,
+      "explicitAdoption": true,
+      "calls": 2
+    }
+  },
+  {
+    "name": "openai: persistent omissions fail without preview or completed cache and same-input retry requests again",
+    "verdict": "PASS",
+    "detail": {
+      "callsBeforeFailure": 2,
+      "partialPreviewAbsent": true,
+      "adoptionAbsent": true,
+      "inputRetained": true,
+      "sameInputRetryCalls": 1,
+      "retryCandidates": 3
+    }
+  },
+  {
+    "name": "anthropic: declared omissions retry the complete source before preview and adoption",
+    "verdict": "PASS",
+    "detail": {
+      "partialPreviewAbsentDuringRetry": true,
+      "completeOriginalRetried": true,
+      "candidates": 3,
+      "exactQuotes": true,
+      "explicitAdoption": true,
+      "calls": 2
+    }
+  },
+  {
+    "name": "anthropic: persistent omissions fail without preview or completed cache and same-input retry requests again",
+    "verdict": "PASS",
+    "detail": {
+      "callsBeforeFailure": 2,
+      "partialPreviewAbsent": true,
+      "adoptionAbsent": true,
+      "inputRetained": true,
+      "sameInputRetryCalls": 1,
+      "retryCandidates": 3
+    }
+  },
+  {
+    "name": "multiple source chunks retain all candidates after local source recovery",
+    "verdict": "PASS",
+    "detail": {
+      "segments": 2,
+      "candidates": 6,
+      "exactQuotes": true
+    }
+  },
+  {
+    "name": "adopted knowledge and source associations remain readable after restart",
+    "verdict": "PASS",
+    "detail": {
+      "restarted": true,
+      "associatedSource": true
+    }
+  },
+  {
+    "name": "editing then restoring original source prevents stale adoption",
+    "verdict": "PASS"
+  },
+  {
+    "name": "openai: unrecoverable evidence stays bounded, retains input and can retry",
+    "verdict": "PASS",
+    "detail": {
+      "bounded": true,
+      "inputRetained": true,
+      "retrySucceeded": true
+    }
+  },
+  {
+    "name": "openai: authentication errors are not retried as content repair",
+    "verdict": "PASS"
+  },
+  {
+    "name": "openai: cancel aborts native slow stream and same-input retry succeeds",
+    "verdict": "PASS",
+    "detail": {
+      "nativeStreamAborted": true,
+      "inputRetained": true,
+      "retrySucceeded": true
+    }
+  },
+  {
+    "name": "anthropic: unrecoverable evidence stays bounded, retains input and can retry",
+    "verdict": "PASS",
+    "detail": {
+      "bounded": true,
+      "inputRetained": true,
+      "retrySucceeded": true
+    }
+  },
+  {
+    "name": "anthropic: authentication errors are not retried as content repair",
+    "verdict": "PASS"
+  },
+  {
+    "name": "anthropic: cancel aborts native slow stream and same-input retry succeeds",
+    "verdict": "PASS",
+    "detail": {
+      "nativeStreamAborted": true,
+      "inputRetained": true,
+      "retrySucceeded": true
+    }
+  },
+  {
+    "name": "structure repair and source repair have separate bounded purposes",
+    "verdict": "PASS",
+    "detail": {
+      "initialMalformed": true,
+      "structureRepairThenSourceRepair": true,
+      "calls": 3
+    }
+  },
+  {
+    "name": "directory switch cancels pending work and prevents stale adoption after switching back",
+    "verdict": "PASS",
+    "detail": {
+      "switched": true,
+      "cancelledNativeRequest": true,
+      "staleAdoptionAbsent": true,
+      "existingKnowledgePreserved": true
+    }
+  }
+]

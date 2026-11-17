@@ -133,7 +133,8 @@ async function launch() {
   const environment = await until(async () => {
     const value = await wd('POST', '/execute/sync', { script:
       'return {url:location.href,visibility:document.visibilityState,invoke:typeof window.__TAURI__?.core?.invoke,userAgent:navigator.userAgent,scripts:Array.from(document.scripts,s=>s.src).filter(Boolean)};', args: [] });
-    return value.url === 'http://tauri.localhost/' && value.visibility === 'visible' && value.invoke === 'function' && value;
+    const url = new URL(value.url);
+    return url.origin === 'http://tauri.localhost' && url.pathname === '/' && value.visibility === 'visible' && value.invoke === 'function' && value;
   }, 'visible embedded Tauri page');
   assert.ok(environment.scripts.length > 0, 'Production interface has embedded JavaScript');
   assert.ok(environment.scripts.every(url => new URL(url).origin === 'http://tauri.localhost'), 'All interface scripts are embedded in the exe');

@@ -1,0 +1,22 @@
+{
+  "requestCount": 14,
+  "byProvider": {
+    "openai": 14
+  },
+  "byMode": {
+    "good": 13,
+    "slow": 1
+  },
+  "byStage": {
+    "answer": 2,
+    "extract": 6,
+    "retrieve": 6
+  },
+  "byStatus": {
+    "200": 14
+  },
+  "completed": 13,
+  "aborted": 1,
+  "contractViolationCount": 0,
+  "coverage": "Local deterministic HTTP/SSE fixtures; no live model API calls."
+}

@@ -1,8 +1,12 @@
 mod credentials;
 mod draft;
 mod extract;
+mod folder;
 mod provider;
 mod retrieve;
+
+#[cfg(test)]
+mod recovery_tests;
 
 use crate::store::{AiAdoptResult, AiChoice, SharedStore, Snapshot};
 use serde::{Deserialize, Serialize};
@@ -79,13 +83,49 @@ pub struct AdoptInput {
 pub struct AiHost(Arc<Inner>);
 #[derive(Default)]
 struct Inner {
+    extraction: extract::RecoveryCache,
     tasks: Mutex<HashMap<String, Arc<Cancellation>>>,
     drafts: Mutex<HashMap<String, Arc<draft::StoredDraft>>>,
     sessions: Mutex<HashMap<String, Session>>,
+    folders: Mutex<HashMap<String, folder::ScannedFolder>>,
+    scan_jobs: Mutex<folder::ScanJobs>,
+}
+impl AiHost {
+    pub(crate) fn invalidate_context(&self) {
+        self.0.extraction.clear();
+        self.0
+            .scan_jobs
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .invalidate();
+        let mut tasks = self.0.tasks.lock().unwrap_or_else(|e| e.into_inner());
+        for task in tasks.values() {
+            task.flag.store(true, Ordering::SeqCst);
+            task.wake.notify_one();
+        }
+        tasks.clear();
+        drop(tasks);
+        self.0
+            .drafts
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .clear();
+        self.0
+            .sessions
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .clear();
+        self.0
+            .folders
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .clear();
+    }
 }
 #[derive(Clone)]
 struct Session {
     root: String,
+    space_id: String,
     epoch: u64,
     history: Vec<Value>,
 }
@@ -98,6 +138,7 @@ pub(super) struct Task {
     id: String,
     store: SharedStore,
     epoch: u64,
+    space_id: String,
     cancel: Arc<Cancellation>,
     channel: Option<Channel<AiEvent>>,
 }
@@ -110,10 +151,7 @@ impl Task {
             .store
             .lock()
             .map_err(|_| "本地存储正在恢复，请稍后重试。")?;
-        if guard.epoch() != self.epoch {
-            return Err("数据目录已切换，本次 AI 上下文已失效，请重新操作。".into());
-        }
-        Ok(())
+        guard.check_context(&self.space_id, self.epoch)
     }
     fn phase(&self, phase: &str, detail: &str) -> Result<(), String> {
         self.check()?;
@@ -176,7 +214,7 @@ pub async fn ai_check(
     input: credentials::CheckInput,
 ) -> Result<String, String> {
     let state = store.inner().clone();
-    let (_, epoch, directory) = context(&state)?;
+    let (snapshot, epoch, directory) = context(&state)?;
     let (config, key) = credentials::for_check(&directory, input)?;
     let label = config.provider.label();
     let client = provider::Provider::new(config, key)?;
@@ -184,6 +222,7 @@ pub async fn ai_check(
         id: Uuid::new_v4().to_string(),
         store: state,
         epoch,
+        space_id: snapshot.space_id,
         cancel: Arc::new(Cancellation::default()),
         channel: None,
     };
@@ -218,7 +257,7 @@ pub async fn ai_check(
             return Err("连接已响应，但可用性检查未通过。".into());
         }
         task.check()?;
-        Ok(format!("{label} 连接、结构化输出与工具调用检查通过。"))
+        Ok(format!("{label} 连接正常"))
     };
     tokio::time::timeout(Duration::from_secs(90), work)
         .await
@@ -230,6 +269,8 @@ pub fn ai_start(
     store: tauri::State<'_, SharedStore>,
     request: AiRequest,
     on_event: Channel<AiEvent>,
+    space_id: String,
+    epoch: u64,
 ) -> Result<String, String> {
     if !["extract", "search", "answer"].contains(&request.action.as_str())
         || request.text.trim().is_empty()
@@ -246,7 +287,10 @@ pub fn ai_start(
         return Err("所选资料重复，请重新选择。".into());
     }
     let store = store.inner().clone();
-    let (snapshot, epoch, directory) = context(&store)?;
+    let (snapshot, active_epoch, directory) = context(&store)?;
+    if snapshot.space_id != space_id || active_epoch != epoch {
+        return Err("空间已切换，请重新操作。".into());
+    }
     let allowed: HashSet<_> = snapshot.resources.iter().map(|r| r.id.as_str()).collect();
     if request
         .resource_ids
@@ -260,6 +304,8 @@ pub fn ai_start(
     let id = Uuid::new_v4().to_string();
     let cancel = Arc::new(Cancellation::default());
     {
+        let guard = store.lock().map_err(|_| "本地存储暂时不可用。")?;
+        guard.check_context(&space_id, epoch)?;
         let mut tasks = host.0.tasks.lock().map_err(|_| "AI 任务状态暂时不可用。")?;
         if tasks.len() >= 2 {
             return Err("已有 AI 操作正在进行，请完成或取消后再试。".into());
@@ -270,6 +316,7 @@ pub fn ai_start(
         id: id.clone(),
         store,
         epoch,
+        space_id,
         cancel,
         channel: Some(on_event),
     };
@@ -287,7 +334,7 @@ pub fn ai_start(
             }
         };
         match result {
-            Ok(result) => {
+            Ok(result) if task.check().is_ok() => {
                 let _ = task.send(AiEvent {
                     task_id: task.id.clone(),
                     phase: "complete".into(),
@@ -296,6 +343,7 @@ pub fn ai_start(
                     error: None,
                 });
             }
+            Ok(_) => {}
             Err(error) => {
                 let cancelled = error == CANCELLED;
                 let _ = task.send(AiEvent {
@@ -324,19 +372,31 @@ async fn run(
 ) -> Result<AiResult, String> {
     task.phase("starting", "正在准备本次允许发送的文本与知识上下文。")?;
     if request.action == "extract" {
-        let records = task
-            .store
-            .lock()
-            .map_err(|_| "本地存储暂时不可用。")?
-            .ai_records()?;
-        let draft = extract::run(&client, task, &request, snapshot, task.epoch, &records).await?;
-        task.phase("validating", "正在核对整批身份、主题关系及资料引用。")?;
+        let records = {
+            let store = task.store.lock().map_err(|_| "本地存储暂时不可用。")?;
+            store.check_context(&task.space_id, task.epoch)?;
+            store.ai_records()?
+        };
+        let draft = extract::run(
+            &client,
+            task,
+            &request,
+            snapshot,
+            task.epoch,
+            &records,
+            &host.0.extraction,
+        )
+        .await?;
+        task.phase("validating", "正在整理知识…")?;
         {
             let store = task.store.lock().map_err(|_| "本地存储暂时不可用。")?;
+            store.check_context(&task.space_id, task.epoch)?;
             store.validate_candidate_points(&draft.batch.points)?;
         }
         task.check()?;
         let preview = draft.preview.clone();
+        let guard = task.store.lock().map_err(|_| "本地存储暂时不可用。")?;
+        guard.check_context(&task.space_id, task.epoch)?;
         let mut drafts = host.0.drafts.lock().map_err(|_| "AI 候选状态不可用。")?;
         if drafts.len() >= 8 {
             if let Some(id) = drafts.keys().next().cloned() {
@@ -351,8 +411,11 @@ async fn run(
         let session = sessions
             .get(id)
             .ok_or("AI 会话已失效，请新建会话后提问。")?;
-        if session.root != snapshot.root || session.epoch != task.epoch {
-            return Err("AI 会话所属目录已变更，请新建会话。".into());
+        if session.root != snapshot.root
+            || session.space_id != task.space_id
+            || session.epoch != task.epoch
+        {
+            return Err("空间已切换，请重新提问。".into());
         }
         session.history.clone()
     } else {
@@ -374,7 +437,7 @@ async fn run(
             .unwrap_or("")
             .to_lowercase();
         if ["md", "markdown", "txt"].contains(&extension.as_str()) {
-            let text = read_text(&task.store, id)?;
+            let text = read_text(&task.store, id, &task.space_id, task.epoch)?;
             total += text.len();
             if total > 64 * 1024 {
                 return Err("本次选择的文本资料超过64 KiB，请减少选择或先分段解析为知识。".into());
@@ -384,11 +447,11 @@ async fn run(
     }
     let result = retrieve::run(&client, task, &request, snapshot.clone(), texts, history).await?;
     task.check()?;
-    let current = task
-        .store
-        .lock()
-        .map_err(|_| "本地存储暂时不可用。")?
-        .snapshot()?;
+    let current = {
+        let store = task.store.lock().map_err(|_| "本地存储暂时不可用。")?;
+        store.check_context(&task.space_id, task.epoch)?;
+        store.snapshot()?
+    };
     validate_sources(&result, &snapshot, &current)?;
     match result {
         retrieve::Retrieved::Search {
@@ -409,6 +472,8 @@ async fn run(
             let id = request
                 .session_id
                 .unwrap_or_else(|| Uuid::new_v4().to_string());
+            let guard = task.store.lock().map_err(|_| "本地存储暂时不可用。")?;
+            guard.check_context(&task.space_id, task.epoch)?;
             let mut sessions = host.0.sessions.lock().map_err(|_| "AI 会话状态不可用。")?;
             if sessions.len() >= 8 && !sessions.contains_key(&id) {
                 if let Some(old) = sessions.keys().next().cloned() {
@@ -419,6 +484,7 @@ async fn run(
                 id.clone(),
                 Session {
                     root: snapshot.root,
+                    space_id: task.space_id.clone(),
                     epoch: task.epoch,
                     history,
                 },
@@ -482,6 +548,8 @@ pub fn ai_adopt(
     state: tauri::State<'_, AiHost>,
     store: tauri::State<'_, SharedStore>,
     input: AdoptInput,
+    space_id: String,
+    epoch: u64,
 ) -> Result<AiAdoptResult, String> {
     if input.operation_id.is_empty() || input.operation_id.len() > 120 || input.choices.len() > 250
     {
@@ -538,11 +606,9 @@ pub fn ai_adopt(
             );
         }
     }
-    let result = store.lock().map_err(|_| "本地存储暂时不可用。")?.adopt_ai(
-        draft.copy_batch(),
-        input.choices,
-        input.operation_id,
-    )?;
+    let mut guard = store.lock().map_err(|_| "本地存储暂时不可用。")?;
+    guard.check_context(&space_id, epoch)?;
+    let result = guard.adopt_ai(draft.copy_batch(), input.choices, input.operation_id)?;
     // Keep the server-held draft for idempotent retries after a lost IPC response.
     Ok(result)
 }
@@ -550,13 +616,16 @@ pub fn ai_adopt(
 pub fn ai_read_text(
     store: tauri::State<'_, SharedStore>,
     resource_id: String,
+    space_id: String,
+    epoch: u64,
 ) -> Result<String, String> {
-    read_text(store.inner(), &resource_id)
+    read_text(store.inner(), &resource_id, &space_id, epoch)
 }
 
-fn read_text(store: &SharedStore, id: &str) -> Result<String, String> {
+fn read_text(store: &SharedStore, id: &str, space_id: &str, epoch: u64) -> Result<String, String> {
     let (path, size) = {
         let guard = store.lock().map_err(|_| "资料暂时不可读。")?;
+        guard.check_context(space_id, epoch)?;
         let snapshot = guard.snapshot()?;
         let resource = snapshot
             .resources
@@ -593,5 +662,258 @@ fn read_text(store: &SharedStore, id: &str) -> Result<String, String> {
     }
     let text = String::from_utf8(bytes)
         .map_err(|_| "文本不是 UTF-8，请先在外部转换为 UTF-8 的 Markdown/TXT。")?;
+    store
+        .lock()
+        .map_err(|_| "资料暂时不可读。")?
+        .check_context(space_id, epoch)?;
     Ok(text.trim_start_matches('\u{feff}').to_owned())
+}
+
+#[tauri::command]
+pub async fn folder_scan(
+    state: tauri::State<'_, AiHost>,
+    store: tauri::State<'_, SharedStore>,
+    path: String,
+    request_id: String,
+    space_id: String,
+    epoch: u64,
+) -> Result<folder::Scan, String> {
+    let host = state.inner().clone();
+    let store = store.inner().clone();
+    if Uuid::parse_str(&request_id).is_err() {
+        return Err("扫描任务无效，请重新选择文件夹。".into());
+    }
+    let cancellation = {
+        let guard = store.lock().map_err(|_| "本地存储暂时不可用。")?;
+        guard.check_context(&space_id, epoch)?;
+        host.0
+            .scan_jobs
+            .lock()
+            .map_err(|_| "扫描状态暂时不可用。")?
+            .begin(request_id.clone())?
+    };
+    let cleanup_host = host.clone();
+    let cleanup_cancellation = cancellation.clone();
+    let scan = tauri::async_runtime::spawn_blocking(move || -> Result<folder::Scan, String> {
+        let check = || {
+            if cancellation.load(Ordering::SeqCst) {
+                return Err("扫描已取消。".into());
+            }
+            store
+                .lock()
+                .map_err(|_| "本地存储暂时不可用。")?
+                .check_context(&space_id, epoch)
+        };
+        let scan = folder::ScannedFolder::scan_checked(
+            std::path::Path::new(&path),
+            space_id.clone(),
+            epoch,
+            check,
+        )?;
+        let id = Uuid::new_v4().to_string();
+        let preview = scan.preview(id.clone());
+        let guard = store.lock().map_err(|_| "本地存储暂时不可用。")?;
+        guard.check_context(&space_id, epoch)?;
+        if cancellation.load(Ordering::SeqCst) {
+            return Err("扫描已取消。".into());
+        }
+        let mut folders = host.0.folders.lock().map_err(|_| "文件清单暂时不可用。")?;
+        // The operation UI owns one current folder; replacing it releases old capabilities.
+        folders.clear();
+        folders.insert(id, scan);
+        Ok(preview)
+    })
+    .await
+    .map_err(|_| "扫描未完成，请重试。".to_owned())
+    .and_then(|result| result);
+    cleanup_host
+        .0
+        .scan_jobs
+        .lock()
+        .map_err(|_| "扫描状态暂时不可用。")?
+        .finish(&request_id, &cleanup_cancellation);
+    scan
+}
+
+#[tauri::command]
+pub fn folder_cancel_scan(
+    state: tauri::State<'_, AiHost>,
+    store: tauri::State<'_, SharedStore>,
+    request_id: String,
+    space_id: String,
+    epoch: u64,
+) -> Result<(), String> {
+    if Uuid::parse_str(&request_id).is_err() {
+        return Err("扫描任务无效，请重新选择文件夹。".into());
+    }
+    let guard = store.lock().map_err(|_| "本地存储暂时不可用。")?;
+    guard.check_context(&space_id, epoch)?;
+    state
+        .0
+        .scan_jobs
+        .lock()
+        .map_err(|_| "扫描状态暂时不可用。")?
+        .cancel(&request_id);
+    Ok(())
+}
+
+fn scanned_folder(
+    host: &AiHost,
+    scan_id: &str,
+    space_id: &str,
+    epoch: u64,
+) -> Result<folder::ScannedFolder, String> {
+    let folders = host.0.folders.lock().map_err(|_| "文件清单暂时不可用。")?;
+    let folder = folders.get(scan_id).ok_or("文件清单已失效，请重新扫描。")?;
+    if folder.space_id != space_id || folder.epoch != epoch {
+        return Err("空间已切换，请重新扫描。".into());
+    }
+    Ok(folder.clone())
+}
+
+#[tauri::command]
+pub fn folder_read(
+    state: tauri::State<'_, AiHost>,
+    store: tauri::State<'_, SharedStore>,
+    scan_id: String,
+    file_id: String,
+    space_id: String,
+    epoch: u64,
+) -> Result<folder::ReadFile, String> {
+    store
+        .lock()
+        .map_err(|_| "本地存储暂时不可用。")?
+        .check_context(&space_id, epoch)?;
+    let folder = scanned_folder(state.inner(), &scan_id, &space_id, epoch)?;
+    let result = folder.read(&file_id)?;
+    store
+        .lock()
+        .map_err(|_| "本地存储暂时不可用。")?
+        .check_context(&space_id, epoch)?;
+    Ok(result)
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PreparedFile {
+    text: String,
+    source_name: String,
+    source_resource_id: String,
+    snapshot: Snapshot,
+}
+
+fn prepare_folder_file(
+    store: &mut crate::store::Store,
+    file: folder::ReadFile,
+    space_id: &str,
+    epoch: u64,
+) -> Result<PreparedFile, String> {
+    use sha2::{Digest, Sha256};
+    use std::io::Write;
+    store.check_context(space_id, epoch)?;
+    let mut hash = Sha256::new();
+    hash.update(space_id.as_bytes());
+    hash.update([0]);
+    hash.update(file.source_name.as_bytes());
+    hash.update([0]);
+    hash.update(&file.bytes);
+    let digest = hash.finalize();
+    let mut bytes = [0; 16];
+    bytes.copy_from_slice(&digest[..16]);
+    bytes[6] = (bytes[6] & 0x0f) | 0x80;
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+    let id = Uuid::from_bytes(bytes).to_string();
+    let destination = store
+        .files_dir()?
+        .join(crate::store::managed_name(&id, &file.filename));
+    match std::fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(&destination)
+    {
+        Ok(mut copy) => {
+            if copy
+                .write_all(&file.bytes)
+                .and_then(|_| copy.sync_all())
+                .is_err()
+            {
+                drop(copy);
+                let _ = std::fs::remove_file(&destination);
+                return Err("无法保存文件副本，请检查空间和权限后重试。".into());
+            }
+        }
+        Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => {
+            if std::fs::canonicalize(&destination).ok().as_ref() != Some(&destination)
+                || !std::fs::metadata(&destination).is_ok_and(|metadata| {
+                    metadata.is_file() && metadata.len() == file.bytes.len() as u64
+                })
+                || std::fs::read(&destination).ok().as_deref() != Some(file.bytes.as_slice())
+            {
+                return Err("已有文件副本无法核对，请检查资料后重试。".into());
+            }
+        }
+        Err(_) => return Err("无法保存文件副本，请检查空间和权限后重试。".into()),
+    }
+    let current = store.snapshot()?;
+    let snapshot = if current.resources.iter().any(|resource| resource.id == id) {
+        store.resolve_file(&id)?;
+        current
+    } else {
+        let markdown = std::path::Path::new(&file.filename)
+            .extension()
+            .and_then(|s| s.to_str())
+            .is_some_and(|s| s.eq_ignore_ascii_case("md"));
+        store.add_copied_file(
+            crate::store::CopiedFile {
+                id: id.clone(),
+                filename: file.filename,
+                title: file.source_name.clone(),
+                mime: if markdown {
+                    "text/markdown"
+                } else {
+                    "text/plain"
+                }
+                .into(),
+                kind: if markdown { "markdown" } else { "text" }.into(),
+                size: file.bytes.len() as u64,
+            },
+            vec![],
+        )?
+    };
+    Ok(PreparedFile {
+        text: file.text,
+        source_name: file.source_name,
+        source_resource_id: id,
+        snapshot,
+    })
+}
+
+#[tauri::command]
+pub fn folder_prepare(
+    state: tauri::State<'_, AiHost>,
+    store: tauri::State<'_, SharedStore>,
+    scan_id: String,
+    file_id: String,
+    space_id: String,
+    epoch: u64,
+) -> Result<PreparedFile, String> {
+    store
+        .lock()
+        .map_err(|_| "本地存储暂时不可用。")?
+        .check_context(&space_id, epoch)?;
+    let folder = scanned_folder(state.inner(), &scan_id, &space_id, epoch)?;
+    let file = folder.read(&file_id)?;
+    let mut guard = store.lock().map_err(|_| "本地存储暂时不可用。")?;
+    prepare_folder_file(&mut guard, file, &space_id, epoch)
+}
+
+#[tauri::command]
+pub fn folder_discard(state: tauri::State<'_, AiHost>, scan_id: String) -> Result<(), String> {
+    state
+        .0
+        .folders
+        .lock()
+        .map_err(|_| "文件清单暂时不可用。")?
+        .remove(&scan_id);
+    Ok(())
 }

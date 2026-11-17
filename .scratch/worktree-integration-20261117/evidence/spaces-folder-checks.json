@@ -1,0 +1,89 @@
+[
+  {
+    "name": "legacy single graph migrates with identities, relationships, positions, colors and readable managed files",
+    "verdict": "PASS",
+    "detail": [
+      {
+        "color": "#123456",
+        "id": "00000000-0000-4000-8000-000000000001",
+        "position": "translate(-160 40)"
+      },
+      {
+        "color": "#a14f32",
+        "id": "00000000-0000-4000-8000-000000000002",
+        "position": "translate(180 90)"
+      }
+    ]
+  },
+  {
+    "name": "creates two independent spaces with the same knowledge name and different colors and files",
+    "verdict": "PASS"
+  },
+  {
+    "name": "long names, collapsed navigation and dirty switch decisions remain usable in the integrated shell",
+    "verdict": "PASS",
+    "detail": {
+      "longName": "研究甲：容器与分布式系统的学习资料容器与分布式系统的学习资料容器与分布式系统的学习资料容器与分布式系统的学习资料容器与分布式系统的学习资料",
+      "bounds": {
+        "bodyWidth": 1000,
+        "labelContentWidth": 966,
+        "labelWidth": 80,
+        "left": 12,
+        "right": 171.33334350585938,
+        "width": 1000
+      },
+      "dialogBounds": {
+        "left": 190,
+        "right": 810,
+        "selected": "研究甲：容器与分布式系统的学习资料容器与分布式系统的学习资料容器与分布式系统的学习资料容器与分布式系统的学习资料容器与分布式系统的学习资料",
+        "width": 1000
+      },
+      "cancelPreservedInput": true,
+      "confirmClearedInput": true
+    }
+  },
+  {
+    "name": "model configuration is application-wide while personal AI context remains in the selected space",
+    "verdict": "PASS"
+  },
+  {
+    "name": "the same input is adoptable once in each space and duplicate retries preserve saved knowledge",
+    "verdict": "PASS"
+  },
+  {
+    "name": "switching away from active extraction cancels it and clears drafts and pending input",
+    "verdict": "PASS"
+  },
+  {
+    "name": "native folder selection scans every nested Markdown/TXT path and keeps individual outcomes",
+    "verdict": "PASS",
+    "detail": {
+      "paths": [
+        "bad.md",
+        "empty.txt",
+        "large.TXT",
+        "nested/notes.TXT",
+        "other/notes.MD",
+        "root.md"
+      ],
+      "folderBounds": {
+        "bodyWidth": 1000,
+        "left": 230.6666717529297,
+        "right": 948.6666717529297,
+        "width": 1000,
+        "workspaceContentWidth": 778,
+        "workspaceWidth": 778
+      },
+      "editedKnowledgeDescription": "人工核对修正：在容器中打开终端前，先确认容器处于运行状态。",
+      "originalSourceOpened": true
+    }
+  },
+  {
+    "name": "empty-folder and cancelled batch states stay actionable and retain saved work",
+    "verdict": "PASS"
+  },
+  {
+    "name": "recent space, all names, independent knowledge, colors and resources survive desktop restart",
+    "verdict": "PASS"
+  }
+]

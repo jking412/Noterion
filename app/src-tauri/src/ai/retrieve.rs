@@ -332,7 +332,7 @@ impl EvidenceIndex {
             .strip_prefix('p')
             .and_then(|s| s.parse::<usize>().ok())
             .and_then(|n| n.checked_sub(1))
-            .ok_or("AI 引用了非法知识句柄。")?;
+            .ok_or("模型返回的知识无效，请重试。")?;
         if !self.seen.contains(&index) {
             return Err("AI 引用了本次未检索到的知识。".into());
         }
@@ -406,7 +406,7 @@ impl EvidenceIndex {
     }
     fn rank(&self, content: &str) -> Result<Retrieved, String> {
         let ranked: Ranked =
-            serde_json::from_str(content).map_err(|_| "AI 搜索输出不是完整约定JSON。")?;
+            serde_json::from_str(content).map_err(|_| "模型返回的搜索结果无法使用，请重试。")?;
         if ranked.hits.len() > 30 || ranked.note.len() > 1500 {
             return Err("AI 搜索结果过长。".into());
         }
@@ -444,7 +444,7 @@ impl EvidenceIndex {
     }
     fn answer(&self, content: &str, allow_supplement: bool) -> Result<Retrieved, String> {
         let answer: Answer =
-            serde_json::from_str(content).map_err(|_| "AI 解答不是完整约定JSON。")?;
+            serde_json::from_str(content).map_err(|_| "模型返回的回答无法使用，请重试。")?;
         if answer.blocks.len() > 30 || answer.note.len() > 1500 || answer.note.contains("](") {
             return Err("AI 回答或来源格式无效。".into());
         }

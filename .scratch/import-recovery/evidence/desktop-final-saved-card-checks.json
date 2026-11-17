@@ -1,0 +1,10 @@
+[
+  {
+    "name": "recovered candidates show the saved knowledge card after explicit adoption",
+    "verdict": "PASS",
+    "detail": {
+      "savedCardInViewport": true,
+      "explicitAdoption": true
+    }
+  }
+]

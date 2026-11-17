@@ -3,6 +3,7 @@ import { createRenderer } from 'vue'
 import type { App } from 'vue'
 import type { AiEvent, AiRequest } from '../domain/ai'
 import { useAiTasks } from './useAiTasks'
+import { setSpaceContext } from '../desktop'
 
 const mounted: App[] = []
 
@@ -27,7 +28,7 @@ function deferred<T>() {
 }
 
 function nativeBoundary(options: { cancelResponse?: Promise<void>; startResponse?: (id: string) => Promise<string> } = {}) {
-  const requests: { channel: { onmessage: (event: AiEvent) => void }; id: string }[] = []
+  const requests: { channel: { onmessage: (event: AiEvent) => void }; id: string; input: AiRequest }[] = []
   const cancellations: string[] = []
   class Channel<T> { onmessage = (_event: T) => {} }
   vi.stubGlobal('window', { __TAURI__: { core: {
@@ -36,7 +37,7 @@ function nativeBoundary(options: { cancelResponse?: Promise<void>; startResponse
       if (command === 'ai_cancel') { cancellations.push(String(args.taskId)); return options.cancelResponse ?? Promise.resolve() }
       if (command !== 'ai_start') throw new Error(`Unexpected command: ${command}`)
       const id = `task-${requests.length + 1}`
-      requests.push({ channel: args.onEvent as typeof requests[number]['channel'], id })
+      requests.push({ channel: args.onEvent as typeof requests[number]['channel'], id, input: args.request as AiRequest })
       return options.startResponse?.(id) ?? Promise.resolve(id)
     },
   } } })
@@ -48,9 +49,33 @@ const question: AiRequest = { action: 'search', text: '进入容器终端', reso
 afterEach(() => {
   for (const app of mounted.splice(0)) app.unmount()
   vi.unstubAllGlobals()
+  setSpaceContext({ spaceId: '', epoch: 0 })
 })
 
 describe('AI task interaction state', () => {
+  it('discards an old space result even when the UI has switched back to that space', async () => {
+    setSpaceContext({ spaceId: 'a', epoch: 1 })
+    const native = nativeBoundary()
+    const tasks = mountTasks()
+    await tasks.start(question)
+    setSpaceContext({ spaceId: 'b', epoch: 2 })
+    setSpaceContext({ spaceId: 'a', epoch: 3 })
+    const request = native.requests[0]!
+    request.channel.onmessage({ taskId: request.id, phase: 'complete', result: { kind: 'search', hits: [], sources: [], note: '旧空间结果' } })
+    expect(tasks.result.value).toBeNull()
+  })
+
+  it('keeps the submitted learning text and source identity when the caller edits its input', async () => {
+    const native = nativeBoundary()
+    const tasks = mountTasks()
+    const input: AiRequest = { action: 'extract', text: 'Docker 用于运行容器。', resourceIds: ['notes'], allowSupplement: false }
+    await tasks.start(input)
+    input.text = '修改后的学习笔记'
+    input.resourceIds.push('other-notes')
+    expect(native.requests[0]!.input).toEqual({ action: 'extract', text: 'Docker 用于运行容器。', resourceIds: ['notes'], allowSupplement: false })
+    expect(tasks.request.value).toEqual(native.requests[0]!.input)
+  })
+
   it('keeps the running task service label when another connection is enabled', async () => {
     const native = nativeBoundary()
     const tasks = mountTasks()
@@ -127,6 +152,28 @@ describe('AI task interaction state', () => {
     expect(tasks.busy.value).toBe(false)
     expect(tasks.phaseLabel.value).toBe('已取消')
     expect(tasks.result.value).toBeNull()
+  })
+
+  it('discards a previous context draft and ignores its late extraction events after reset', async () => {
+    const native = nativeBoundary()
+    const tasks = mountTasks()
+    await tasks.start({ ...question, action: 'extract', text: '原目录的笔记' })
+    const previous = native.requests[0]!
+    const oldDraft: AiEvent = { taskId: previous.id, phase: 'complete', result: { kind: 'extract', draft: { id: 'old-draft', points: [], sourceName: '原目录的笔记', sourceResourceIds: [], warnings: [] } } }
+    previous.channel.onmessage(oldDraft)
+    expect(tasks.result.value?.kind).toBe('extract')
+    tasks.reset()
+    expect(tasks.request.value).toBeNull()
+    expect(tasks.result.value).toBeNull()
+    await tasks.start({ ...question, action: 'extract', text: '新目录的笔记' })
+    previous.channel.onmessage(oldDraft)
+    previous.channel.onmessage({ taskId: previous.id, phase: 'failed', error: '旧目录错误' })
+    expect(tasks.busy.value).toBe(true)
+    expect(tasks.result.value).toBeNull()
+    expect(tasks.error.value).toBe('')
+    const current = native.requests[1]!
+    current.channel.onmessage({ ...oldDraft, taskId: current.id, result: { kind: 'extract', draft: { id: 'new-draft', points: [], sourceName: '新目录的笔记', sourceResourceIds: [], warnings: [] } } })
+    expect(tasks.result.value?.kind === 'extract' && tasks.result.value.draft.id).toBe('new-draft')
   })
 
   it('reports a native cancellation failure without claiming cancellation succeeded', async () => {

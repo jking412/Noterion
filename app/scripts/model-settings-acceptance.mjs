@@ -13,9 +13,9 @@ import { startModelFixture, MODEL_FIXTURE_KEYS, MODEL_FIXTURE_TEXT } from './mod
 const app = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'), repo = path.dirname(app);
 const args = Object.fromEntries(process.argv.slice(2).map(argument => { const index = argument.indexOf('='); assert.ok(index > 2, 'Use --name=value'); return [argument.slice(2, index), argument.slice(index + 1)]; }));
 assert.ok(Object.keys(args).every(key => ['run', 'exe', 'driver', 'port', 'scenario'].includes(key)), 'Unknown acceptance option');
-assert.match(args.run ?? '', /^issue-31-[a-z0-9-]+$/);
+assert.match(args.run ?? '', /^issue-(31|33)-[a-z0-9-]+$/);
 const scenario = args.scenario ?? 'contracts';
-assert.ok(['contracts', 'release-smoke'].includes(scenario));
+assert.ok(['contracts', 'release-smoke', 'task-return'].includes(scenario));
 assert.equal(process.platform, 'win32', 'Desktop acceptance requires Windows');
 const out = path.join(repo, '.scratch/model-settings/runs', args.run), config = path.join(out, 'config');
 const exe = path.resolve(args.exe ?? path.join(app, 'dist-desktop/noterion.exe'));
@@ -83,7 +83,7 @@ async function launch() {
   await until(async () => (await command('GET', '/status')).ready, 'EdgeDriver ready');
   const result = await command('POST', '/session', { capabilities: { alwaysMatch: { browserName: 'webview2', 'ms:edgeOptions': { binary: exe, webviewOptions: { userDataFolder: profile } } } } });
   session = result.sessionId;
-  await until(() => observe('return location.href === "http://tauri.localhost/" && document.visibilityState === "visible";'), 'visible embedded desktop');
+  await until(() => observe('return location.origin === "http://tauri.localhost" && location.pathname === "/" && document.visibilityState === "visible";'), 'visible embedded desktop');
   await until(() => enabled('[data-testid="create-point"]'), 'formal local data loaded');
 }
 async function stop() {
@@ -115,7 +115,11 @@ async function configure(provider, baseUrl, model, secret = MODEL_FIXTURE_KEYS[p
   assert.equal(await value('#model-api-key'), '', 'Key clears after saving');
   if (activate) await expectText('[data-testid="active-model"]', labels[provider]);
 }
-async function localSearch(query) { await clickText('知识图谱'); await clickText('片段搜索'); await fill('[data-testid="search-input"]', query); await pause(150); }
+async function showSearch() {
+  await clickText('知识图谱');
+  if (await observe('return document.querySelector("[aria-controls=knowledge-search]")?.getAttribute("aria-expanded") === "false";')) await click('[aria-controls="knowledge-search"]');
+}
+async function localSearch(query) { await showSearch(); await clickText('片段搜索'); await fill('[data-testid="search-input"]', query); await pause(150); }
 async function selectKnowledge(name) {
   await localSearch(name);
   await click(`//ul[contains(@class,'result-list')]//button[contains(@class,'result-item')][.//*[contains(@class,'result-name') and normalize-space(.)=${literal(name)}]]`, 'xpath');
@@ -123,7 +127,7 @@ async function selectKnowledge(name) {
 }
 async function extract(source) {
   await clickText('知识导入');
-  if ((await all('[data-testid="ai-adopted"]')).length) await clickText('整理新的文本');
+  if ((await all('[data-testid="ai-adopted"]')).length) await clickText('继续导入');
   await fill('[data-testid="ai-source"]', source); await click('[data-testid="ai-extract"]');
 }
 async function candidates() {
@@ -133,7 +137,7 @@ async function candidates() {
 }
 const selectCandidate = name => click(`//nav[@aria-label='候选知识点']//button[.//span[starts-with(normalize-space(.),${literal(name)})]]`, 'xpath');
 async function startQuestion(question, answer) {
-  await clickText('知识图谱'); await click('[data-testid="ai-search-mode"]'); await clickText(answer ? '回答问题' : '查找知识');
+  await showSearch(); await click('[data-testid="ai-search-mode"]'); await clickText(answer ? '回答问题' : '查找知识');
   await fill('[data-testid="ai-question"]', question); await click('[data-testid="ai-submit"]');
 }
 async function answerResult() {
@@ -205,7 +209,7 @@ async function settingsContracts() {
     await openSettings(provider);
     const url = fixture.baseUrl(provider), model = `${provider}/fixture:v31`;
     await fill('#model-base-url', url); await fill('#model-name', model); await fill('#model-api-key', MODEL_FIXTURE_KEYS[provider]); credentialTarget(provider, url);
-    const before = fixture.requests.length; await click('[data-testid="ai-check"]'); await expectText('[data-testid="model-check-success"]', '检查通过', 30000);
+    const before = fixture.requests.length; await click('[data-testid="ai-check"]'); await expectText('[data-testid="model-check-success"]', '连接正常', 30000);
     const checked = fixture.requests.slice(before); assert.ok(checked.length >= 2 && checked.every(request => request.provider === provider && request.model === model && request.stage === 'connection'));
     assert.ok(checked.some(request => request.toolResults > 0), 'Connection check verifies an actual tool result');
     await fill('#model-name', `${model}-edited`); assert.equal((await all('[data-testid="model-check-success"]')).length, 0, 'Old check success cleared immediately');
@@ -221,19 +225,19 @@ async function settingsContracts() {
   });
   await check('editing target does not reuse the saved credential, while a newly supplied credential can check that unsaved target', async () => {
     await openSettings('openai'); const target = fixture.baseUrl('openai', 'model-missing'); const before = fixture.requests.length;
-    await fill('#model-base-url', target); await expectText('[data-testid="model-key-state"]', '不会沿用');
+    await fill('#model-base-url', target); await expectText('[data-testid="model-key-state"]', '请填写新地址的密钥');
     assert.equal(await enabled('[data-testid="ai-check"]'), false); assert.equal(await enabled('[data-testid="model-activate"]'), false);
     await click('[data-testid="ai-settings-save"]'); await expectText('[data-testid="model-save-success"]', '配置已保存');
-    await expectText('[data-testid="model-key-state"]', '尚未保存密钥'); assert.equal(fixture.requests.length, before);
+    await expectText('[data-testid="model-key-state"]', '未配置密钥'); assert.equal(fixture.requests.length, before);
     await fill('#model-api-key', MODEL_FIXTURE_KEYS.openai); await click('[data-testid="ai-check"]'); await expectText('[data-testid="model-check-error"]', '模型', 15000);
     assert.ok(fixture.requests.slice(before).every(request => request.provider === 'openai' && request.mode === 'model-missing'));
     await configure('openai', fixture.baseUrl('openai'), 'openai/fixture:v31-edited');
     return { oldKeyNotSent: true, newTargetCheckedWithExplicitInput: true };
   });
   await check('replacing and removing a Windows credential reports accurate state and restores independent usability', async () => {
-    await openSettings('anthropic'); await click('[data-testid="model-remove-key"]'); await expectText('[data-testid="model-save-success"]', '已移除'); await expectText('[data-testid="model-key-state"]', '尚未保存密钥');
+    await openSettings('anthropic'); await click('[data-testid="model-remove-key"]'); await expectText('[data-testid="model-save-success"]', '已移除'); await expectText('[data-testid="model-key-state"]', '未配置密钥');
     assert.equal(await enabled('[data-testid="ai-check"]'), false);
-    await configure('anthropic', fixture.baseUrl('anthropic'), 'anthropic/fixture:v31-edited'); await click('[data-testid="ai-check"]'); await expectText('[data-testid="model-check-success"]', '检查通过');
+    await configure('anthropic', fixture.baseUrl('anthropic'), 'anthropic/fixture:v31-edited'); await click('[data-testid="ai-check"]'); await expectText('[data-testid="model-check-success"]', '连接正常');
     return { removedFromCredentialManager: true, replacementUsable: true };
   });
   await check('an edited form ignores an older in-flight connection check result', async () => {
@@ -257,8 +261,35 @@ async function settingsContracts() {
       await fill('#model-api-key', 'synthetic-replacement-must-rollback-31'); await click('[data-testid="ai-settings-save"]'); await expectText('[data-testid="model-save-error"]', '原配置与凭据已保留');
       assert.equal(await value('#model-api-key'), ''); assert.equal(await fs.readFile(configPath, 'utf8'), original);
     } finally { await fs.writeFile(finish, 'finish'); await until(() => locker.exitCode !== null, 'config file lock released'); }
-    await click('[data-testid="ai-check"]'); await expectText('[data-testid="model-check-success"]', '检查通过');
+    await click('[data-testid="ai-check"]'); await expectText('[data-testid="model-check-success"]', '连接正常');
     return { atomicSaveFailedHonestly: true, originalJsonRetained: true, originalCredentialUsable: true };
+  });
+}
+
+async function connectionFeedbackContracts() {
+  for (const provider of providers) await check(`${provider}: checking, success, and authentication failure are visible and recoverable`, async () => {
+    await openSettings(provider);
+    await fill('#model-base-url', fixture.baseUrl(provider, 'gated-check'));
+    await fill('#model-name', `${provider}/feedback:v33`);
+    await fill('#model-api-key', MODEL_FIXTURE_KEYS[provider]);
+    const before = fixture.requests.length;
+    await click('[data-testid="ai-check"]');
+    await until(() => fixture.requests.slice(before).some(request => request.provider === provider && request.mode === 'gated-check'), 'connection request waits for response');
+    await expectText('.model-checking', '正在检查连接');
+    assert.equal(await enabled('[data-testid="ai-settings-save"]'), false);
+    assert.equal(await enabled('[data-testid="model-activate"]'), false);
+    await capture(`06-checking-${provider}`);
+    fixture.release();
+    await expectText('[data-testid="model-check-success"]', '连接正常', 30000);
+    await capture(`07-check-success-${provider}`);
+
+    await fill('#model-base-url', fixture.baseUrl(provider, 'unauthorized'));
+    await click('[data-testid="ai-check"]');
+    await expectText('[data-testid="model-check-error"]', '鉴权', 15000);
+    assert.equal((await all('[data-testid="model-check-success"]')).length, 0);
+    await capture(`08-check-failure-${provider}`);
+    await configure(provider, fixture.baseUrl(provider), `${provider}/fixture:v31-edited`);
+    return { checkingVisible: true, successVisible: true, authenticationFailureVisible: true, savedConnectionRestored: true };
   });
 }
 
@@ -307,7 +338,7 @@ async function failureContracts() {
     const before = fixture.requests.length; await startQuestion('运行中切换设置时怎样进入容器终端', true);
     await until(() => fixture.requests.slice(before).some(request => request.mode === 'gated' && request.stage === 'retrieve'), 'old task waits at native tool stage');
     await configure('anthropic', fixture.baseUrl('anthropic'), 'anthropic/next-task:v31');
-    await expectText('[data-testid="model-settings-page"]', '启动时的连接'); fixture.release();
+    await expectText('[data-testid="active-model"]', 'Anthropic 兼容'); fixture.release();
     await clickText('知识图谱'); await answerResult(); await expectText('[data-testid="ai-output"]', 'docker exec');
     const ongoing = fixture.requests.slice(before); assert.ok(ongoing.length >= 3 && ongoing.every(request => request.provider === 'openai' && request.mode === 'gated' && request.model === 'openai/original-task:v31'));
     const next = fixture.requests.length; await startQuestion('新的任务用当前连接查找容器终端', false); await answerResult();
@@ -350,10 +381,27 @@ async function releaseSmoke() {
   checks.push({ name: 'release connection selection and credentials persist without paid network calls', verdict: 'PASS' });
 }
 
+async function hiddenTaskReturn() {
+  await configure('openai', fixture.baseUrl('openai', 'gated'), 'openai/return-task:v33');
+  await check('view task reopens a deliberately collapsed search panel and permits cancellation', async () => {
+    await startQuestion('怎样找回我正在处理的问题？', true);
+    await until(() => fixture.requests.some(request => request.mode === 'gated'), 'task is in flight');
+    await click('[aria-controls="knowledge-search"]');
+    assert.equal(await observe('return document.querySelector("[aria-controls=knowledge-search]").getAttribute("aria-expanded");'), 'false');
+    await clickText('知识导入'); await click('[data-testid="ai-view-task"]');
+    await until(() => observe('return location.hash === "#graph";'), 'returned to graph');
+    assert.equal(await observe('return document.querySelector("[aria-controls=knowledge-search]").getAttribute("aria-expanded");'), 'true', 'View task must reopen its panel');
+    assert.equal(await wd('GET', `/element/${await find('[data-testid="ai-cancel"]')}/displayed`), true);
+    await capture('09-returned-busy-task'); await click('[data-testid="ai-cancel"]'); fixture.release();
+    await expectText('[aria-label="AI 知识助手"]', '已取消');
+  });
+}
+
 try {
-  if (scenario === 'contracts') fixture = await startModelFixture();
+  if (scenario !== 'release-smoke') fixture = await startModelFixture();
   await launch(); await migration();
-  if (scenario === 'contracts') { await settingsContracts(); await businessContracts(); await failureContracts(); assert.ok(fixture.requests.length > 25); assert.equal(fixture.requests.flatMap(request => request.violations).length, 0, 'All native requests satisfy protocol contracts'); }
+  if (scenario === 'contracts') { await settingsContracts(); await connectionFeedbackContracts(); await businessContracts(); await failureContracts(); assert.ok(fixture.requests.length > 25); assert.equal(fixture.requests.flatMap(request => request.violations).length, 0, 'All native requests satisfy protocol contracts'); }
+  else if (scenario === 'task-return') await hiddenTaskReturn();
   else await releaseSmoke();
   await check('pre-existing knowledge and managed resources remain available after all settings operations', async () => { await selectKnowledge('迁移前的知识'); await expectText('[data-testid="knowledge-details"]', '升级必须保留'); await clickText('资料库'); await expectText('.library-list', '迁移前的资料'); });
   passed = true;
@@ -363,10 +411,10 @@ try {
 } finally {
   let desktopCleanup = true;
   try { await stop(); } catch { desktopCleanup = false; }
-  if (fixture) { await save('fixture-requests.json', fixture.requests); await fixture.close(); }
+  if (fixture) { fixture.release(); await save('fixture-requests.json', fixture.requests); await fixture.close(); }
   let credentialCleanup = true;
   for (const target of credentialTargets) try { credential('delete', target); } catch { credentialCleanup = false; }
   await save('checks.json', checks);
-  await save('result.json', { run: args.run, scenario, passed: passed && credentialCleanup && desktopCleanup, assertionCount: checks.length, executable: exe, executableSha256, driverSha256, launches, credentialCleanup, desktopCleanup, providerTesting: scenario === 'contracts' ? 'Local deterministic HTTP/SSE fixtures through the actual Windows desktop; not live official API tests.' : 'Release UI/storage/HTTPS policy only; no external API calls.', liveApiCoverage: { deepseek: false, openai: false, anthropic: false } });
+  await save('result.json', { run: args.run, scenario, passed: passed && credentialCleanup && desktopCleanup, assertionCount: checks.length, executable: exe, executableSha256, driverSha256, launches, credentialCleanup, desktopCleanup, providerTesting: scenario !== 'release-smoke' ? 'Local deterministic HTTP/SSE fixtures through the actual Windows desktop; not live official API tests.' : 'Release UI/storage/HTTPS policy only; no external API calls.', liveApiCoverage: { deepseek: false, openai: false, anthropic: false } });
   process.exitCode = passed && credentialCleanup && desktopCleanup ? 0 : 1;
 }

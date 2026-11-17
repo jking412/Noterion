@@ -4,7 +4,7 @@ import type { ResourceItem } from '../domain/types'
 import { formatBytes, resourceLabel } from '../domain/resources'
 import { errorText, invoke } from '../desktop'
 import ModalShell from './ModalShell.vue'
-const props = defineProps<{ resource: ResourceItem }>()
+const props = defineProps<{ resource: ResourceItem; spaceId: string; epoch: number }>()
 const emit = defineEmits<{ close: []; import: [resource: ResourceItem] }>()
 const mediaUrl = ref('')
 const error = ref('')
@@ -15,6 +15,7 @@ const time = ref(0)
 const duration = ref(0)
 const playing = ref(false)
 const text = ref('')
+const context = { spaceId: props.spaceId, epoch: props.epoch }
 let disposed = false
 let decodingTimer: ReturnType<typeof setTimeout> | undefined
 const textKind = computed(() => ['text','markdown','html'].includes(props.resource.kind))
@@ -22,7 +23,7 @@ async function open() {
   if (props.resource.kind === 'link') return
   loading.value = true
   try {
-    const media = await invoke<{ url: string; mime: string; size: number }>('media_open', { id: props.resource.id })
+    const media = await invoke<{ url: string; mime: string; size: number }>('media_open', { id: props.resource.id, ...context })
     if (disposed) { await invoke('media_close', { url: media.url }); return }
     mediaUrl.value = media.url
     if (textKind.value) {
@@ -34,7 +35,7 @@ async function open() {
   } catch (e) { error.value = errorText(e) }
   finally { if (!disposed) loading.value = false }
 }
-async function external() { externalStatus.value = ''; try { await invoke('resource_external', { id: props.resource.id }); externalStatus.value = '已请求系统应用打开。' } catch (e) { error.value = errorText(e) } }
+async function external() { externalStatus.value = ''; try { await invoke('resource_external', { id: props.resource.id, ...context }); externalStatus.value = '已请求系统应用打开。' } catch (e) { error.value = errorText(e) } }
 function videoFailure() { error.value = '当前视频无法读取或解码。可使用系统应用打开资料。'; playing.value = false }
 function checkVideo() {
   clearTimeout(decodingTimer)
